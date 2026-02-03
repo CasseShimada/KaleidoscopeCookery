@@ -1,54 +1,50 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe;
 
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.RecipeMatcher;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.RecipeMatcher;
 
 import java.util.List;
+import java.util.Optional;
 
-public record PotRecipe(ResourceLocation id, int time, int stirFryCount, Ingredient carrier,
-                        NonNullList<Ingredient> ingredients, ItemStack result) implements BaseRecipe<SimpleContainer> {
-    public PotRecipe(ResourceLocation id, int time, int stirFryCount, Ingredient carrier,
+public record PotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier,
+                        NonNullList<Ingredient> ingredients, ItemStack result) implements BaseRecipe<SimpleInput> {
+    public PotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier,
                      List<Ingredient> ingredients, ItemStack result) {
-        this(id, time, stirFryCount, carrier, NonNullList.of(Ingredient.EMPTY,
-                BaseRecipe.fillInputs(ingredients)), result);
+        this(time, stirFryCount, carrier, toNonNullList(ingredients), result);
     }
 
     @Override
-    public boolean matches(SimpleContainer container, Level level) {
-        return RecipeMatcher.findMatches(container.items, ingredients) != null;
+    public boolean matches(SimpleInput simpleInput, Level level) {
+        List<ItemStack> inputs = simpleInput.getInputs().stream()
+                .filter(stack -> !stack.isEmpty())
+                .toList();
+        return RecipeMatcher.findMatches(inputs, ingredients) != null;
     }
 
-    @Override
     public NonNullList<Ingredient> getIngredients() {
         return ingredients;
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
-        return this.result;
+    public RecipeSerializer<PotRecipe> getSerializer() {
+        return ModRecipes.POT_SERIALIZER;
     }
 
     @Override
-    public ResourceLocation getId() {
-        return this.id;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ModRecipes.POT_SERIALIZER.get();
-    }
-
-    @Override
-    public RecipeType<?> getType() {
+    public RecipeType<PotRecipe> getType() {
         return ModRecipes.POT_RECIPE;
+    }
+
+    private static NonNullList<Ingredient> toNonNullList(List<Ingredient> ingredients) {
+        NonNullList<Ingredient> list = NonNullList.create();
+        list.addAll(ingredients);
+        return list;
     }
 }

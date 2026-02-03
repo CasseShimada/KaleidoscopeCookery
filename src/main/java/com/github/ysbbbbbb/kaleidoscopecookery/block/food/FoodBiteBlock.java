@@ -1,28 +1,29 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.block.food;
 
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModFoods;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteAnimateTicks;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
+import net.minecraft.world.item.consume_effects.ConsumeEffect;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.PathComputationType;
@@ -32,37 +33,32 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class FoodBiteBlock extends FoodBlock {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    private final FoodProperties foodProperties;
+    @Nullable
+    private final Consumable consumable;
+    private final IntegerProperty bites;
+    private final int maxBites;
+    private FoodBiteAnimateTicks.AnimateTick animateTick = null;
+    private VoxelShape aabb = FoodBlock.AABB;
 
-    protected final FoodProperties foodProperties;
-    protected final IntegerProperty bites;
-    protected final int maxBites;
-    protected final @Nullable FoodBiteAnimateTicks.AnimateTick animateTick;
-
-    protected VoxelShape aabb = FoodBlock.AABB;
-
-    public FoodBiteBlock(FoodProperties foodProperties, int maxBites,
-                         @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
-        super();
+    public FoodBiteBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties, int maxBites,
+                         FoodBiteAnimateTicks.AnimateTick animateTick) {
+        super(properties);
         this.maxBites = maxBites;
         this.foodProperties = foodProperties;
+        this.consumable = ModFoods.getConsumable(foodProperties);
         this.bites = IntegerProperty.create("bites", 0, maxBites);
-        this.animateTick = animateTick;
-
         // 重置一遍 BlockState，因为在父类 FoodBlock 中已经创建了一个默认的 BlockStateDefinition
         StateDefinition.Builder<Block, BlockState> builder = new StateDefinition.Builder<>(this);
         this.createBitesBlockStateDefinition(builder);
         this.stateDefinition = builder.create(Block::defaultBlockState, BlockState::new);
         this.registerDefaultState(this.stateDefinition.any().setValue(bites, 0).setValue(FACING, Direction.SOUTH));
+        this.animateTick = animateTick;
     }
 
-    public FoodBiteBlock(FoodProperties foodProperties) {
-        this(foodProperties, 3, null);
-    }
-
-    public FoodBiteBlock setAABB(VoxelShape aabb) {
-        this.aabb = aabb;
-        return this;
+    public FoodBiteBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties) {
+        this(properties, foodProperties, 3, null);
     }
 
     public IntegerProperty getBites() {
@@ -73,6 +69,11 @@ public class FoodBiteBlock extends FoodBlock {
         return maxBites;
     }
 
+    public FoodBiteBlock setAABB(VoxelShape aabb) {
+        this.aabb = aabb;
+        return this;
+    }
+
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         if (animateTick != null) {
@@ -81,35 +82,37 @@ public class FoodBiteBlock extends FoodBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack itemInHand = player.getItemInHand(hand);
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         int bites = state.getValue(this.bites);
         if (bites >= getMaxBites()) {
             level.destroyBlock(pos, true, player);
             return InteractionResult.SUCCESS;
         }
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             if (eat(level, pos, state, player).consumesAction()) {
                 return InteractionResult.SUCCESS;
-            }
-            if (itemInHand.isEmpty()) {
-                return InteractionResult.CONSUME;
             }
         }
         return eat(level, pos, state, player);
     }
 
-    protected InteractionResult eat(Level level, BlockPos pos, BlockState state, Player player) {
+    private InteractionResult eat(Level level, BlockPos pos, BlockState state, Player player) {
         if (!player.canEat(foodProperties.canAlwaysEat())) {
             return InteractionResult.PASS;
         }
-        player.getFoodData().eat(foodProperties.getNutrition(), foodProperties.getSaturationModifier());
-        for (Pair<MobEffectInstance, Float> pair : foodProperties.getEffects()) {
-            if (!level.isClientSide && pair.getFirst() != null && level.random.nextFloat() < pair.getSecond()) {
-                player.addEffect(new MobEffectInstance(pair.getFirst()));
+        player.getFoodData().eat(foodProperties);
+        if (!level.isClientSide() && consumable != null) {
+            for (ConsumeEffect effect : consumable.onConsumeEffects()) {
+                if (effect instanceof ApplyStatusEffectsConsumeEffect apply
+                        && apply.probability() > 0.0F
+                        && level.random.nextFloat() < apply.probability()) {
+                    for (MobEffectInstance instance : apply.effects()) {
+                        player.addEffect(new MobEffectInstance(instance));
+                    }
+                }
             }
         }
-        level.playSound(null, pos, SoundEvents.GENERIC_EAT, SoundSource.PLAYERS,
+        level.playSound(null, pos, SoundEvents.GENERIC_EAT.value(), SoundSource.PLAYERS,
                 0.5F, level.getRandom().nextFloat() * 0.1F + 0.9F);
         int bites = state.getValue(this.bites);
         level.gameEvent(player, GameEvent.EAT, pos);
@@ -117,11 +120,6 @@ public class FoodBiteBlock extends FoodBlock {
             level.setBlock(pos, state.setValue(this.bites, bites + 1), Block.UPDATE_ALL);
         }
         return InteractionResult.SUCCESS;
-    }
-
-    @Override
-    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
-        return this.aabb;
     }
 
     @Override
@@ -134,7 +132,12 @@ public class FoodBiteBlock extends FoodBlock {
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+    public VoxelShape getShape(BlockState state, net.minecraft.world.level.BlockGetter level, BlockPos pos, CollisionContext context) {
+        return this.aabb;
+    }
+
+    @Override
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
         int value = state.getValue(bites);
         return (3 - value) * 5;
     }
@@ -145,7 +148,7 @@ public class FoodBiteBlock extends FoodBlock {
     }
 
     @Override
-    public boolean isPathfindable(BlockState state, BlockGetter blockGetter, BlockPos pos, PathComputationType pathType) {
+    protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
         return false;
     }
 

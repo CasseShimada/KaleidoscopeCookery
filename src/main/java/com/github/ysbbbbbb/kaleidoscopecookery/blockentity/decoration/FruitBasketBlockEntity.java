@@ -2,66 +2,92 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.NonNullList;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
 
 public class FruitBasketBlockEntity extends BaseBlockEntity {
     public static final String ITEMS = "BasketItems";
-    private final ItemStackHandler items = new ItemStackHandler(8);
+    private final SimpleContainer items = new SimpleContainer(8);
 
     public FruitBasketBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(ModBlocks.FRUIT_BASKET_BE.get(), pPos, pBlockState);
+        super(ModBlocks.FRUIT_BASKET_BE, pPos, pBlockState);
     }
 
     public void putOn(ItemStack stack) {
         if (!stack.getItem().canFitInsideContainerItems()) {
             return;
         }
-        ItemStack reminder = ItemHandlerHelper.insertItemStacked(this.items, stack.copy(), false);
-        if (stack.getCount() != reminder.getCount()) {
-            stack.shrink(stack.getCount() - reminder.getCount());
-            if (this.level != null) {
-                this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS);
+        try (Transaction tx = Transaction.openOuter()) {
+            InventoryStorage storage = InventoryStorage.of(this.items, null);
+            long inserted = storage.insert(ItemVariant.of(stack), stack.getCount(), tx);
+            if (inserted > 0) {
+                tx.commit();
+                stack.shrink((int) inserted);
+                if (this.level != null) {
+                    this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS);
+                }
+                this.refresh();
             }
-            this.refresh();
         }
     }
 
     public void takeOut(Player player) {
-        for (int i = 0; i < items.getSlots(); i++) {
-            ItemStack stack = items.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                ItemStack extractItem = items.extractItem(i, items.getSlotLimit(i), false);
-                ItemHandlerHelper.giveItemToPlayer(player, extractItem);
-                if (this.level != null) {
-                    this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS);
+        for (int i = 0; i < items.getContainerSize(); i++) {
+            ItemStack stack = items.getItem(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            try (Transaction tx = Transaction.openOuter()) {
+                InventoryStorage storage = InventoryStorage.of(this.items, null);
+                ItemVariant itemVariant = ItemVariant.of(stack);
+                long extracted = storage.extract(itemVariant, stack.getCount(), tx);
+                if (extracted > 0) {
+                    tx.commit();
+                    player.getInventory().placeItemBackInInventory(itemVariant.toStack((int) extracted));
+                    if (this.level != null) {
+                        this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS);
+                    }
+                    this.refresh();
                 }
-                this.refresh();
                 return;
             }
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put(ITEMS, this.items.serializeNBT());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output.child(ITEMS), this.items.items);
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        this.items.deserializeNBT(tag.getCompound(ITEMS));
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        ContainerHelper.loadAllItems(input.childOrEmpty(ITEMS), this.items.items);
     }
 
-    public ItemStackHandler getItems() {
-        return items;
+    public NonNullList<ItemStack> getItems() {
+        return items.items;
+    }
+
+    public void setItems(NonNullList<ItemStack> items) {
+        this.items.clearContent();
+        int maxSize = Math.min(items.size(), this.items.getContainerSize());
+        for (int i = 0; i < maxSize; i++) {
+            this.items.setItem(i, items.get(i));
+        }
+        this.refresh();
     }
 }

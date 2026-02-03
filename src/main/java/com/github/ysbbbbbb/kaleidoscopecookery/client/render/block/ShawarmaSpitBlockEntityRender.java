@@ -4,28 +4,40 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ShawarmaSpitBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
-public class ShawarmaSpitBlockEntityRender implements BlockEntityRenderer<ShawarmaSpitBlockEntity> {
-    private final BlockEntityRendererProvider.Context context;
+public class ShawarmaSpitBlockEntityRender implements BlockEntityRenderer<ShawarmaSpitBlockEntity, ShawarmaSpitBlockEntityRender.RenderState> {
+    private final ItemModelResolver itemModelResolver;
 
     public ShawarmaSpitBlockEntityRender(BlockEntityRendererProvider.Context context) {
-        this.context = context;
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     @Override
-    public void render(ShawarmaSpitBlockEntity shawarmaSpit, float partialTick, PoseStack poseStack,
-                       MultiBufferSource buffer, int packedLight, int packedOverlay) {
+    public RenderState createRenderState() {
+        return new RenderState();
+    }
+
+    @Override
+    public void extractRenderState(ShawarmaSpitBlockEntity shawarmaSpit, RenderState state, float partialTick,
+                                   net.minecraft.world.phys.Vec3 cameraPos,
+                                   net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
+        BlockEntityRenderState.extractBase(shawarmaSpit, state, crumblingOverlay);
         ItemStack cookedItem = shawarmaSpit.cookedItem;
         if (cookedItem.isEmpty()) {
+            state.itemCount = 0;
             return;
         }
         ItemStack renderItem;
@@ -35,38 +47,57 @@ public class ShawarmaSpitBlockEntityRender implements BlockEntityRenderer<Shawar
             renderItem = cookedItem;
         }
         BlockState blockState = shawarmaSpit.getBlockState();
-        Boolean powered = blockState.getValue(BlockStateProperties.POWERED);
-        DoubleBlockHalf half = blockState.getValue(ShawarmaSpitBlock.HALF);
-        ItemRenderer itemRenderer = context.getItemRenderer();
+        state.powered = blockState.getValue(BlockStateProperties.POWERED);
+        state.half = blockState.getValue(ShawarmaSpitBlock.HALF);
+        state.itemCount = renderItem.getCount();
+        state.renderItem = renderItem;
+        state.itemState.clear();
+        if (!renderItem.isEmpty()) {
+            itemModelResolver.updateForTopItem(state.itemState, renderItem, ItemDisplayContext.FIXED, shawarmaSpit.getLevel(), null, 0);
+        }
 
         // 如果是充能状态，那么一直旋转
-        if (powered) {
-            long time = System.currentTimeMillis() % 360_0;
-            poseStack.rotateAround(Axis.YP.rotationDegrees(time / 10f), 0.5f, 0, 0.5f);
+        state.spin = state.powered ? (System.currentTimeMillis() % 3600L) / 10f : 0f;
+    }
+
+    @Override
+    public void submit(RenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+        if (state.itemCount <= 0) {
+            return;
+        }
+        if (state.powered) {
+            poseStack.rotateAround(Axis.YP.rotationDegrees(state.spin), 0.5f, 0, 0.5f);
         }
 
         // 如果是上半部分
-        if (half == DoubleBlockHalf.UPPER) {
+        if (state.half == DoubleBlockHalf.UPPER) {
             poseStack.translate(0.25, 0.5, 0.25);
-            this.renderItems(shawarmaSpit, poseStack, buffer, packedLight, packedOverlay, renderItem, itemRenderer);
+            this.renderItems(state, poseStack, collector);
         }
 
         // 如果是下半部分
-        else if (half == DoubleBlockHalf.LOWER) {
+        else if (state.half == DoubleBlockHalf.LOWER) {
             poseStack.translate(0.25, 0.875, 0.25);
-            this.renderItems(shawarmaSpit, poseStack, buffer, packedLight, packedOverlay, renderItem, itemRenderer);
+            this.renderItems(state, poseStack, collector);
         }
     }
 
-    private void renderItems(ShawarmaSpitBlockEntity shawarmaSpit, PoseStack poseStack, MultiBufferSource buffer, int packedLight,
-                             int packedOverlay, ItemStack renderItem, ItemRenderer itemRenderer) {
-        for (int i = 0; i < renderItem.getCount(); i++) {
+    private void renderItems(RenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
+        for (int i = 0; i < state.itemCount; i++) {
             poseStack.pushPose();
             poseStack.rotateAround(Axis.YP.rotationDegrees(i * 45), 0.25f, 0, 0.25f);
             poseStack.scale(0.65F, 0.65F, 0.65F);
-            itemRenderer.renderStatic(renderItem, ItemDisplayContext.FIXED, packedLight, packedOverlay,
-                    poseStack, buffer, shawarmaSpit.getLevel(), 0);
+            state.itemState.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();
         }
+    }
+
+    public static class RenderState extends BlockEntityRenderState {
+        final ItemStackRenderState itemState = new ItemStackRenderState();
+        ItemStack renderItem = ItemStack.EMPTY;
+        int itemCount;
+        boolean powered;
+        float spin;
+        DoubleBlockHalf half = DoubleBlockHalf.UPPER;
     }
 }

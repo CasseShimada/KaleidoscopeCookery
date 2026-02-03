@@ -2,20 +2,30 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.effect.*;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
 
 public class ModEffects {
-    public static final DeferredRegister<MobEffect> EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, KaleidoscopeCookery.MOD_ID);
+    public static Holder<MobEffect> FLATULENCE;
+    public static Holder<MobEffect> TUNDRA_STRIDER;
+    public static Holder<MobEffect> WARMTH;
+    public static Holder<MobEffect> SATIATED_SHIELD;
+    public static Holder<MobEffect> VIGOR;
+    public static Holder<MobEffect> SULFUR;
+    public static Holder<MobEffect> MUSTARD;
+    public static Holder<MobEffect> PRESERVATION;
 
-    public static final RegistryObject<MobEffect> FLATULENCE = EFFECTS.register("flatulence", () -> new FlatulenceEffect(0xFFC6C6));
-    public static final RegistryObject<MobEffect> TUNDRA_STRIDER = EFFECTS.register("tundra_strider", () -> new BaseEffect(0xA1F8FC));
-    public static final RegistryObject<MobEffect> WARMTH = EFFECTS.register("warmth", () -> new WarmthEffect(0xFF5F0E));
-    public static final RegistryObject<MobEffect> SATIATED_SHIELD = EFFECTS.register("satiated_shield", () -> new BaseEffect(0xFF1313));
-    public static final RegistryObject<MobEffect> VIGOR = EFFECTS.register("vigor", () -> new VigorEffect(0x84C322));
-    public static final RegistryObject<MobEffect> SULFUR = EFFECTS.register("sulfur", () -> new SulfurEffect(0xE8B75E));
-    public static final RegistryObject<MobEffect> MUSTARD = EFFECTS.register("mustard", () -> new BaseEffect(0x5A6D09));
-    public static final RegistryObject<MobEffect> PRESERVATION = EFFECTS.register("preservation", () -> new BaseEffect(0xAEC639));
+    public static void registerEffects() {
+        FLATULENCE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "flatulence"), new FlatulenceEffect(0xFFC6C6));
+        TUNDRA_STRIDER = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "tundra_strider"), new BaseEffect(0xA1F8FC));
+        WARMTH = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "warmth"), new WarmthEffect(0xFF5F0E));
+        SATIATED_SHIELD = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "satiated_shield"), new BaseEffect(0xFF1313));
+        VIGOR = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "vigor"), new VigorEffect(0x84C322));
+        SULFUR = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sulfur"), new SulfurEffect(0xE8B75E));
+        MUSTARD = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "mustard"), new BaseEffect(0x5A6D09));
+        PRESERVATION = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "preservation"), new BaseEffect(0xAEC639));
+    }
 }

@@ -2,37 +2,41 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.farmersdelight.FarmersDelightCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
-import com.google.common.collect.Lists;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeHolderType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Comparator;
 import java.util.List;
 
-public class StockpotRecipeCategory implements IRecipeCategory<StockpotRecipe> {
-    public static final RecipeType<StockpotRecipe> TYPE = RecipeType.create(KaleidoscopeCookery.MOD_ID, "stockpot", StockpotRecipe.class);
-    private static final ResourceLocation BG = new ResourceLocation(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/stockpot.png");
+public class StockpotRecipeCategory implements IRecipeCategory<RecipeHolder<StockpotRecipe>> {
+    public static final IRecipeHolderType<StockpotRecipe> TYPE = IRecipeHolderType.create(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stockpot"));
+    private static final Identifier BG = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/stockpot.png");
     private static final MutableComponent TITLE = Component.translatable("block.kaleidoscope_cookery.stockpot");
     public static final int WIDTH = 176;
     public static final int HEIGHT = 102;
@@ -40,39 +44,41 @@ public class StockpotRecipeCategory implements IRecipeCategory<StockpotRecipe> {
     private final IDrawable iconDraw;
     private final IDrawable slotDraw;
     private final IGuiHelper guiHelper;
+    private static final Comparator<RecipeHolder<StockpotRecipe>> RECIPE_ORDER =
+            Comparator.comparing((RecipeHolder<StockpotRecipe> holder) ->
+                            BuiltInRegistries.ITEM.getKey(holder.value().result().getItem()).toString())
+                    .thenComparingInt(holder -> holder.value().result().getCount())
+                    .thenComparing(holder -> holder.id().identifier().toString());
 
     public StockpotRecipeCategory(IGuiHelper guiHelper) {
         this.bgDraw = guiHelper.createDrawable(BG, 0, 0, WIDTH, HEIGHT);
-        this.iconDraw = guiHelper.createDrawableItemLike(ModItems.STOCKPOT.get());
+        this.iconDraw = guiHelper.createDrawableItemStack(ModItems.STOCKPOT.getDefaultInstance());
         this.slotDraw = guiHelper.getSlotDrawable();
         this.guiHelper = guiHelper;
     }
 
-    public static List<StockpotRecipe> getRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return List.of();
-        }
-        List<StockpotRecipe> stockpotRecipes = Lists.newArrayList();
-        stockpotRecipes.addAll(level.getRecipeManager().getAllRecipesFor(ModRecipes.STOCKPOT_RECIPE));
-        // 农夫乐事兼容
-        FarmersDelightCompat.getTransformRecipeForJei(level, stockpotRecipes);
-        return stockpotRecipes;
+    public static List<RecipeHolder<StockpotRecipe>> getRecipes() {
+        List<RecipeHolder<StockpotRecipe>> recipes = RecipeJsonLoader.getRecipes(ModRecipes.STOCKPOT_RECIPE, ModRecipes.STOCKPOT_SERIALIZER);
+        FarmersDelightCompat.appendStockpotRecipes(Minecraft.getInstance().level, recipes);
+        recipes.sort(RECIPE_ORDER);
+        return recipes;
     }
 
     @Override
-    public void draw(StockpotRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(RecipeHolder<StockpotRecipe> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         this.bgDraw.draw(guiGraphics);
+        guiHelper.createDrawableItemStack(Items.BOWL.getDefaultInstance()).draw(guiGraphics, 133, 18);
     }
 
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, StockpotRecipe recipe, IFocusGroup focuses) {
+    public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<StockpotRecipe> holder, IFocusGroup focuses) {
+        StockpotRecipe recipe = holder.value();
         NonNullList<Ingredient> inputs = recipe.getIngredients();
         ItemStack output = recipe.result();
         for (int i = 0; i < inputs.size(); i++) {
             int xOffset = (i % 3) * 18 + 15;
             int yOffset = (i / 3) * 18 + 25;
-            builder.addSlot(RecipeIngredientRole.INPUT, xOffset, yOffset).addIngredients(inputs.get(i)).setBackground(slotDraw, -1, -1);
+            builder.addSlot(RecipeIngredientRole.INPUT, xOffset, yOffset).add(inputs.get(i)).setBackground(slotDraw, -1, -1);
         }
         ISoupBase soupBase = SoupBaseManager.getSoupBase(recipe.soupBase());
         if (soupBase == null) {
@@ -80,21 +86,18 @@ public class StockpotRecipeCategory implements IRecipeCategory<StockpotRecipe> {
         }
         ItemStack displayStack = soupBase.getDisplayStack();
         if (!displayStack.isEmpty()) {
-            builder.addSlot(RecipeIngredientRole.INPUT, 72, 61).addIngredients(Ingredient.of(displayStack));
+            builder.addSlot(RecipeIngredientRole.INPUT, 72, 61).add(Ingredient.of(displayStack.getItem()));
         }
-        if (!recipe.carrier().isEmpty()) {
-            builder.addSlot(RecipeIngredientRole.INPUT, 133, 18).addIngredients(recipe.carrier());
-        }
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 143, 60).addItemStack(output);
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 143, 60).add(output);
     }
 
     @Override
-    public RecipeType<StockpotRecipe> getRecipeType() {
+    public @NotNull IRecipeType<RecipeHolder<StockpotRecipe>> getRecipeType() {
         return TYPE;
     }
 
     @Override
-    public Component getTitle() {
+    public @NotNull Component getTitle() {
         return TITLE;
     }
 

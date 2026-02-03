@@ -1,50 +1,70 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.client.render.block;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.RecipeBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-public class RecipeBlockEntityRender implements BlockEntityRenderer<RecipeBlockEntity> {
-    private final BlockEntityRendererProvider.Context context;
+public class RecipeBlockEntityRender implements BlockEntityRenderer<RecipeBlockEntity, RecipeBlockEntityRender.RenderState> {
+    private final ItemModelResolver itemModelResolver;
 
     public RecipeBlockEntityRender(BlockEntityRendererProvider.Context context) {
-        this.context = context;
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     @Override
-    public void render(RecipeBlockEntity recipeBlock, float pPartialTick, PoseStack poseStack,
-                       MultiBufferSource buffer, int packedLight, int packedOverlay) {
+    public RenderState createRenderState() {
+        return new RenderState();
+    }
+
+    @Override
+    public void extractRenderState(RecipeBlockEntity recipeBlock, RenderState state, float partialTick,
+                                   net.minecraft.world.phys.Vec3 cameraPos,
+                                   net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
+        BlockEntityRenderState.extractBase(recipeBlock, state, crumblingOverlay);
         ItemStack stack = recipeBlock.getItems().getStackInSlot(0);
         if (stack.isEmpty()) {
+            state.output = ItemStack.EMPTY;
             return;
         }
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(RecipeItem.RECIPE_TAG)) {
+        RecipeItem.RecipeRecord record = stack.get(ModDataComponents.RECIPE_RECORD);
+        if (record == null) {
+            state.output = ItemStack.EMPTY;
             return;
         }
-        CompoundTag recipeTag = tag.getCompound(RecipeItem.RECIPE_TAG);
-        if (!recipeTag.contains(RecipeItem.OUTPUT)) {
-            return;
-        }
-        ItemStack output = ItemStack.of(recipeTag.getCompound(RecipeItem.OUTPUT));
-        Direction facing = recipeBlock.getBlockState().getValue(HorizontalDirectionalBlock.FACING);
-        AttachFace attachFace = recipeBlock.getBlockState().getValue(BlockStateProperties.ATTACH_FACE);
 
-        int rotationX = attachFace.ordinal();
-        int rotationY = facing.get2DDataValue() + (attachFace == AttachFace.CEILING ? 2 : 0);
-        ItemRenderer itemRenderer = this.context.getItemRenderer();
+        state.output = record.output();
+        state.facing = recipeBlock.getBlockState().getValue(HorizontalDirectionalBlock.FACING);
+        state.attachFace = recipeBlock.getBlockState().getValue(BlockStateProperties.ATTACH_FACE);
+        state.outputState.clear();
+        if (!state.output.isEmpty()) {
+            itemModelResolver.updateForTopItem(state.outputState, state.output, ItemDisplayContext.FIXED, recipeBlock.getLevel(), null, 0);
+        }
+    }
+
+    @Override
+    public void submit(RenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+        if (state.output.isEmpty()) {
+            return;
+        }
+
+        int rotationX = state.attachFace.ordinal();
+        int rotationY = state.facing.get2DDataValue() + (state.attachFace == AttachFace.CEILING ? 2 : 0);
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
@@ -53,13 +73,20 @@ public class RecipeBlockEntityRender implements BlockEntityRenderer<RecipeBlockE
         poseStack.translate(-0.5, -0.5, -0.5);
         poseStack.scale(0.5f, 0.5f, 0.5f);
 
-        if (attachFace == AttachFace.WALL) {
+        if (state.attachFace == AttachFace.WALL) {
             poseStack.translate(1, 1.25, 0);
         } else {
             poseStack.translate(1, 0.75, 2);
         }
 
-        itemRenderer.renderStatic(output, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, recipeBlock.getLevel(), 0);
+        state.outputState.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
+    }
+
+    public static class RenderState extends BlockEntityRenderState {
+        final ItemStackRenderState outputState = new ItemStackRenderState();
+        ItemStack output = ItemStack.EMPTY;
+        Direction facing = Direction.NORTH;
+        AttachFace attachFace = AttachFace.WALL;
     }
 }

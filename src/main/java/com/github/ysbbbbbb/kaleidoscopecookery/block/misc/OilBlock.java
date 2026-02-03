@@ -1,13 +1,11 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.block.misc;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -15,8 +13,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 
 public class OilBlock extends Block {
-    public OilBlock() {
-        super(BlockBehaviour.Properties.of()
+    public OilBlock(BlockBehaviour.Properties properties) {
+        super(properties
                 .mapColor(MapColor.ICE)
                 // 讨个好彩头，考上 985
                 .friction(0.985f)
@@ -30,20 +28,7 @@ public class OilBlock extends Block {
         return false;
     }
 
-    @Override
-    public boolean isFireSource(BlockState state, LevelReader levelReader, BlockPos pos, Direction direction) {
-        return direction == Direction.UP;
-    }
-
-    @Override
-    public boolean isStickyBlock(BlockState state) {
-        return false;
-    }
-
-    @Override
-    public boolean canStickTo(BlockState state, BlockState otherState) {
-        return false;
-    }
+    // TODO: 缺少粘液块不能带动
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
@@ -61,3 +46,5 @@ public class OilBlock extends Block {
                 0.3, 0.1, 0.3);
     }
 }
+
+

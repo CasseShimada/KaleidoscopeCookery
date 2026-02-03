@@ -14,11 +14,18 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
+import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.crafting.RecipeAccess;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import com.mojang.serialization.MapCodec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +33,7 @@ import java.util.Optional;
 
 public class ReiMillstoneRecipeCategory implements DisplayCategory<ReiMillstoneRecipeCategory.MillstoneRecipeDisplay> {
     public static final CategoryIdentifier<MillstoneRecipeDisplay> ID = CategoryIdentifier.of(KaleidoscopeCookery.MOD_ID, "plugin/millstone");
-    private static final ResourceLocation BG = new ResourceLocation(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/millstone.png");
+    private static final Identifier BG = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/millstone.png");
     private static final MutableComponent TITLE = Component.translatable("block.kaleidoscope_cookery.millstone");
 
     public static final int WIDTH = 176;
@@ -46,12 +53,18 @@ public class ReiMillstoneRecipeCategory implements DisplayCategory<ReiMillstoneR
         widgets.add(Widgets.createRecipeBase(bounds));
         widgets.add(Widgets.createTexturedWidget(BG, startX, startY, 0, 0, WIDTH, HEIGHT));
         widgets.add(Widgets.createSlot(new Point(startX + 69, startY + 39))
-                .entries(display.getInputEntries().get(0))
+                .entries(display.getInputEntries().getFirst())
                 .markInput());
         widgets.add(Widgets.createSlot(new Point(startX + 146, startY + 47))
-                .entries(display.getOutputEntries().get(0))
+                .entries(display.getOutputEntries().getFirst())
                 .disableBackground()
                 .markOutput());
+        if (!display.carrier.isEmpty()) {
+            widgets.add(Widgets.createSlot(new Point(startX + 115, startY + 36))
+                    .entries(display.carrier)
+                    .disableBackground()
+                    .markInput());
+        }
 
         return widgets;
     }
@@ -73,34 +86,54 @@ public class ReiMillstoneRecipeCategory implements DisplayCategory<ReiMillstoneR
 
     @Override
     public Renderer getIcon() {
-        return EntryStacks.of(ModItems.MILLSTONE.get());
+        return EntryStacks.of(ModItems.MILLSTONE);
     }
 
     public static void registerCategories(CategoryRegistry registry) {
         registry.add(new ReiMillstoneRecipeCategory());
         registry.addWorkstations(ReiMillstoneRecipeCategory.ID,
-                ReiUtil.ofItem(ModItems.MILLSTONE.get())
+                ReiUtil.ofItem(ModItems.MILLSTONE)
         );
     }
 
     public static void registerDisplays(DisplayRegistry registry) {
-        registry.getRecipeManager().getAllRecipesFor(ModRecipes.MILLSTONE_RECIPE)
-                .forEach(r -> {
-                    List<EntryIngredient> input = ReiUtil.ofIngredients(r.getIngredients());
-                    List<EntryIngredient> output = ReiUtil.ofItemStacks(r.getResult());
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return;
+        }
+        RecipeAccess recipeAccess = level.recipeAccess();
+        for (RecipeHolder<?> holder : recipeAccess.getSynchronizedRecipes().recipes()) {
+            if (holder.value().getType() != ModRecipes.MILLSTONE_RECIPE) {
+                continue;
+            }
+            RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe> r =
+                    (RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe>) holder;
+            List<EntryIngredient> input = ReiUtil.ofIngredients(r.value().getIngredient());
+            List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().getResult());
+            EntryIngredient carrier = r.value().getCarrier()
+                    .map(ReiUtil::ofIngredient)
+                    .orElse(EntryIngredient.empty());
 
-                    registry.add(new MillstoneRecipeDisplay(r.getId(), input, output));
-                });
+            registry.add(new MillstoneRecipeDisplay(r.id().identifier(), input, output, carrier));
+        }
     }
 
     public static class MillstoneRecipeDisplay extends BasicDisplay {
-        public MillstoneRecipeDisplay(ResourceLocation location, List<EntryIngredient> inputs, List<EntryIngredient> outputs) {
+        public final EntryIngredient carrier;
+
+        public MillstoneRecipeDisplay(Identifier location, List<EntryIngredient> inputs, List<EntryIngredient> outputs, EntryIngredient carrier) {
             super(inputs, outputs, Optional.of(location));
+            this.carrier = carrier;
         }
 
         @Override
         public CategoryIdentifier<?> getCategoryIdentifier() {
             return ID;
+        }
+
+        @Override
+        public DisplaySerializer<? extends MillstoneRecipeDisplay> getSerializer() {
+            return DisplaySerializer.of(MapCodec.unit(this), StreamCodec.unit(this));
         }
     }
 }

@@ -3,15 +3,14 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.block;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.RecipeBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModPlugin;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
-import snownee.jade.api.ui.IElementHelper;
-import snownee.jade.impl.ui.ProgressArrowElement;
+import snownee.jade.api.ui.JadeUI;
 
 public enum RecipeBlockComponentProvider implements IBlockComponentProvider {
     INSTANCE;
@@ -36,18 +35,18 @@ public enum RecipeBlockComponentProvider implements IBlockComponentProvider {
         boolean isFirst = true;
         for (ItemStack stack : recipe.input()) {
             if (isFirst) {
-                tooltip.add(IElementHelper.get().item(stack));
+                tooltip.add(JadeUI.item(stack));
             } else {
-                tooltip.append(IElementHelper.get().item(stack));
+                tooltip.append(JadeUI.item(stack));
             }
             isFirst = false;
         }
-        tooltip.append(new ProgressArrowElement(1));
-        tooltip.append(IElementHelper.get().item(output));
+        tooltip.append(JadeUI.progressArrow(1.0F));
+        tooltip.append(JadeUI.item(output));
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return ModPlugin.RECIPE_BLOCK;
     }
 }

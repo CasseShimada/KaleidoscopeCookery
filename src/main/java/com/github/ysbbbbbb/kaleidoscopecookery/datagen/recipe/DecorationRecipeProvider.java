@@ -1,25 +1,21 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.datagen.recipe;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.registries.RegistryObject;
-
-import java.util.function.Consumer;
 
 public class DecorationRecipeProvider extends ModRecipeProvider {
-    public DecorationRecipeProvider(PackOutput output) {
-        super(output);
+    public DecorationRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
+        super(registries, output);
     }
 
     @Override
-    public void buildRecipes(Consumer<FinishedRecipe> consumer) {
+    protected void buildRecipes(RecipeOutput consumer) {
         addCookStool(ModItems.COOK_STOOL_OAK, Blocks.OAK_PLANKS).save(consumer);
         addCookStool(ModItems.COOK_STOOL_SPRUCE, Blocks.SPRUCE_PLANKS).save(consumer);
         addCookStool(ModItems.COOK_STOOL_ACACIA, Blocks.ACACIA_PLANKS).save(consumer);
@@ -57,8 +53,8 @@ public class DecorationRecipeProvider extends ModRecipeProvider {
         addTable(ModItems.TABLE_WARPED, Blocks.WARPED_FENCE, Blocks.WARPED_SLAB).save(consumer);
     }
 
-    private ShapedRecipeBuilder addCookStool(RegistryObject<Item> result, Block wood) {
-        return ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, result.get())
+    private ShapedRecipeBuilder addCookStool(Item result, Block wood) {
+        return shaped(RecipeCategory.DECORATIONS, result)
                 .pattern("   ")
                 .pattern("###")
                 .pattern("# #")
@@ -66,8 +62,8 @@ public class DecorationRecipeProvider extends ModRecipeProvider {
                 .unlockedBy("has_wood", has(wood));
     }
 
-    private ShapedRecipeBuilder addChair(RegistryObject<Item> result, Block fence, Block slab) {
-        return ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, result.get())
+    private ShapedRecipeBuilder addChair(Item result, Block fence, Block slab) {
+        return shaped(RecipeCategory.DECORATIONS, result)
                 .pattern("F  ")
                 .pattern("SSS")
                 .pattern("F F")
@@ -76,8 +72,8 @@ public class DecorationRecipeProvider extends ModRecipeProvider {
                 .unlockedBy("has_fence", has(fence));
     }
 
-    private ShapedRecipeBuilder addTable(RegistryObject<Item> result, Block fence, Block slab) {
-        return ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, result.get())
+    private ShapedRecipeBuilder addTable(Item result, Block fence, Block slab) {
+        return shaped(RecipeCategory.DECORATIONS, result)
                 .pattern("SSS")
                 .pattern("F F")
                 .define('F', fence)

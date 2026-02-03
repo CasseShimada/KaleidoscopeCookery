@@ -1,5 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity;
 
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -15,4 +16,13 @@ public interface IMillstone {
      * @return 放置是否成功
      */
     boolean onPutItem(Level level, ItemStack putOnItem);
+
+    /**
+     * 从石磨中取出物品
+     *
+     * @param user     使用者
+     * @param heldItem 持有的物品
+     * @return 取出是否成功
+     */
+    boolean onTakeItem(LivingEntity user, ItemStack heldItem);
 }

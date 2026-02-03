@@ -1,5 +1,6 @@
 {
 	"credit": "Made with Blockbench",
+	"ambientocclusion": false,
 	"render_type": "minecraft:cutout",
 	"texture_size": [32, 32],
 	"textures": {
@@ -165,5 +166,6 @@
 		"fixed": {
 			"scale": [0.5, 0.5, 0.5]
 		}
-	}
+	},
+	"format_version": "1.21.6"
 }

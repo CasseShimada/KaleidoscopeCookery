@@ -8,17 +8,18 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -32,8 +33,7 @@ import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
-    public static final int MAX_OIL_COUNT = 32;
+    public static final int MAX_OIL_COUNT = 12;
 
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final BooleanProperty HAS_LID = BooleanProperty.create("has_lid");
@@ -55,8 +55,8 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             Block.box(2.5, 5, 2.5, 13.5, 6, 13.5),
             Block.box(7, 6, 7, 9, 7, 9));
 
-    public EnamelBasinBlock() {
-        super(BlockBehaviour.Properties.of()
+    public EnamelBasinBlock(BlockBehaviour.Properties properties) {
+        super(properties
                 .mapColor(MapColor.STONE)
                 .instrument(NoteBlockInstrument.BELL)
                 .strength(1.0F, 1.5F)
@@ -64,21 +64,22 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(WATERLOGGED, false)
                 .setValue(HAS_LID, true)
-                .setValue(OIL_COUNT, 0));
+                .setValue(OIL_COUNT, MAX_OIL_COUNT));
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor levelAccessor, BlockPos pos, BlockPos neighborPos) {
+    public @NotNull BlockState updateShape(BlockState state, LevelReader levelReader, ScheduledTickAccess tickAccess, BlockPos pos,
+                                           Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         if (state.getValue(WATERLOGGED)) {
-            levelAccessor.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(levelAccessor));
+            tickAccess.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(levelReader));
         }
-        return super.updateShape(state, direction, neighborState, levelAccessor, pos, neighborPos);
+        return super.updateShape(state, levelReader, tickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (hand != InteractionHand.MAIN_HAND) {
-            super.use(state, level, pos, player, hand, hitResult);
+            super.useItemOn(stack, state, level, pos, player, hand, hitResult);
         }
         ItemStack mainHandItem = player.getMainHandItem();
         // 先判断棍子敲
@@ -101,7 +102,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             return InteractionResult.SUCCESS;
         }
         // 手持油脂时，消耗油脂添加进去
-        if (mainHandItem.is(ModItems.OIL.get())) {
+        if (mainHandItem.is(ModItems.OIL)) {
             int value = state.getValue(OIL_COUNT);
             // 如果油已经满了，不能再放油
             if (value >= MAX_OIL_COUNT) {
@@ -116,10 +117,10 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             return InteractionResult.SUCCESS;
         }
         // 当用铲子右击时
-        if (mainHandItem.is(ModItems.KITCHEN_SHOVEL.get())) {
+        if (mainHandItem.is(ModItems.KITCHEN_SHOVEL)) {
             return onShovelClick(state, level, pos, player, mainHandItem);
         }
-        return super.use(state, level, pos, player, hand, hitResult);
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     @NotNull
@@ -139,9 +140,10 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             return InteractionResult.SUCCESS;
         }
 
-        // 没有油时，返回
+        // 没有油时，取出或者破坏
         if (value == 0) {
-            return InteractionResult.FAIL;
+            level.destroyBlock(pos, true, player);
+            return InteractionResult.SUCCESS;
         }
 
         // 取油
@@ -159,7 +161,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
     }
 
     @Override
-    public FluidState getFluidState(BlockState state) {
+    public @NotNull FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
@@ -169,7 +171,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext collisionContext) {
+    public @NotNull VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext collisionContext) {
         return state.getValue(HAS_LID) ? AABB : AABB_NO_LID;
     }
 
@@ -179,29 +181,8 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
-        int count = state.getValue(OIL_COUNT);
-        int baseValue = count > 0 ? 1 : 0;
-        double ratio = (double) count / MAX_OIL_COUNT;
-        return Mth.floor(ratio * 14.0) + baseValue;
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
+        return state.getValue(OIL_COUNT);
     }
 
-    @Override
-    public List<ItemStack> getDrops(BlockState pState, LootParams.Builder params) {
-        List<ItemStack> stacks = super.getDrops(pState, params);
-        BlockState state = params.getOptionalParameter(LootContextParams.BLOCK_STATE);
-        if (state == null || !state.is(this)) {
-            return stacks;
-        }
-        int oilCount = state.getValue(OIL_COUNT);
-        if (oilCount > 0) {
-            stacks.add(new ItemStack(ModItems.OIL.get(), oilCount));
-        }
-        return stacks;
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.kaleidoscope_cookery.enamel_basin").withStyle(ChatFormatting.GRAY));
-    }
 }

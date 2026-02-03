@@ -1,0 +1,16 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:crops/chilipepper",
+    "#c:crops/chilipepper",
+    "#c:raw_chicken",
+    "#c:raw_chicken",
+    "#c:raw_chicken",
+    "#c:raw_chicken"
+  ],
+  "result": {
+    "count": 1,
+    "id": "kaleidoscope_cookery:yakitori"
+  }
+}

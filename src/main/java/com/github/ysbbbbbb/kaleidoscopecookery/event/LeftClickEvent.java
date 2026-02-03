@@ -1,22 +1,27 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.event;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
-import com.github.ysbbbbbb.kaleidoscopecookery.network.NetworkHandler;
-import com.github.ysbbbbbb.kaleidoscopecookery.network.message.SimpleC2SModMessage;
+import com.github.ysbbbbbb.kaleidoscopecookery.network.message.ThrowBaoziMessage;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.Nullable;
 
-@Mod.EventBusSubscriber(modid = KaleidoscopeCookery.MOD_ID)
 public class LeftClickEvent {
-    @SubscribeEvent
-    public static void onLeftClickItem(PlayerInteractEvent.LeftClickEmpty event) {
-        Player player = event.getEntity();
-        if (player.isSecondaryUseActive() && event.getHand() == InteractionHand.MAIN_HAND && player.getMainHandItem().is(ModItems.BAOZI.get())) {
-            NetworkHandler.CHANNEL.sendToServer(new SimpleC2SModMessage(SimpleC2SModMessage.THROW_BAOZI));
+    public static void register() {
+        ModEvents.PLAYER_LEFT_CLICK.register(LeftClickEvent::onHandle);
+    }
+
+    //肉包打狗，AUV，地道！
+    private static void onHandle(@Nullable Player player, InteractionHand hand) {
+        if (player == null) return;
+        if (player.isSecondaryUseActive()
+                && hand == InteractionHand.MAIN_HAND
+                && player.getMainHandItem().is(ModItems.BAOZI)
+                && ClientPlayNetworking.canSend(ThrowBaoziMessage.TYPE)
+        ) {
+            ClientPlayNetworking.send(ThrowBaoziMessage.INSTANCE);
         }
     }
 }

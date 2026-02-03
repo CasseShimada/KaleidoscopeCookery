@@ -5,13 +5,12 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.Tags;
 
 public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKitchenwareRacks {
     private static final String LEFT_ITEM = "LeftItem";
@@ -21,7 +20,7 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
     private ItemStack itemRight = ItemStack.EMPTY;
 
     public KitchenwareRacksBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(ModBlocks.KITCHENWARE_RACKS_BE.get(), pPos, pBlockState);
+        super(ModBlocks.KITCHENWARE_RACKS_BE, pPos, pBlockState);
     }
 
     @Override
@@ -40,7 +39,7 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
             return true;
         }
         // 放入物品
-        if (stack.is(Tags.Items.TOOLS) && stackInRacks.isEmpty()) {
+        if (stack.isDamageableItem() && stackInRacks.isEmpty()) {
             if (isLeft) {
                 itemLeft = stack.split(1);
             } else {
@@ -54,22 +53,21 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put(LEFT_ITEM, itemLeft.save(new CompoundTag()));
-        tag.put(RIGHT_ITEM, itemRight.save(new CompoundTag()));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        if (!itemLeft.isEmpty()) {
+            output.store(LEFT_ITEM, ItemStack.CODEC, itemLeft);
+        }
+        if (!itemRight.isEmpty()) {
+            output.store(RIGHT_ITEM, ItemStack.CODEC, itemRight);
+        }
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        this.itemLeft = ItemStack.of(tag.getCompound(LEFT_ITEM));
-        this.itemRight = ItemStack.of(tag.getCompound(RIGHT_ITEM));
-    }
-
-    @Override
-    public AABB getRenderBoundingBox() {
-        return new AABB(this.worldPosition);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.itemLeft = input.read(LEFT_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.itemRight = input.read(RIGHT_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Override
@@ -80,13 +78,5 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
     @Override
     public ItemStack getItemRight() {
         return itemRight;
-    }
-
-    public void setItemLeft(ItemStack itemLeft) {
-        this.itemLeft = itemLeft;
-    }
-
-    public void setItemRight(ItemStack itemRight) {
-        this.itemRight = itemRight;
     }
 }

@@ -1,39 +1,46 @@
 package com.github.ysbbbbbb.kaleidoscopecookery;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.ExtraLootTableDrop;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.*;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.CommonRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.network.NetworkHandler;
 import com.mojang.logging.LogUtils;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 
-@Mod(KaleidoscopeCookery.MOD_ID)
-public class KaleidoscopeCookery {
+public class KaleidoscopeCookery implements ModInitializer {
     public static final String MOD_ID = "kaleidoscope_cookery";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public KaleidoscopeCookery() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GeneralConfig.init());
+    @Override
+    public void onInitialize() {
+        GeneralConfig.init();
+        // 药水效果优先注册
+        ModEffects.registerEffects();
 
-        FoodBiteRegistry.init();
+        CommonRegistry.init();
+        NetworkHandler.init();
+
+        ModArmorMaterials.registerArmorMaterials();
         ModTrigger.init();
+        ModBlocks.registerBlocks();
+        ModItems.registerItems();
+        ModEntities.registerEntities();
+        ModPoi.registerPoiTypes();
+        ModVillager.registerVillagerProfessions();
+        ModCreativeTabs.registerTabs();
+        ModSounds.registerSounds();
+        ModParticles.registerParticles();
+        ModRecipes.registerRecipes();
+        ModLootModifier.registerLootModifiers();
+        ModTrades.registerTrades();
+        ModSoupBases.registerSoupBases();
+        ModDataComponents.registerDataComponents();
+        // 事件
+        ModEvents.init();
 
-        ModBlocks.BLOCKS.register(modEventBus);
-        ModBlocks.BLOCK_ENTITIES.register(modEventBus);
-        ModItems.ITEMS.register(modEventBus);
-        ModEntities.ENTITY_TYPES.register(modEventBus);
-        ModEffects.EFFECTS.register(modEventBus);
-        ModPoi.POI_TYPES.register(modEventBus);
-        ModVillager.VILLAGER_PROFESSION.register(modEventBus);
-        ModCreativeTabs.TABS.register(modEventBus);
-        ModSounds.SOUND_EVENTS.register(modEventBus);
-        ModParticles.PARTICLES.register(modEventBus);
-        ModRecipes.RECIPE_SERIALIZERS.register(modEventBus);
-        ModLootModifier.GLOBAL_LOOT_MODIFIER_SERIALIZER.register(modEventBus);
+        // 注册额外的战利品表事件
+        ExtraLootTableDrop.register();
     }
 }

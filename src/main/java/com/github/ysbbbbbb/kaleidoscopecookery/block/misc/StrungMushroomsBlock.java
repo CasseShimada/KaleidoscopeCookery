@@ -15,11 +15,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -28,7 +29,6 @@ import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 public class StrungMushroomsBlock extends Block {
     public static final BooleanProperty IS_HEAD = BooleanProperty.create("is_head");
@@ -37,10 +37,10 @@ public class StrungMushroomsBlock extends Block {
     private static final VoxelShape AABB_HEAD = Block.box(4, 2, 4, 12, 16, 12);
     private static final VoxelShape AABB_BODY = Block.box(3.5, 0, 3.5, 12.5, 16, 12.5);
 
-    public StrungMushroomsBlock() {
-        super(Properties.of()
+    public StrungMushroomsBlock(BlockBehaviour.Properties properties) {
+        super(properties
                 .mapColor(MapColor.COLOR_BROWN)
-                .noCollission()
+                .noCollision()
                 .instabreak()
                 .sound(SoundType.GRASS)
                 .pushReaction(PushReaction.DESTROY));
@@ -50,12 +50,12 @@ public class StrungMushroomsBlock extends Block {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+                                       InteractionHand hand, BlockHitResult hitResult) {
         if (hand != InteractionHand.MAIN_HAND) {
             return InteractionResult.PASS;
         }
-        ItemStack mainHandItem = player.getMainHandItem();
-        if (!mainHandItem.isEmpty() && !mainHandItem.is(Items.BROWN_MUSHROOM)) {
+        if (!stack.isEmpty() && !stack.is(Items.BROWN_MUSHROOM)) {
             return InteractionResult.PASS;
         }
         if (state.getValue(SHEARED)) {
@@ -63,11 +63,11 @@ public class StrungMushroomsBlock extends Block {
         } else {
             level.setBlock(pos, state.setValue(SHEARED, true), Block.UPDATE_ALL);
         }
-        ItemStack redChili = new ItemStack(Items.BROWN_MUSHROOM, 3);
-        if (mainHandItem.isEmpty()) {
-            player.setItemInHand(InteractionHand.MAIN_HAND, redChili);
+        ItemStack mushrooms = new ItemStack(Items.BROWN_MUSHROOM, 3);
+        if (stack.isEmpty()) {
+            player.setItemInHand(InteractionHand.MAIN_HAND, mushrooms);
         } else {
-            ItemHandlerHelper.giveItemToPlayer(player, redChili);
+            player.getInventory().placeItemBackInInventory(mushrooms);
         }
         level.playSound(null, pos,
                 SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
@@ -81,18 +81,19 @@ public class StrungMushroomsBlock extends Block {
                     0.25, 0.25, 0.25,
                     0.05);
         }
-        return super.use(state, level, pos, player, hand, hitResult);
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor levelAccessor, BlockPos currentPos, BlockPos neighborPos) {
-        if (direction == Direction.DOWN.getOpposite() && !state.canSurvive(levelAccessor, currentPos)) {
-            levelAccessor.scheduleTick(currentPos, this, 1);
+    public BlockState updateShape(BlockState state, LevelReader levelReader, ScheduledTickAccess tickAccess, BlockPos currentPos,
+                                  Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        if (direction == Direction.DOWN.getOpposite() && !state.canSurvive(levelReader, currentPos)) {
+            tickAccess.scheduleTick(currentPos, this, 1);
         }
         if (direction == Direction.DOWN) {
             return state.setValue(IS_HEAD, !neighborState.is(this));
         }
-        return super.updateShape(state, direction, neighborState, levelAccessor, currentPos, neighborPos);
+        return super.updateShape(state, levelReader, tickAccess, currentPos, direction, neighborPos, neighborState, random);
     }
 
     @Override

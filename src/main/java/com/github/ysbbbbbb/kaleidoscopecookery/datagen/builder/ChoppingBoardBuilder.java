@@ -1,31 +1,32 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.datagen.builder;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
-import com.google.gson.JsonObject;
-import net.minecraft.advancements.CriterionTriggerInstance;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.ChoppingBoardRecipe;
+import net.minecraft.advancements.Criterion;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
-
+import java.util.stream.StreamSupport;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class ChoppingBoardBuilder implements RecipeBuilder {
     private static final String NAME = "chopping_board";
 
-    private Ingredient ingredient = Ingredient.EMPTY;
+    private @Nullable Ingredient ingredient;
     private ItemStack result = ItemStack.EMPTY;
     private int cutCount = 3;
-    private ResourceLocation modelId;
+    private Identifier modelId;
 
     public static ChoppingBoardBuilder builder() {
         return new ChoppingBoardBuilder();
@@ -37,7 +38,7 @@ public class ChoppingBoardBuilder implements RecipeBuilder {
     }
 
     public ChoppingBoardBuilder setIngredient(TagKey<Item> itemLike) {
-        this.ingredient = Ingredient.of(itemLike);
+        this.ingredient = ingredientFromTag(itemLike);
         return this;
     }
 
@@ -61,13 +62,13 @@ public class ChoppingBoardBuilder implements RecipeBuilder {
         return this;
     }
 
-    public ChoppingBoardBuilder setModelId(ResourceLocation modelId) {
+    public ChoppingBoardBuilder setModelId(Identifier modelId) {
         this.modelId = modelId;
         return this;
     }
 
     @Override
-    public RecipeBuilder unlockedBy(String criterionName, CriterionTriggerInstance criterionTrigger) {
+    public RecipeBuilder unlockedBy(String name, Criterion<?> criterion) {
         return this;
     }
 
@@ -82,71 +83,27 @@ public class ChoppingBoardBuilder implements RecipeBuilder {
     }
 
     @Override
-    public void save(Consumer<FinishedRecipe> output) {
+    public void save(RecipeOutput output) {
         String path = RecipeBuilder.getDefaultRecipeId(this.getResult()).getPath();
-        ResourceLocation filePath = new ResourceLocation(KaleidoscopeCookery.MOD_ID, NAME + "/" + path);
-        this.save(output, filePath);
+        Identifier filePath = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, NAME + "/" + path);
+        this.save(output, ResourceKey.create(Registries.RECIPE, filePath));
     }
 
     @Override
-    public void save(Consumer<FinishedRecipe> output, String recipeId) {
-        ResourceLocation filePath = new ResourceLocation(KaleidoscopeCookery.MOD_ID, NAME + "/" + recipeId);
-        this.save(output, filePath);
+    public void save(RecipeOutput output, String recipeId) {
+        Identifier filePath = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, NAME + "/" + recipeId);
+        this.save(output, ResourceKey.create(Registries.RECIPE, filePath));
     }
 
     @Override
-    public void save(Consumer<FinishedRecipe> recipeOutput, ResourceLocation id) {
-        recipeOutput.accept(new ChoppingBoardRecipe(id, this.ingredient, this.result, this.cutCount, this.modelId));
+    public void save(RecipeOutput recipeOutput, ResourceKey<Recipe<?>> id) {
+        Ingredient ingredientValue = Objects.requireNonNull(this.ingredient, "Ingredient not set");
+        ChoppingBoardRecipe recipe = new ChoppingBoardRecipe(ingredientValue, this.result, this.cutCount, this.modelId);
+        recipeOutput.accept(id, recipe, null);
     }
 
-    public static class ChoppingBoardRecipe implements FinishedRecipe {
-        private final ResourceLocation id;
-        private final Ingredient ingredient;
-        private final ItemStack result;
-        private final int cutCount;
-        private final ResourceLocation modelId;
-
-        public ChoppingBoardRecipe(ResourceLocation id, Ingredient ingredient, ItemStack result, int cutCount, ResourceLocation modelId) {
-            this.id = id;
-            this.ingredient = ingredient;
-            this.result = result;
-            this.cutCount = cutCount;
-            this.modelId = modelId;
-        }
-
-        @Override
-        public void serializeRecipeData(JsonObject json) {
-            json.add("ingredient", this.ingredient.toJson());
-            JsonObject itemJson = new JsonObject();
-            itemJson.addProperty("item", Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(this.result.getItem())).toString());
-            if (this.result.getCount() > 1) {
-                itemJson.addProperty("count", this.result.getCount());
-            }
-            json.add("result", itemJson);
-            json.addProperty("cut_count", this.cutCount);
-            json.addProperty("model_id", this.modelId.toString());
-        }
-
-        @Override
-        public ResourceLocation getId() {
-            return this.id;
-        }
-
-        @Override
-        public RecipeSerializer<?> getType() {
-            return ModRecipes.CHOPPING_BOARD_SERIALIZER.get();
-        }
-
-        @Override
-        @Nullable
-        public JsonObject serializeAdvancement() {
-            return null;
-        }
-
-        @Override
-        @Nullable
-        public ResourceLocation getAdvancementId() {
-            return null;
-        }
+    private static Ingredient ingredientFromTag(TagKey<Item> tagKey) {
+        return Ingredient.of(StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(tagKey).spliterator(), false)
+                .map(Holder::value));
     }
 }

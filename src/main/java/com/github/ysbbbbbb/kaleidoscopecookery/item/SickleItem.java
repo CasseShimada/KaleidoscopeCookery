@@ -2,20 +2,22 @@ package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.crop.RiceCropBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.ToolMaterial;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BushBlock;
@@ -24,38 +26,34 @@ import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraftforge.common.ForgeTier;
-import net.minecraftforge.common.MinecraftForge;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.function.Consumer;
 
-public class SickleItem extends SwordItem {
-    private static final ForgeTier SICKLE_TIER = new ForgeTier(
-            1, // 挖掘等级
-            2000, // 耐久度
-            4.0F, // 挖掘速度
-            1.0F, // 伤害加成
-            5, // 附魔值
-            BlockTags.NEEDS_STONE_TOOL,
-            () -> Ingredient.of(Items.FLINT)
-    );
-
-    public SickleItem(Tier tier, int attackDamageModifier, float attackSpeedModifier, Properties properties) {
-        super(tier, attackDamageModifier, attackSpeedModifier, properties);
-    }
+public class SickleItem extends Item {
+    private static final ToolMaterial SICKLE_MATERIAL = ToolMaterial.STONE;
+    private static final float ATTACK_DAMAGE = 3.0F;
+    private static final float ATTACK_SPEED = -2.4F;
 
     public SickleItem() {
-        this(SICKLE_TIER, 0, -2.4F, new Properties());
+        this(new Item.Properties());
+    }
+
+    public SickleItem(Item.Properties properties) {
+        this(SICKLE_MATERIAL, ATTACK_DAMAGE, ATTACK_SPEED, properties);
+    }
+
+    public SickleItem(ToolMaterial material, Item.Properties properties) {
+        this(material, ATTACK_DAMAGE, ATTACK_SPEED, properties);
+    }
+
+    public SickleItem(ToolMaterial material, float attackDamage, float attackSpeed, Item.Properties properties) {
+        super(material.applySwordProperties(properties, attackDamage, attackSpeed));
     }
 
     @Override
-    public boolean canAttackBlock(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer) {
-        return true;
-    }
-
-    @Override
-    public InteractionResult useOn(UseOnContext context) {
+    public @NotNull InteractionResult useOn(UseOnContext context) {
         // 生成挥动音效和粒子
         Player player = context.getPlayer();
         if (player == null) {
@@ -67,9 +65,9 @@ public class SickleItem extends SwordItem {
         }
 
         BlockPos pos = context.getClickedPos();
-        ItemStack stack = context.getItemInHand();
         int breakCount = 0;
         // 搜索方块的 5x5x2 范围内的可收割作物、草丛、灌木等并收割
+        ItemStack stack = context.getItemInHand();
         for (int x = -2; x <= 2; x++) {
             for (int y = 0; y <= 1; y++) {
                 for (int z = -2; z <= 2; z++) {
@@ -84,9 +82,8 @@ public class SickleItem extends SwordItem {
                 player.getX(), player.getY(), player.getZ(),
                 SoundEvents.PLAYER_ATTACK_SWEEP, player.getSoundSource(),
                 1.0F, 1.0F);
-        player.sweepAttack();
-        stack.hurtAndBreak(breakCount, player, p -> p.broadcastBreakEvent(EquipmentSlot.MAINHAND));
-        player.getCooldowns().addCooldown(this, 10);
+        stack.hurtAndBreak(breakCount, player, EquipmentSlot.MAINHAND);
+        player.getCooldowns().addCooldown(stack, 10);
         return InteractionResult.SUCCESS;
     }
 
@@ -99,15 +96,15 @@ public class SickleItem extends SwordItem {
         if (blockState.isAir()) {
             return false;
         }
-        // 黑名单
         if (blockState.is(TagMod.SICKLE_HARVEST_BLACKLIST)) {
             return false;
         }
 
         Block block = blockState.getBlock();
-        // 触发事件
+
         SickleHarvestEvent event = new SickleHarvestEvent(player, stack, newPos, blockState);
-        if (MinecraftForge.EVENT_BUS.post(event)) {
+        ModEvents.SICKLE_HARVEST.invoker().onSickleHarvest(event);
+        if (event.isCanceled()) {
             return event.isCostDurability();
         }
 
@@ -147,7 +144,7 @@ public class SickleItem extends SwordItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
-        pTooltipComponents.add(Component.translatable("tooltip.kaleidoscope_cookery.sickle").withStyle(ChatFormatting.GRAY));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.sickle").withStyle(ChatFormatting.GRAY));
     }
 }

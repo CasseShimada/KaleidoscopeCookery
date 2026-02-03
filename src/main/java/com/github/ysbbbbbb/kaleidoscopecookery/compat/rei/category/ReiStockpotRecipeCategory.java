@@ -18,24 +18,36 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
+import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.crafting.RecipeAccess;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import com.mojang.serialization.MapCodec;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 public class ReiStockpotRecipeCategory implements DisplayCategory<ReiStockpotRecipeCategory.StockpotRecipeDisplay> {
     public static final CategoryIdentifier<StockpotRecipeDisplay> ID = CategoryIdentifier.of(KaleidoscopeCookery.MOD_ID, "plugin/stockpot");
-    private static final ResourceLocation BG = new ResourceLocation(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/stockpot.png");
+    private static final Identifier BG = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/stockpot.png");
     private static final MutableComponent TITLE = Component.translatable("block.kaleidoscope_cookery.stockpot");
     public static final int WIDTH = 176;
     public static final int HEIGHT = 102;
+    private static final Comparator<RecipeHolder<StockpotRecipe>> RECIPE_ORDER =
+            Comparator.comparing((RecipeHolder<StockpotRecipe> holder) ->
+                            BuiltInRegistries.ITEM.getKey(holder.value().result().getItem()).toString())
+                    .thenComparingInt(holder -> holder.value().result().getCount())
+                    .thenComparing(holder -> holder.id().identifier().toString());
 
     @Override
     public CategoryIdentifier<StockpotRecipeDisplay> getCategoryIdentifier() {
@@ -62,9 +74,9 @@ public class ReiStockpotRecipeCategory implements DisplayCategory<ReiStockpotRec
             int xOffset = (i % 3) * 18 + 15;
             int yOffset = (i / 3) * 18 + 25;
             widgets.add(Widgets.createSlot(new Point(startX + xOffset, startY + yOffset))
-                .entries(inputs.get(i))
-                .disableBackground()
-                .markInput());
+                    .entries(inputs.get(i))
+                    .disableBackground()
+                    .markInput());
         }
         if (!display.carrier.isEmpty()) {
             widgets.add(Widgets.createSlot(new Point(startX + 133, startY + 18))
@@ -73,7 +85,7 @@ public class ReiStockpotRecipeCategory implements DisplayCategory<ReiStockpotRec
                     .markInput());
         }
         widgets.add(Widgets.createSlot(new Point(startX + 143, startY + 60))
-                .entries(display.getOutputEntries().get(0))
+                .entries(display.getOutputEntries().getFirst())
                 .disableBackground()
                 .markOutput());
 
@@ -97,41 +109,53 @@ public class ReiStockpotRecipeCategory implements DisplayCategory<ReiStockpotRec
 
     @Override
     public Renderer getIcon() {
-        return EntryStacks.of(ModItems.STOCKPOT.get());
+        return EntryStacks.of(ModItems.STOCKPOT);
     }
 
     public static void registerCategories(CategoryRegistry registry) {
         registry.add(new ReiStockpotRecipeCategory());
         registry.addWorkstations(ReiStockpotRecipeCategory.ID,
-                ReiUtil.ofItem(ModItems.STOCKPOT.get()),
-                ReiUtil.ofItem(ModItems.STOCKPOT_LID.get())
+                ReiUtil.ofItem(ModItems.STOCKPOT),
+                ReiUtil.ofItem(ModItems.STOCKPOT_LID)
         );
     }
 
     public static void registerDisplays(DisplayRegistry registry) {
-        List<StockpotRecipe> list = new ArrayList<>(registry.getRecipeManager().getAllRecipesFor(ModRecipes.STOCKPOT_RECIPE));
-        FarmersDelightCompat.getTransformRecipeForJei(Minecraft.getInstance().level, list);
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return;
+        }
+        RecipeAccess recipeAccess = level.recipeAccess();
+        List<RecipeHolder<StockpotRecipe>> list = new ArrayList<>();
+        for (RecipeHolder<?> holder : recipeAccess.getSynchronizedRecipes().recipes()) {
+            if (holder.value().getType() == ModRecipes.STOCKPOT_RECIPE) {
+                StockpotRecipe recipe = (StockpotRecipe) holder.value();
+                list.add(new RecipeHolder<>(holder.id(), recipe));
+            }
+        }
+        FarmersDelightCompat.appendStockpotRecipes(level, list);
+        list.sort(RECIPE_ORDER);
 
         list.forEach(r -> {
-                    List<EntryIngredient> inputs = ReiUtil.ofIngredients(r.getIngredients());
-                    List<EntryIngredient> output = ReiUtil.ofItemStacks(r.getResultItem(RegistryAccess.EMPTY));
-                    EntryIngredient carrier = r.carrier().isEmpty() ? EntryIngredient.empty() : ReiUtil.ofIngredient(r.carrier());
+            List<EntryIngredient> inputs = ReiUtil.ofIngredients(r.value().getIngredients());
+            List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().result());
+            EntryIngredient carrier = r.value().carrier().isEmpty() ? EntryIngredient.empty() : ReiUtil.ofIngredient(r.value().carrier());
 
-                    ISoupBase soupBase = SoupBaseManager.getSoupBase(r.soupBase());
-                    if (soupBase == null) {
-                        throw new RuntimeException("No soup found for " + r.soupBase());
-                    }
-                    EntryIngredient soupBaseEntry = ReiUtil.ofItemStack(soupBase.getDisplayStack());
+            ISoupBase soupBase = SoupBaseManager.getSoupBase(r.value().soupBase());
+            if (soupBase == null) {
+                throw new RuntimeException("No soup found for " + r.value().soupBase());
+            }
+            EntryIngredient soupBaseEntry = ReiUtil.ofItemStack(soupBase.getDisplayStack());
 
-                    registry.add(new StockpotRecipeDisplay(r.getId(), inputs, output, carrier, soupBaseEntry));
-                });
+            registry.add(new StockpotRecipeDisplay(r.id().identifier(), inputs, output, carrier, soupBaseEntry));
+        });
     }
 
     public static class StockpotRecipeDisplay extends BasicDisplay {
         public final EntryIngredient carrier;
         public final EntryIngredient soupBase;
 
-        public StockpotRecipeDisplay(ResourceLocation location, List<EntryIngredient> inputs, List<EntryIngredient> outputs, EntryIngredient carrier, EntryIngredient soupBase) {
+        public StockpotRecipeDisplay(Identifier location, List<EntryIngredient> inputs, List<EntryIngredient> outputs, EntryIngredient carrier, EntryIngredient soupBase) {
             super(inputs, outputs, Optional.of(location));
             this.carrier = carrier;
             this.soupBase = soupBase;
@@ -140,6 +164,11 @@ public class ReiStockpotRecipeCategory implements DisplayCategory<ReiStockpotRec
         @Override
         public CategoryIdentifier<?> getCategoryIdentifier() {
             return ID;
+        }
+
+        @Override
+        public DisplaySerializer<? extends StockpotRecipeDisplay> getSerializer() {
+            return DisplaySerializer.of(MapCodec.unit(this), StreamCodec.unit(this));
         }
     }
 }

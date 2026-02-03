@@ -2,20 +2,18 @@ package com.github.ysbbbbbb.kaleidoscopecookery.client.particle;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 
-public class CookingParticle extends TextureSheetParticle {
+public class CookingParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
 
     protected CookingParticle(ClientLevel level, double pX, double pY, double pZ, double xSpeed, double ySpeed, double zSpeed, SpriteSet sprites) {
-        super(level, pX, pY, pZ, xSpeed, ySpeed, zSpeed);
+        super(level, pX, pY, pZ, xSpeed, ySpeed, zSpeed, sprites.get(level.random));
         this.friction = 0.96F;
         this.speedUpWhenYMotionIsBlocked = true;
         this.sprites = sprites;
@@ -31,8 +29,8 @@ public class CookingParticle extends TextureSheetParticle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
+    public SingleQuadParticle.Layer getLayer() {
+        return SingleQuadParticle.Layer.OPAQUE;
     }
 
     @Override
@@ -46,7 +44,6 @@ public class CookingParticle extends TextureSheetParticle {
         this.setSpriteFromAge(this.sprites);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 
@@ -57,7 +54,7 @@ public class CookingParticle extends TextureSheetParticle {
         @Override
         public CookingParticle createParticle(@NotNull SimpleParticleType option, @NotNull ClientLevel world,
                                               double x, double y, double z,
-                                              double xSpeed, double ySpeed, double zSpeed) {
+                                              double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
             return new CookingParticle(world, x, y, z, xSpeed, ySpeed, zSpeed, this.sprites);
         }
     }

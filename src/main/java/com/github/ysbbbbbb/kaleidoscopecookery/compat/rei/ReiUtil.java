@@ -1,17 +1,22 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.rei;
 
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
+import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.api.common.util.EntryStacks;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 public class ReiUtil {
     public static EntryIngredient ofIngredient(Ingredient ingredient) {
-        return EntryIngredient.of(Arrays.stream(ingredient.getItems()).map(EntryStacks::of).toList());
+        return EntryIngredients.ofIngredient(ingredient);
     }
 
     public static EntryIngredient ofItem(Item item) {
@@ -20,6 +25,13 @@ public class ReiUtil {
 
     public static EntryIngredient ofItemStack(ItemStack itemStack) {
         return EntryIngredient.of(EntryStacks.of(itemStack));
+    }
+
+    public static EntryIngredient ofTag(TagKey<Item> tagKey) {
+        return EntryIngredient.of(StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(tagKey).spliterator(), false)
+                .map(Holder::value)
+                .map(EntryStacks::of)
+                .toList());
     }
 
     public static List<EntryIngredient> ofItems(Item... items) {

@@ -1,40 +1,22 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.google.common.collect.ImmutableSet;
+import net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraft.world.level.block.Block;
 
 public class ModPoi {
-    public static final DeferredRegister<PoiType> POI_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, KaleidoscopeCookery.MOD_ID);
+    public static final PoiType STOVE = registerPoiType("stove", ModBlocks.STOVE);
+    public static final PoiType POT = registerPoiType("pot", ModBlocks.POT);
+    public static final PoiType STOCKPOT = registerPoiType("stockpot", ModBlocks.STOCKPOT);
+    public static final PoiType CHOPPING_BOARD = registerPoiType("chopping_board", ModBlocks.CHOPPING_BOARD);
 
-    public static final RegistryObject<PoiType> STOVE = POI_TYPES.register("stove",
-            () -> new PoiType(ImmutableSet.copyOf(
-                    ModBlocks.STOVE.get()
-                            .getStateDefinition()
-                            .getPossibleStates()
-            ), 1, 1));
+    private static PoiType registerPoiType(String name, Block block) {
+        return PointOfInterestHelper.register(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, name), 1, 1, block);
+    }
 
-    public static final RegistryObject<PoiType> POT = POI_TYPES.register("pot",
-            () -> new PoiType(ImmutableSet.copyOf(
-                    ModBlocks.POT.get()
-                            .getStateDefinition()
-                            .getPossibleStates()
-            ), 1, 1));
-
-    public static final RegistryObject<PoiType> STOCKPOT = POI_TYPES.register("stockpot",
-            () -> new PoiType(ImmutableSet.copyOf(
-                    ModBlocks.STOCKPOT.get()
-                            .getStateDefinition()
-                            .getPossibleStates()
-            ), 1, 1));
-
-    public static final RegistryObject<PoiType> CHOPPING_BOARD = POI_TYPES.register("chopping_board",
-            () -> new PoiType(ImmutableSet.copyOf(
-                    ModBlocks.CHOPPING_BOARD.get()
-                            .getStateDefinition()
-                            .getPossibleStates()
-            ), 1, 1));
+    public static void registerPoiTypes() {
+        // 确保类被加载
+    }
 }

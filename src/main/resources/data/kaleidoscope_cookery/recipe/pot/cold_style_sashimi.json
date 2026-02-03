@@ -1,0 +1,19 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:raw_fishes/tropical_fish",
+    "#c:raw_fishes/tropical_fish",
+    "#c:raw_fishes/tropical_fish",
+    "#c:raw_fishes/tropical_fish",
+    "minecraft:snowball",
+    "minecraft:snowball",
+    "minecraft:snowball",
+    "minecraft:snowball",
+    "minecraft:spruce_sapling"
+  ],
+  "result": {
+    "count": 1,
+    "id": "kaleidoscope_cookery:cold_style_sashimi"
+  }
+}

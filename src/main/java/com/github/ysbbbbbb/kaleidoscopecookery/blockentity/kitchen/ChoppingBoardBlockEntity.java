@@ -8,22 +8,25 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppingBoard {
@@ -35,31 +38,19 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
     /**
      * 仅用于客户端渲染
      */
-    public @Nullable ResourceLocation[] cacheModels = null;
-    public @Nullable ResourceLocation previousModel = null;
+    public @Nullable Identifier[] cacheModels = null;
+    public @Nullable Identifier previousModel = null;
     /**
      * 服务端客户端共通数据
      */
-    private @Nullable ResourceLocation modelId = null;
+    private @Nullable Identifier modelId = null;
     private int maxCutCount = 0;
     private int currentCutCount = 0;
     private ItemStack currentCutStack = ItemStack.EMPTY;
     private ItemStack result = ItemStack.EMPTY;
 
     public ChoppingBoardBlockEntity(BlockPos pos, BlockState blockState) {
-        super(ModBlocks.CHOPPING_BOARD_BE.get(), pos, blockState);
-    }
-
-    public static void popResource(Level level, BlockPos pos, ItemStack stack) {
-        if (!level.isClientSide && !stack.isEmpty()) {
-            ItemEntity entity = new ItemEntity(level,
-                    pos.getX() + 0.5,
-                    pos.getY() + 0.25,
-                    pos.getZ() + 0.5,
-                    stack, 0, 0, 0);
-            entity.setDefaultPickUpDelay();
-            level.addFreshEntity(entity);
-        }
+        super(ModBlocks.CHOPPING_BOARD_BE, pos, blockState);
     }
 
     @Override
@@ -67,11 +58,14 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
         if (!this.result.isEmpty()) {
             return false;
         }
-        SimpleContainer container = new SimpleContainer(putOnItem);
-        Optional<ChoppingBoardRecipe> recipeOptional = level.getRecipeManager()
+        SingleRecipeInput container = new SingleRecipeInput(putOnItem);
+        if (!(level.recipeAccess() instanceof RecipeManager recipeManager)) {
+            return false;
+        }
+        Optional<RecipeHolder<ChoppingBoardRecipe>> recipeOptional = recipeManager
                 .getRecipeFor(ModRecipes.CHOPPING_BOARD_RECIPE, container, level);
         if (recipeOptional.isPresent()) {
-            ChoppingBoardRecipe recipe = recipeOptional.get();
+            ChoppingBoardRecipe recipe = recipeOptional.get().value();
             this.modelId = recipe.getModelId();
             this.maxCutCount = recipe.getCutCount();
             this.currentCutCount = 0;
@@ -94,7 +88,7 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
         }
         // 如果已经切完，执行取出逻辑
         if (this.currentCutCount >= this.maxCutCount) {
-            popResource(level, worldPosition, this.result.copy());
+            Block.popResource(level, worldPosition, this.result.copy());
             this.resetBoardData();
             level.playSound(null, this.worldPosition,
                     SoundEvents.WOOD_PLACE,
@@ -116,9 +110,9 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
     public boolean onTakeOut(Level level, LivingEntity user) {
         if (this.currentCutCount == 0 && !this.currentCutStack.isEmpty()) {
             if (user instanceof Player player) {
-                ItemHandlerHelper.giveItemToPlayer(player, this.currentCutStack);
+                player.getInventory().placeItemBackInInventory(this.currentCutStack);
             } else {
-                popResource(level, this.worldPosition, this.currentCutStack);
+                Block.popResource(level, this.worldPosition, this.currentCutStack);
             }
             this.resetBoardData();
             level.playSound(null, this.worldPosition,
@@ -156,35 +150,33 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (this.modelId != null) {
-            tag.putString(MODEL_ID, this.modelId.toString());
+            output.putString(MODEL_ID, this.modelId.toString());
         }
-        tag.putInt(MAX_CUT_COUNT, this.maxCutCount);
-        tag.putInt(CURRENT_CUT_COUNT, this.currentCutCount);
-        tag.put(CURRENT_CUT_STACK, this.currentCutStack.serializeNBT());
-        tag.put(RESULT_ITEM, this.result.serializeNBT());
+        output.putInt(MAX_CUT_COUNT, this.maxCutCount);
+        output.putInt(CURRENT_CUT_COUNT, this.currentCutCount);
+        if (!this.currentCutStack.isEmpty()) {
+            output.store(CURRENT_CUT_STACK, ItemStack.CODEC, this.currentCutStack);
+        }
+        if (!this.result.isEmpty()) {
+            output.store(RESULT_ITEM, ItemStack.CODEC, this.result);
+        }
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        if (tag.contains(MODEL_ID)) {
-            this.modelId = new ResourceLocation(tag.getString(MODEL_ID));
-        }
-        this.maxCutCount = tag.getInt(MAX_CUT_COUNT);
-        this.currentCutCount = tag.getInt(CURRENT_CUT_COUNT);
-        if (tag.contains(CURRENT_CUT_STACK)) {
-            this.currentCutStack = ItemStack.of(tag.getCompound(CURRENT_CUT_STACK));
-        }
-        if (tag.contains(RESULT_ITEM)) {
-            this.result = ItemStack.of(tag.getCompound(RESULT_ITEM));
-        }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.modelId = input.getString(MODEL_ID).map(Identifier::parse).orElse(null);
+        this.maxCutCount = input.getIntOr(MAX_CUT_COUNT, 0);
+        this.currentCutCount = input.getIntOr(CURRENT_CUT_COUNT, 0);
+        this.currentCutStack = input.read(CURRENT_CUT_STACK, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.result = input.read(RESULT_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Nullable
-    public ResourceLocation getModelId() {
+    public Identifier getModelId() {
         return modelId;
     }
 

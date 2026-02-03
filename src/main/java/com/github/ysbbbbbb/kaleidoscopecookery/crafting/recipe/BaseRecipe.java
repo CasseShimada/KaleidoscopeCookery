@@ -1,31 +1,23 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.world.Container;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 
-public interface BaseRecipe<C extends Container> extends Recipe<C> {
+public interface BaseRecipe<C extends RecipeInput> extends Recipe<C> {
     int RECIPES_SIZE = 9;
 
-    static Ingredient[] fillInputs(List<Ingredient> inputs) {
-        Ingredient[] newInputs = new Ingredient[RECIPES_SIZE];
-        for (int i = 0; i < RECIPES_SIZE; i++) {
-            if (i < inputs.size()) {
-                newInputs[i] = inputs.get(i);
-            } else {
-                newInputs[i] = Ingredient.EMPTY;
-            }
-        }
-        return newInputs;
-    }
+    ItemStack result();
 
     @Override
-    default ItemStack assemble(C container, RegistryAccess registryAccess) {
-        return getResultItem(registryAccess).copy();
+    default @NotNull ItemStack assemble(C container, HolderLookup.Provider registryAccess) {
+        return result().copy();
     }
 
     @Override
@@ -34,7 +26,12 @@ public interface BaseRecipe<C extends Container> extends Recipe<C> {
     }
 
     @Override
-    default boolean canCraftInDimensions(int width, int height) {
-        return false;
+    default PlacementInfo placementInfo() {
+        return PlacementInfo.NOT_PLACEABLE;
+    }
+
+    @Override
+    default RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 }

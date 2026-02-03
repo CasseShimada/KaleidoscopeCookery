@@ -3,17 +3,18 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init.registry;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -21,51 +22,49 @@ import java.util.Map;
 import static com.github.ysbbbbbb.kaleidoscopecookery.init.ModFoods.*;
 
 public class FoodBiteRegistry {
-    public static final Map<ResourceLocation, FoodData> FOOD_DATA_MAP = Maps.newLinkedHashMap();
+    public static final Map<Identifier, FoodData> FOOD_DATA_MAP = Maps.newLinkedHashMap();
 
-    public static ResourceLocation DARK_CUISINE;
-    public static ResourceLocation SUSPICIOUS_STIR_FRY;
-    public static ResourceLocation SLIME_BALL_MEAL;
-    public static ResourceLocation FONDANT_PIE;
-    public static ResourceLocation DONGPO_PORK;
-    public static ResourceLocation FONDANT_SPIDER_EYE;
-    public static ResourceLocation CHORUS_FRIED_EGG;
-    public static ResourceLocation BRAISED_FISH;
-    public static ResourceLocation GOLDEN_SALAD;
-    public static ResourceLocation SPICY_CHICKEN;
-    public static ResourceLocation YAKITORI;
-    public static ResourceLocation PAN_SEARED_KNIGHT_STEAK;
-    public static ResourceLocation STARGAZY_PIE;
-    public static ResourceLocation SWEET_AND_SOUR_ENDER_PEARLS;
-    public static ResourceLocation CRYSTAL_LAMB_CHOP;
-    public static ResourceLocation BLAZE_LAMB_CHOP;
-    public static ResourceLocation FROST_LAMB_CHOP;
-    public static ResourceLocation NETHER_STYLE_SASHIMI;
-    public static ResourceLocation END_STYLE_SASHIMI;
-    public static ResourceLocation DESERT_STYLE_SASHIMI;
-    public static ResourceLocation TUNDRA_STYLE_SASHIMI;
-    public static ResourceLocation COLD_STYLE_SASHIMI;
-    public static ResourceLocation SHENGJIAN_MANTOU;
-    public static ResourceLocation CANDIED_POTATO;
-    public static ResourceLocation DOUGH_DROP_SOUP;
-    public static ResourceLocation STUFFED_TIGER_SKIN_PEPPER;
-    public static ResourceLocation SPICY_RABBIT_HEAD;
-    public static ResourceLocation FOUR_JOY_MEATBALL_SOUP;
-    public static ResourceLocation NUMBING_SPICY_CHICKEN;
-    public static ResourceLocation FRIED_CATERPILLAR;
-    public static ResourceLocation FRIED_SPRING_ROLL;
-    public static ResourceLocation SPICY_BLOOD_STEW;
-    public static ResourceLocation FRUIT_PLATTER;
-
-    public static ResourceLocation BRAISED_PORK_RIBS;
-    public static ResourceLocation COLD_ROASTED_MEAT;
-    public static ResourceLocation OIL_SPLASHED_FISH;
-
-    public static ResourceLocation BROWN_MUSHROOM_POT_SOUP;
-    public static ResourceLocation RED_MUSHROOM_POT_SOUP;
-    public static ResourceLocation WARPED_FUNGUS_POT_SOUP;
-    public static ResourceLocation CRIMSON_FUNGUS_POT_SOUP;
-    public static ResourceLocation BUDDHA_JUMPS_OVER_THE_WALL;
+    public static Identifier DARK_CUISINE;
+    public static Identifier SUSPICIOUS_STIR_FRY;
+    public static Identifier SLIME_BALL_MEAL;
+    public static Identifier FONDANT_PIE;
+    public static Identifier DONGPO_PORK;
+    public static Identifier FONDANT_SPIDER_EYE;
+    public static Identifier CHORUS_FRIED_EGG;
+    public static Identifier BRAISED_FISH;
+    public static Identifier GOLDEN_SALAD;
+    public static Identifier SPICY_CHICKEN;
+    public static Identifier YAKITORI;
+    public static Identifier PAN_SEARED_KNIGHT_STEAK;
+    public static Identifier STARGAZY_PIE;
+    public static Identifier SWEET_AND_SOUR_ENDER_PEARLS;
+    public static Identifier CRYSTAL_LAMB_CHOP;
+    public static Identifier BLAZE_LAMB_CHOP;
+    public static Identifier FROST_LAMB_CHOP;
+    public static Identifier NETHER_STYLE_SASHIMI;
+    public static Identifier END_STYLE_SASHIMI;
+    public static Identifier DESERT_STYLE_SASHIMI;
+    public static Identifier TUNDRA_STYLE_SASHIMI;
+    public static Identifier COLD_STYLE_SASHIMI;
+    public static Identifier SHENGJIAN_MANTOU;
+    public static Identifier CANDIED_POTATO;
+    public static Identifier DOUGH_DROP_SOUP;
+    public static Identifier STUFFED_TIGER_SKIN_PEPPER;
+    public static Identifier SPICY_RABBIT_HEAD;
+    public static Identifier FOUR_JOY_MEATBALL_SOUP;
+    public static Identifier NUMBING_SPICY_CHICKEN;
+    public static Identifier FRIED_CATERPILLAR;
+    public static Identifier FRIED_SPRING_ROLL;
+    public static Identifier SPICY_BLOOD_STEW;
+    public static Identifier FRUIT_PLATTER;
+    public static Identifier BRAISED_PORK_RIBS;
+    public static Identifier COLD_ROASTED_MEAT;
+    public static Identifier OIL_SPLASHED_FISH;
+    public static Identifier BROWN_MUSHROOM_POT_SOUP;
+    public static Identifier RED_MUSHROOM_POT_SOUP;
+    public static Identifier WARPED_FUNGUS_POT_SOUP;
+    public static Identifier CRIMSON_FUNGUS_POT_SOUP;
+    public static Identifier BUDDHA_JUMPS_OVER_THE_WALL;
 
     public static void init() {
         FoodBiteRegistry registry = new FoodBiteRegistry();
@@ -186,8 +185,6 @@ public class FoodBiteRegistry {
         FRUIT_PLATTER = registry.registerFoodData("fruit_platter", FoodData
                 .create(4, FRUIT_PLATTER_BLOCK, FRUIT_PLATTER_ITEM));
 
-        // ========================== 1x2 食物 ==========================
-
         BRAISED_PORK_RIBS = registry.registerFoodData("braised_pork_ribs", FoodData
                 .createOneByTwo(4, BRAISED_PORK_RIBS_BLOCK, BRAISED_PORK_RIBS_ITEM)
                 .addLootItems(Items.BONE));
@@ -198,8 +195,6 @@ public class FoodBiteRegistry {
         OIL_SPLASHED_FISH = registry.registerFoodData("oil_splashed_fish", FoodData
                 .createOneByTwo(5, OIL_SPLASHED_FISH_BLOCK, OIL_SPLASHED_FISH_ITEM)
                 .addLootItems(Items.BONE_MEAL));
-
-        // ========================== 瓦罐汤 ==========================
 
         BROWN_MUSHROOM_POT_SOUP = registry.registerFoodData("brown_mushroom_pot_soup", FoodData
                 .create(2, BROWN_MUSHROOM_POT_SOUP_BLOCK, BROWN_MUSHROOM_POT_SOUP_ITEM)
@@ -232,27 +227,27 @@ public class FoodBiteRegistry {
                 .potSoupAnimateTick());
     }
 
-    public ResourceLocation registerFoodData(ResourceLocation foodName, FoodData data) {
+    public Identifier registerFoodData(Identifier foodName, FoodData data) {
         FOOD_DATA_MAP.put(foodName, data);
         return foodName;
     }
 
-    public ResourceLocation registerFoodData(String foodName, FoodData data) {
-        ResourceLocation id = mcLoc(foodName);
+    public Identifier registerFoodData(String foodName, FoodData data) {
+        Identifier id = mcLoc(foodName);
         FOOD_DATA_MAP.put(id, data);
         return id;
     }
 
-    public static ResourceLocation mcLoc(String name) {
-        return new ResourceLocation(KaleidoscopeCookery.MOD_ID, name);
+    public static Identifier mcLoc(String name) {
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, name);
     }
 
-    public static Item getItem(ResourceLocation name) {
-        return ForgeRegistries.ITEMS.getValue(name);
+    public static Item getItem(Identifier name) {
+        return BuiltInRegistries.ITEM.getOptional(name).orElse(Items.AIR);
     }
 
-    public static Block getBlock(ResourceLocation name) {
-        return ForgeRegistries.BLOCKS.getValue(name);
+    public static Block getBlock(Identifier name) {
+        return BuiltInRegistries.BLOCK.getOptional(name).orElse(Blocks.AIR);
     }
 
     public static final class FoodData {
@@ -319,12 +314,12 @@ public class FoodBiteRegistry {
             return this;
         }
 
-        public BlockType blockType() {
-            return blockType;
-        }
-
         public int maxBites() {
             return maxBites;
+        }
+
+        public BlockType blockType() {
+            return blockType;
         }
 
         @Nullable

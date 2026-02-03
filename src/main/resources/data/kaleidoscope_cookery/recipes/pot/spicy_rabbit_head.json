@@ -1,0 +1,18 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "time": 200,
+  "stir_fry_count": 3,
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "minecraft:rabbit",
+    "minecraft:rabbit",
+    "minecraft:rabbit",
+    "#c:crops/chilipepper",
+    "#c:crops/chilipepper",
+    "#c:crops/chilipepper"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:spicy_rabbit_head",
+    "count": 1
+  }
+}

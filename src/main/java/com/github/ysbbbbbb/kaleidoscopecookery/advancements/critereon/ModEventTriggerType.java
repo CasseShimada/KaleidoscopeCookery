@@ -1,4 +1,4 @@
-package com.github.ysbbbbbb.kaleidoscopecookery.advancements.critereon;
+package com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion;
 
 public interface ModEventTriggerType {
     String USE_CHOPPING_BOARD = "use_chopping_board";
@@ -17,6 +17,7 @@ public interface ModEventTriggerType {
     String PLACE_SCARECROW = "place_scarecrow";
     String PLACE_HEAD_ON_SCARECROW = "place_head_on_scarecrow";
     String DRIVE_THE_MILLSTONE = "drive_the_millstone";
+    String USE_MILLSTONE_GET_OIL_POT = "use_millstone_get_oil_pot";
     String PULL_THE_DOUGH = "pull_the_dough";
     String USE_STEAMER = "use_steamer";
     String MEAT_BUNS_BEAT_DOGS = "meat_buns_beat_dogs";

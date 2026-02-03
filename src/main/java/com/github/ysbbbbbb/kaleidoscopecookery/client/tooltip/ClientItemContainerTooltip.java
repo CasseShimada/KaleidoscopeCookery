@@ -10,18 +10,15 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ClientItemContainerTooltip implements ClientTooltipComponent {
     private final NonNullList<ItemStack> items = NonNullList.create();
     private @Nullable MutableComponent emptyTip = null;
 
     public ClientItemContainerTooltip(ItemContainerTooltip containerTooltip) {
-        IItemHandler handler = containerTooltip.handler();
-        for (int i = 0; i < handler.getSlots(); i++) {
-            ItemStack stack = handler.getStackInSlot(i);
+        NonNullList<ItemStack> handler = containerTooltip.handler();
+        for (ItemStack stack : handler) {
             if (!stack.isEmpty()) {
                 this.items.add(stack);
             }
@@ -32,12 +29,11 @@ public class ClientItemContainerTooltip implements ClientTooltipComponent {
     }
 
     @Override
-    public int getHeight() {
+    public int getHeight(Font font) {
         if (emptyTip != null) {
             return 10;
         }
-        int row = (items.size() - 1) / 8 + 1;
-        return 20 * row;
+        return 20;
     }
 
     @Override
@@ -45,21 +41,19 @@ public class ClientItemContainerTooltip implements ClientTooltipComponent {
         if (emptyTip != null) {
             return font.width(emptyTip);
         }
-        int maxInRow = Math.min(items.size(), 8);
-        return maxInRow * 20;
+        return items.size() * 20;
     }
 
     @Override
-    public void renderImage(Font font, int pX, int pY, GuiGraphics guiGraphics) {
+    public void renderImage(Font font, int pX, int pY, int width, int height, GuiGraphics guiGraphics) {
         if (emptyTip != null) {
             guiGraphics.drawString(font, emptyTip, pX, pY, ChatFormatting.GRAY.getColor());
         } else {
             int i = 0;
             for (ItemStack stack : this.items) {
-                int xOffset = pX + (i % 8) * 20;
-                int yOffset = pY + (i / 8) * 20;
-                guiGraphics.renderFakeItem(stack, xOffset, yOffset);
-                guiGraphics.renderItemDecorations(font, stack, xOffset, yOffset);
+                int xOffset = pX + i * 20;
+                guiGraphics.renderFakeItem(stack, xOffset, pY);
+                guiGraphics.renderItemDecorations(font, stack, xOffset, pY);
                 i++;
             }
         }

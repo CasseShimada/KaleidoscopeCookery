@@ -8,19 +8,19 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModParticles;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CampfireCookingRecipe;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarmaSpit {
     private static final int MAX_ITEMS = 8;
@@ -29,13 +29,13 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
     public static final String COOKED_ITEM = "CookedItem";
     public static final String COOK_TIME = "CookTime";
 
-    private final RecipeManager.CachedCheck<Container, CampfireCookingRecipe> quickCheck = RecipeManager.createCheck(RecipeType.CAMPFIRE_COOKING);
+    private final RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> quickCheck = RecipeManager.createCheck(RecipeType.CAMPFIRE_COOKING);
     public ItemStack cookingItem = ItemStack.EMPTY;
     public ItemStack cookedItem = ItemStack.EMPTY;
     public int cookTime;
 
     public ShawarmaSpitBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(ModBlocks.SHAWARMA_SPIT_BE.get(), pPos, pBlockState);
+        super(ModBlocks.SHAWARMA_SPIT_BE, pPos, pBlockState);
     }
 
     @Override
@@ -45,13 +45,16 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
             return false;
         }
         // 尝试通过输入的物品寻找营火配方
-        SimpleContainer container = new SimpleContainer(itemStack);
-        return this.quickCheck.getRecipeFor(container, level).map(recipe -> {
+        SingleRecipeInput singleRecipeInput = new SingleRecipeInput(itemStack);
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return false;
+        }
+        return this.quickCheck.getRecipeFor(singleRecipeInput, serverLevel).map(recipe -> {
             // 如果找到了配方，则设置正在烹饪的物品和烹饪时间
             this.cookingItem = itemStack.split(MAX_ITEMS);
-            this.cookedItem = recipe.assemble(container, level.registryAccess());
+            this.cookedItem = recipe.value().assemble(singleRecipeInput, level.registryAccess());
             this.cookedItem.setCount(this.cookingItem.getCount());
-            this.cookTime = recipe.getCookingTime();
+            this.cookTime = recipe.value().cookingTime();
             this.refresh();
             if (level instanceof ServerLevel) {
                 level.playSound(null,
@@ -92,7 +95,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
         this.cookTime = 0;
         this.refresh();
 
-        if (this.getBlockState().getValue(ShawarmaSpitBlock.POWERED)) {
+        if (!mainHandItem.is(TagMod.KITCHEN_KNIFE) && this.getBlockState().getValue(ShawarmaSpitBlock.POWERED)) {
             entity.hurt(level.damageSources().inFire(), 1);
         }
         ItemUtils.getItemToLivingEntity(entity, copy);
@@ -137,7 +140,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
     private void spawnParticles() {
         if (level instanceof ServerLevel serverLevel) {
             if (level.random.nextFloat() < 0.25f) {
-                serverLevel.sendParticles(ModParticles.COOKING.get(),
+                serverLevel.sendParticles(ModParticles.COOKING,
                         worldPosition.getX() + 0.5,
                         worldPosition.getY() + 0.5,
                         worldPosition.getZ() + 0.5,
@@ -159,22 +162,22 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put(COOKING_ITEM, this.cookingItem.save(new CompoundTag()));
-        tag.put(COOKED_ITEM, this.cookedItem.save(new CompoundTag()));
-        tag.putInt(COOK_TIME, this.cookTime);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        if (!this.cookingItem.isEmpty()) {
+            output.store(COOKING_ITEM, ItemStack.CODEC, this.cookingItem);
+        }
+        if (!this.cookedItem.isEmpty()) {
+            output.store(COOKED_ITEM, ItemStack.CODEC, this.cookedItem);
+        }
+        output.putInt(COOK_TIME, this.cookTime);
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        if (tag.contains(COOKING_ITEM)) {
-            this.cookingItem = ItemStack.of(tag.getCompound(COOKING_ITEM));
-        }
-        if (tag.contains(COOKED_ITEM)) {
-            this.cookedItem = ItemStack.of(tag.getCompound(COOKED_ITEM));
-        }
-        this.cookTime = tag.getInt(COOK_TIME);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.cookingItem = input.read(COOKING_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.cookedItem = input.read(COOKED_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.cookTime = input.getIntOr(COOK_TIME, 0);
     }
 }

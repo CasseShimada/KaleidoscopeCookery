@@ -1,84 +1,46 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.datagen.recipe;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagCommon;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.world.item.Items;
 
-import java.util.function.Consumer;
-
 public class ShapelessRecipeProvider extends ModRecipeProvider {
-    public ShapelessRecipeProvider(PackOutput output) {
-        super(output);
+    public ShapelessRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
+        super(registries, output);
     }
 
     @Override
-    public void buildRecipes(Consumer<FinishedRecipe> consumer) {
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, ModItems.RICE_PANICLE.get(), 9)
-                .requires(ModItems.STRAW_BLOCK.get())
-                .unlockedBy("has_rice_panicle", has(ModItems.RICE_PANICLE.get()))
+    protected void buildRecipes(RecipeOutput consumer) {
+        shapeless(RecipeCategory.DECORATIONS, ModItems.RICE_PANICLE, 9)
+                .requires(ModItems.STRAW_BLOCK)
+                .unlockedBy("has_rice_panicle", has(ModItems.RICE_PANICLE))
                 .save(consumer);
 
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, ModItems.OIL.get(), 9)
-                .requires(ModItems.OIL_BLOCK.get())
+        shapeless(RecipeCategory.DECORATIONS, ModItems.OIL, 9)
+                .requires(ModItems.OIL_BLOCK)
                 .unlockedBy("has_ingot_iron", has(Items.IRON_INGOT))
                 .save(consumer);
 
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.CHILI_SEED.get(), 1)
-                .requires(ModItems.GREEN_CHILI.get())
-                .unlockedBy("has_chili", has(ModItems.GREEN_CHILI.get()))
+        shapeless(RecipeCategory.FOOD, ModItems.RICE_SEED, 3)
+                .requires(ModItems.RICE_PANICLE)
+                .unlockedBy("has_rice_panicle", has(ModItems.RICE_PANICLE))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, ModItems.CHILI_SEED, 1)
+                .requires(ModItems.GREEN_CHILI)
+                .unlockedBy("has_chili", has(ModItems.GREEN_CHILI))
                 .save(consumer, "chili_seed_from_green_chili");
 
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.CHILI_SEED.get(), 1)
-                .requires(ModItems.RED_CHILI.get())
-                .unlockedBy("has_chili", has(ModItems.RED_CHILI.get()))
+        shapeless(RecipeCategory.FOOD, ModItems.CHILI_SEED, 1)
+                .requires(ModItems.RED_CHILI)
+                .unlockedBy("has_chili", has(ModItems.RED_CHILI))
                 .save(consumer, "chili_seed_from_red_chili");
 
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.TOMATO_SEED.get(), 1)
-                .requires(ModItems.TOMATO.get())
-                .unlockedBy("has_tomato", has(ModItems.TOMATO.get()))
+        shapeless(RecipeCategory.FOOD, ModItems.TOMATO_SEED, 1)
+                .requires(ModItems.TOMATO)
+                .unlockedBy("has_tomato", has(ModItems.TOMATO))
                 .save(consumer);
-
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.STUFFED_DOUGH_FOOD.get(), 1)
-                .requires(TagCommon.RAW_MEATS)
-                .requires(TagCommon.VEGETABLES)
-                .requires(TagCommon.DOUGH)
-                .unlockedBy("has_dough", has(TagCommon.DOUGH))
-                .save(consumer);
-
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.RECIPE_ITEM.get(), 1)
-                .requires(ModItems.RECIPE_ITEM.get())
-                .unlockedBy("has_recipe_item", has(ModItems.RECIPE_ITEM.get()))
-                .save(consumer, "reset_recipe_item");
-
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.RAW_MEATBALL.get(), 1)
-                .requires(TagCommon.RAW_MEATS)
-                .requires(TagCommon.RAW_MEATS)
-                .requires(TagCommon.VEGETABLES)
-                .unlockedBy("has_raw_meats", has(TagCommon.RAW_MEATS))
-                .save(consumer);
-
-        // 水果拼盘: 2苹果+2发光浆果+2甜浆果+1碗
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, FoodBiteRegistry.getItem(FoodBiteRegistry.FRUIT_PLATTER), 1)
-                .requires(Items.APPLE, 2)
-                .requires(Items.GLOW_BERRIES, 2)
-                .requires(Items.SWEET_BERRIES, 2)
-                .requires(Items.BOWL)
-                .unlockedBy("has_apple", has(Items.APPLE))
-                .save(consumer);
-
-        for (int i = 0; i < 8; i++) {
-            int count = i + 1;
-            String name = "flour_from_" + count + "_wheat";
-            ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.RAW_DOUGH.get(), count)
-                    .requires(Items.WATER_BUCKET)
-                    .requires(ModItems.FLOUR.get(), count)
-                    .unlockedBy("has_wheat", has(Items.WHEAT))
-                    .save(consumer, name);
-        }
     }
 }

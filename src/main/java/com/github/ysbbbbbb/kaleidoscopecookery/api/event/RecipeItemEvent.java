@@ -3,12 +3,11 @@ package com.github.ysbbbbbb.kaleidoscopecookery.api.event;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.Event;
 
 /**
  * 当菜谱进行物品放入时触发
  */
-public abstract class RecipeItemEvent extends Event {
+public abstract class RecipeItemEvent extends ActionEvent {
     private final ItemStack stack;
 
     public RecipeItemEvent(ItemStack stack) {

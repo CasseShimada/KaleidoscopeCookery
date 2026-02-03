@@ -1,0 +1,8 @@
+{
+  "type": "kaleidoscope_cookery:millstone",
+  "ingredient": "minecraft:andesite",
+  "result": {
+    "count": 1,
+    "id": "minecraft:polished_andesite"
+  }
+}

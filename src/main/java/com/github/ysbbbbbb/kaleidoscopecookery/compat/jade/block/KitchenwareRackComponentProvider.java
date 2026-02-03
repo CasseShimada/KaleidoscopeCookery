@@ -3,9 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.block;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.KitchenwareRacksBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModPlugin;
 import com.google.common.collect.Lists;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.Accessor;
@@ -13,7 +11,7 @@ import snownee.jade.api.view.*;
 
 import java.util.List;
 
-public enum KitchenwareRackComponentProvider implements IServerExtensionProvider<Object, ItemStack>, IClientExtensionProvider<ItemStack, ItemView> {
+public enum KitchenwareRackComponentProvider implements IServerExtensionProvider<ItemStack>, IClientExtensionProvider<ItemStack, ItemView> {
     INSTANCE;
 
     @Override
@@ -23,18 +21,23 @@ public enum KitchenwareRackComponentProvider implements IServerExtensionProvider
 
     @Override
     @Nullable
-    public List<ViewGroup<ItemStack>> getGroups(ServerPlayer serverPlayer, ServerLevel serverLevel, Object target, boolean showDetails) {
+    public List<ViewGroup<ItemStack>> getGroups(Accessor<?> accessor) {
+        Object target = accessor.getTarget();
         if (target instanceof KitchenwareRacksBlockEntity kitchenwareRacks) {
             List<ItemStack> list = Lists.newArrayList();
-            list.add(kitchenwareRacks.getItemLeft());
-            list.add(kitchenwareRacks.getItemRight());
+            if (!kitchenwareRacks.getItemLeft().isEmpty()) {
+                list.add(kitchenwareRacks.getItemLeft());
+            }
+            if (!kitchenwareRacks.getItemRight().isEmpty()) {
+                list.add(kitchenwareRacks.getItemRight());
+            }
             return List.of(new ViewGroup<>(list));
         }
         return null;
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return ModPlugin.KITCHENWARE_RACK;
     }
 }

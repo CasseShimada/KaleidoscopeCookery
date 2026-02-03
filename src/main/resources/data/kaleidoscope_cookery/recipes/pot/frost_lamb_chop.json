@@ -1,0 +1,16 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:raw_mutton",
+    "#c:raw_mutton",
+    "#c:raw_mutton",
+    "minecraft:blue_ice",
+    "minecraft:blue_ice",
+    "minecraft:blue_ice"
+  ],
+  "result": {
+    "count": 1,
+    "id": "kaleidoscope_cookery:frost_lamb_chop"
+  }
+}

@@ -1,230 +1,118 @@
 plugins {
     id 'eclipse'
     id 'idea'
-    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'org.spongepowered.mixin' version '0.7.+'
+    id 'fabric-loom' version '1.14.10'
 }
 
-group = mod_group_id
-version = mod_version
-archivesBaseName = "kaleidoscopecookery"
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-minecraft {
-    mappings channel: mapping_channel, version: mapping_version
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-    copyIdeResources = true
-    runs {
-        configureEach {
-            jvmArgs = [
-                    "-XX:+IgnoreUnrecognizedVMOptions",
-                    "-XX:+AllowEnhancedClassRedefinition"
-            ]
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            // 控制台彩色打印
-            property 'terminal.jline', 'true'
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-        client {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            workingDirectory project.file('run/client_a')
-        }
-        client2 {
-            parent minecraft.runs.client
-            workingDirectory project.file('run/client_b')
-            args '--username', 'tartaric_acid'
-        }
-        server {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            workingDirectory project.file('run/server')
-            args '--nogui'
-        }
-        gameTestServer {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-        data {
-            workingDirectory project.file('run')
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-        }
-    }
+version = project.mod_version
+group = project.maven_group
+base {
+    archivesName.set(project.archives_base_name)
 }
 
-sourceSets.main.resources {
-    srcDir 'src/generated/resources'
-    exclude '.cache/**'
+loom {
+    accessWidenerPath = file("src/main/resources/kaleidoscope_cookery.accesswidener")
 }
 
-mixin {
-    add sourceSets.main, "${mod_id}.refmap.json"
-    config "${mod_id}.mixins.json"
-
-    debug.verbose = true
-    debug.export = true
-    hotSwap = true
+fabricApi {
+    configureDataGeneration()
 }
 
 repositories {
-    maven {
-        name = "Jared's maven"
-        url = "https://maven.blamejared.com/"
-        content {
-            includeGroup "mezz.jei"
+    maven { url = "https://maven.shedaniel.me" }
+    exclusiveContent {
+        forRepository {
+            maven {
+                url = "https://cursemaven.com/"
+            }
+        }
+        filter {
+            includeGroup "curse.maven"
         }
     }
-    maven {
-        name = "ModMaven"
-        url = "https://modmaven.dev"
-        content {
-            includeGroup "mezz.jei"
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
         }
-    }
-    maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
-        content {
+        filter {
             includeGroup "maven.modrinth"
         }
     }
     maven {
-        url "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
     }
     maven {
-        url "https://maven.latvian.dev/releases"
-        content {
-            includeGroup "dev.latvian.mods"
-            includeGroup "dev.latvian.apps"
-        }
+        // location of the maven that hosts JEI files since January 2023
+        // Patchouli
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
     }
     maven {
-        url = "https://maven.architectury.dev"
-        content {
-            includeGroup "dev.architectury"
-        }
-    }
-    maven {
-        url = "https://maven.shedaniel.me"
-    }
-    maven {
-        name = "TerraformersMC"
-        url = "https://maven.terraformersmc.com/"
+        // location of a maven mirror for JEI files, as a fallback
+        name = "ModMaven"
+        url = "https://modmaven.dev"
     }
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
-    // JEI
-    compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:${jei_version}")
-    compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge-api:${jei_version}")
-    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:${jei_version}")
-
-    // REI 前置
-    implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:11.1.106")
-    implementation fg.deobf("dev.architectury:architectury-forge:9.2.14")
-    // REI API for Forge (ForgeGradle)
-    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-api-forge:12.1.785")
-    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-default-plugin-forge:12.1.785")
-    // runtimeOnly fg.deobf("maven.modrinth:rei:12.1.785+forge-forge,1.20.1")
-
-    // EMI
-    compileOnly fg.deobf("dev.emi:emi-forge:1.1.22+1.20.1:api")
-    compileOnly fg.deobf("dev.emi:emi-forge:1.1.22+1.20.1")
-
-    implementation fg.deobf("maven.modrinth:jade:11.13.1+forge")
-
-    // KubeJS
-    implementation fg.deobf("dev.latvian.mods:kubejs-forge:2001.6.5-build.16")
-    implementation fg.deobf("dev.latvian.mods:rhino-forge:2001.2.3-build.10")
-    runtimeOnly fg.deobf("dev.architectury:architectury-forge:9.2.14")
-    runtimeOnly fg.deobf("maven.modrinth:probejs:6.0.0")
-
-    // 背包
-    runtimeOnly fg.deobf("maven.modrinth:sophisticated-core:1.20.1-1.2.0.843-forge")
-    runtimeOnly fg.deobf("maven.modrinth:sophisticated-backpacks:1.20.1-3.23.1.1184-forge")
-
-    // Farmer's Delight
-    implementation fg.deobf("maven.modrinth:farmers-delight:1.20.1-1.2.6-forge")
-
-    implementation fg.deobf("maven.modrinth:harvest-with-ease:9.4.0-forge,1.20.1")
-    runtimeOnly fg.deobf("maven.modrinth:cobweb:1.0.1-forge,1.20.1")
-
-    runtimeOnly fg.deobf("maven.modrinth:diet:2.1.1+1.20.1-forge")
-    runtimeOnly fg.deobf('curse.maven:touhou-little-maid-355044:6440955-sources-6482784')
-    runtimeOnly fg.deobf("maven.modrinth:appleskin:2.5.1+mc1.20.1-forge")
-    runtimeOnly fg.deobf("maven.modrinth:better-advancements:0.4.2.25-forge")
-    runtimeOnly fg.deobf("maven.modrinth:just-enough-effect-descriptions-jeed:1.20-2.2.5-forge")
-    runtimeOnly fg.deobf("curse.maven:carry-on-274259:4882500")
-    runtimeOnly fg.deobf("curse.maven:ecliptic-seasons-1118306:6838718")
-
-    runtimeOnly fg.deobf("maven.modrinth:nbtedit-reborn:5.0.3+mc1.20.1")
-    runtimeOnly fg.deobf("maven.modrinth:kiwi:11.5.5")
-
-    runtimeOnly fg.deobf("curse.maven:ftb-library-forge-404465:7296748")
-    runtimeOnly fg.deobf("curse.maven:ftb-ultimine-forge-386134:6899418")
-
-    runtimeOnly fg.deobf("maven.modrinth:food-effect-tooltips-forge:1.3.0-forge,1.20.1")
-
-    // runtimeOnly fg.deobf("maven.modrinth:serene-seasons:9.1.0.2-forge")
-    // runtimeOnly fg.deobf("maven.modrinth:glitchcore:0.0.1.1-forge")
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${project.parchment_version}@zip")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // JEI：只保留一个可用的 Fabric 版本，避免与 common-api / fabric-api 重复类
+    modCompileOnly("mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}") {
+        exclude group: "mezz.jei", module: "jei-${project.minecraft_version}-common-api-intermediary"
+        exclude group: "mezz.jei", module: "jei-${project.minecraft_version}-fabric-api"
+    }
+    modLocalRuntime("mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}") {
+        exclude group: "mezz.jei", module: "jei-${project.minecraft_version}-common-api-intermediary"
+        exclude group: "mezz.jei", module: "jei-${project.minecraft_version}-fabric-api"
+    }
+    modImplementation "curse.maven:jade-324717:7427066"
+    modImplementation "curse.maven:roughly-enough-items-310111:7486489"
+    modImplementation "curse.maven:cloth-config-348521:7361438"
+    modApi("me.shedaniel.cloth:basic-math:+")
+    modImplementation "curse.maven:architectury-api-419699:7339256"
 }
 
-tasks.named('processResources', ProcessResources).configure {
-    var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            forge_version          : forge_version,
-            forge_version_range    : forge_version_range,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            mod_authors            : mod_authors,
-            mod_description        : mod_description
-    ]
+def modVersion = project.version
+def minecraftVersion = project.minecraft_version
+def loaderVersion = project.loader_version
 
-    inputs.properties replaceProperties
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
+processResources {
+    inputs.property "version", modVersion
+    inputs.property "minecraft_version", minecraftVersion
+    inputs.property "loader_version", loaderVersion
+    filteringCharset = "UTF-8"
+
+    filesMatching("fabric.mod.json") {
+        expand(
+                "version": modVersion,
+                "minecraft_version": minecraftVersion,
+                "loader_version": loaderVersion
+        )
     }
 }
 
-tasks.named('jar', Jar).configure {
-    manifest {
-        attributes([
-                "Implementation-Title"  : project.name,
-                "Implementation-Version": "${version}"
-        ])
-    }
-    finalizedBy 'reobfJar'
-}
-
+def targetJavaVersion = 21
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+    it.options.encoding = "UTF-8"
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        it.options.release.set(targetJavaVersion)
+    }
 }
 
 java {
-    // 编译源码文件，方便发布 maven
-    withSourcesJar()
-}
-
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
+    withSourcesJar()
 }

@@ -1,43 +1,41 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.client.animation.CustomArmPose;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 import java.util.function.Consumer;
-
-/**
- * 带有举起姿势的方块物品
- */
 public class LiftBlockItem extends WithTooltipsBlockItem {
-    public LiftBlockItem(Block block, Properties properties, String name) {
-        super(block, properties, name);
+    public LiftBlockItem(Block block, Properties properties, String... names) {
+        super(block, properties, names);
     }
 
-    public LiftBlockItem(Block block, String name) {
-        super(block, name);
+    public LiftBlockItem(Block block, String... names) {
+        this(block, new Item.Properties(), names);
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            // 放这里，提前触发加载
-            private final HumanoidModel.ArmPose liftPose = CustomArmPose.LIFT_POSE;
-
-            @Override
-            public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack) {
-                if (!stack.isEmpty()) {
-                    return liftPose;
-                }
-                return HumanoidModel.ArmPose.EMPTY;
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (id == null) {
+            return;
+        }
+        String key = "tooltip.%s.%s".formatted(id.getNamespace(), id.getPath());
+        Component full = Component.translatable(key).withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC);
+        String text = full.getString();
+        for (String line : text.split("\n")) {
+            if (!line.isEmpty()) {
+                tooltip.accept(Component.literal(line).withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
+            } else {
+                tooltip.accept(CommonComponents.EMPTY);
             }
-        });
+        }
     }
 }

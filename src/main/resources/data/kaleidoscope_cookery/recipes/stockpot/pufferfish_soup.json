@@ -1,0 +1,14 @@
+{
+  "type": "kaleidoscope_cookery:stockpot",
+  "ingredients": [
+    "minecraft:pufferfish",
+    "minecraft:pufferfish",
+    "minecraft:pufferfish",
+    "minecraft:seagrass",
+    "minecraft:seagrass"
+  ],
+  "result": {
+    "count": 3,
+    "id": "kaleidoscope_cookery:pufferfish_soup"
+  }
+}

@@ -1,95 +1,81 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.init.registry;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.dispenser.OilPotDispenseBehavior;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteOneByTwoBlock;
-import com.github.ysbbbbbb.kaleidoscopecookery.compat.farmersdelight.FarmersDelightCompat;
-import com.github.ysbbbbbb.kaleidoscopecookery.compat.harvest.HarvestCompat;
-import com.github.ysbbbbbb.kaleidoscopecookery.datagen.lootable.GiftLootTables;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.*;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.effect.FlatulenceServerEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.effect.PreservationEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.effect.SatiatedShieldEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModVillager;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.BowlFoodBlockItem;
-import com.github.ysbbbbbb.kaleidoscopecookery.network.NetworkHandler;
-import net.minecraft.world.entity.ai.behavior.GiveGiftToHero;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.ComposterBlock;
+import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.DispenserBlock;
-import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegisterEvent;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = KaleidoscopeCookery.MOD_ID)
 public class CommonRegistry {
-    @SubscribeEvent
-    public static void onSetupEvent(FMLCommonSetupEvent event) {
-        event.enqueueWork(CommonRegistry::addComposter);
-        event.enqueueWork(NetworkHandler::init);
-        event.enqueueWork(ModSoupBases::registerAll);
-        event.enqueueWork(CommonRegistry::addVillagerGift);
-        event.enqueueWork(CommonRegistry::modCompat);
-        event.enqueueWork(CommonRegistry::addDispenserBehavior);
+    public static void init() {
+        addComposter();
+        registerFoodBiteBlocks();
+        registerServerEvents();
+        addDispenserBehavior();
     }
 
-    @SubscribeEvent
-    public static void onBlockRegistryEvent(RegisterEvent event) {
-        if (event.getRegistryKey().equals(ForgeRegistries.Keys.BLOCKS)) {
-            FoodBiteRegistry.FOOD_DATA_MAP.forEach((resourceLocation, data) ->
-                    event.register(ForgeRegistries.Keys.BLOCKS, resourceLocation, () -> {
-                        FoodBiteBlock biteBlock;
-                        if (data.blockType() == FoodBiteRegistry.BlockType.ONE_BY_TWO) {
-                            biteBlock = new FoodBiteOneByTwoBlock(data.blockFood(), data.maxBites(), data.animateTick());
-                        } else {
-                            biteBlock = new FoodBiteBlock(data.blockFood(), data.maxBites(), data.animateTick());
-                        }
-
-                        VoxelShape aabb = data.getAABB();
-                        if (aabb != null) {
-                            biteBlock.setAABB(aabb);
-                        }
-                        return biteBlock;
-                    }));
-        }
-
-        if (event.getRegistryKey().equals(ForgeRegistries.Keys.ITEMS)) {
-            FoodBiteRegistry.FOOD_DATA_MAP.forEach((resourceLocation, data) -> {
-                Block block = ForgeRegistries.BLOCKS.getValue(resourceLocation);
-                if (block != null) {
-                    event.register(ForgeRegistries.Keys.ITEMS, resourceLocation,
-                            () -> new BowlFoodBlockItem(block, data.itemFood()));
-                }
-            });
-        }
+    public static void registerServerEvents() {
+        SatiatedShieldEvent.register();
+        FlatulenceServerEvent.register();
+        PreservationEvent.register();
+        ArmorEffectHandler.register();
+        AddVillageStructuresEvent.register();
+        EntityJoinWorldEvent.register();
+        HoeUseEvent.register();
+        RightClickEvent.register();
+        LeftClickEvent.register();
+        ExtraLootTableDrop.register();
+        SickleHarvestNetherWartEvent.register();
     }
 
-    private static void modCompat() {
-        FarmersDelightCompat.init();
-        HarvestCompat.init();
-    }
+    private static void registerFoodBiteBlocks() {
+        FoodBiteRegistry.init();
 
-    private static void addVillagerGift() {
-        GiveGiftToHero.GIFTS.put(ModVillager.CHEF.get(), GiftLootTables.CHEF_GIFT);
+        FoodBiteRegistry.FOOD_DATA_MAP.forEach((resourceLocation, data) -> {
+            BlockBehaviour.Properties properties = BlockBehaviour.Properties.of()
+                    .setId(ResourceKey.create(Registries.BLOCK, resourceLocation));
+            FoodBiteBlock block = data.blockType() == FoodBiteRegistry.BlockType.ONE_BY_TWO
+                    ? new FoodBiteOneByTwoBlock(properties, data.blockFood(), data.maxBites(), data.animateTick())
+                    : new FoodBiteBlock(properties, data.blockFood(), data.maxBites(), data.animateTick());
+            if (data.getAABB() != null) {
+                block.setAABB(data.getAABB());
+            }
+            Registry.register(BuiltInRegistries.BLOCK, resourceLocation, block);
+
+            Item.Properties itemProperties = new Item.Properties()
+                    .setId(ResourceKey.create(Registries.ITEM, resourceLocation));
+            BowlFoodBlockItem item = new BowlFoodBlockItem(block, data.itemFood(), itemProperties);
+            Registry.register(BuiltInRegistries.ITEM, resourceLocation, item);
+        });
     }
 
     private static void addComposter() {
-        ComposterBlock.COMPOSTABLES.put(ModItems.TOMATO_SEED.get(), 0.3F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.CHILI_SEED.get(), 0.3F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.LETTUCE_SEED.get(), 0.3F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.WILD_RICE_SEED.get(), 0.3F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.RICE_SEED.get(), 0.3F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.TOMATO.get(), 0.65F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.RED_CHILI.get(), 0.65F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.GREEN_CHILI.get(), 0.65F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.LETTUCE.get(), 0.65F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.RICE_PANICLE.get(), 0.65F);
-        ComposterBlock.COMPOSTABLES.put(ModItems.CATERPILLAR.get(), 1.0F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.TOMATO_SEED, 0.3F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.CHILI_SEED, 0.3F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.LETTUCE_SEED, 0.3F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.WILD_RICE_SEED, 0.3F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.RICE_SEED, 0.3F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.TOMATO, 0.65F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.RED_CHILI, 0.65F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.GREEN_CHILI, 0.65F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.LETTUCE, 0.65F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.RICE_PANICLE, 0.65F);
+        CompostingChanceRegistry.INSTANCE.add(ModItems.CATERPILLAR, 1.0F);
     }
 
     private static void addDispenserBehavior() {
-        DispenserBlock.registerBehavior(ModItems.OIL_POT.get(), new OilPotDispenseBehavior());
+        DispenserBlock.registerBehavior(ModItems.OIL_POT, new OilPotDispenseBehavior());
     }
 }

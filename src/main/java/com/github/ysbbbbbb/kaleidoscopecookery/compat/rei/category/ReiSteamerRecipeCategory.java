@@ -17,18 +17,23 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import me.shedaniel.rei.plugin.common.displays.crafting.DefaultCustomDisplay;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.crafting.RecipeAccess;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ReiSteamerRecipeCategory implements DisplayCategory<DefaultCustomDisplay> {
     public static final CategoryIdentifier<DefaultCustomDisplay> ID = CategoryIdentifier.of(KaleidoscopeCookery.MOD_ID, "plugin/steamer");
     private static final MutableComponent TITLE = Component.translatable("block.kaleidoscope_cookery.steamer");
-    private static final ResourceLocation BG = new ResourceLocation(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/steamer.png");
+    private static final Identifier BG = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/steamer.png");
     public static final int WIDTH = 176;
     public static final int HEIGHT = 78;
 
@@ -46,11 +51,11 @@ public class ReiSteamerRecipeCategory implements DisplayCategory<DefaultCustomDi
         widgets.add(Widgets.createRecipeBase(bounds));
         widgets.add(Widgets.createTexturedWidget(BG, startX, startY, 0, 0, WIDTH, HEIGHT));
         widgets.add(Widgets.createSlot(new Point(startX + 38, startY + 27))
-                .entries(display.getInputEntries().get(0))
+                .entries(display.getInputEntries().getFirst())
                 .disableBackground()
                 .markInput());
         widgets.add(Widgets.createSlot(new Point(startX + 128, startY + 30))
-                .entries(display.getOutputEntries().get(0))
+                .entries(display.getOutputEntries().getFirst())
                 .disableBackground()
                 .markOutput());
 
@@ -74,28 +79,37 @@ public class ReiSteamerRecipeCategory implements DisplayCategory<DefaultCustomDi
 
     @Override
     public Renderer getIcon() {
-        return EntryStacks.of(ModItems.STEAMER.get());
+        return EntryStacks.of(ModItems.STEAMER);
     }
 
     public static void registerCategories(CategoryRegistry registry) {
         registry.add(new ReiSteamerRecipeCategory());
         registry.addWorkstations(ReiSteamerRecipeCategory.ID,
-                ReiUtil.ofItem(ModItems.STEAMER.get()),
-                ReiUtil.ofIngredient(Ingredient.of(TagMod.KITCHEN_KNIFE)));
+                ReiUtil.ofItem(ModItems.STEAMER),
+                ReiUtil.ofTag(TagMod.KITCHEN_KNIFE));
     }
 
     public static void registerDisplays(DisplayRegistry registry) {
-        registry.getRecipeManager().getAllRecipesFor(ModRecipes.STEAMER_RECIPE)
-                .forEach(r -> {
-                    List<EntryIngredient> input = ReiUtil.ofIngredients(r.getIngredients());
-                    List<EntryIngredient> output = ReiUtil.ofItemStacks(r.getResult());
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return;
+        }
+        RecipeAccess recipeAccess = level.recipeAccess();
+        for (RecipeHolder<?> holder : recipeAccess.getSynchronizedRecipes().recipes()) {
+            if (holder.value().getType() != ModRecipes.STEAMER_RECIPE) {
+                continue;
+            }
+            RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.SteamerRecipe> r =
+                    (RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.SteamerRecipe>) holder;
+            List<EntryIngredient> input = ReiUtil.ofIngredients(r.value().getIngredient());
+            List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().getResult());
 
-                    registry.add(new DefaultCustomDisplay(r, input, output) {
-                        @Override
-                        public CategoryIdentifier<?> getCategoryIdentifier() {
-                            return ReiSteamerRecipeCategory.ID;
-                        }
-                    });
-                });
+            registry.add(new DefaultCustomDisplay(input, output, Optional.of(r.id().identifier())) {
+                @Override
+                public CategoryIdentifier<?> getCategoryIdentifier() {
+                    return ReiSteamerRecipeCategory.ID;
+                }
+            });
+        }
     }
 }

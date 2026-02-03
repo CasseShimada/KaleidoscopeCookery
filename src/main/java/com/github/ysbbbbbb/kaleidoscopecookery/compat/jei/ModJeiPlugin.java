@@ -8,11 +8,12 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.NotNull;
 
 @JeiPlugin
 public class ModJeiPlugin implements IModPlugin {
-    private static final ResourceLocation UID = new ResourceLocation(KaleidoscopeCookery.MOD_ID, "jei");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "jei");
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
@@ -34,15 +35,15 @@ public class ModJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(ModItems.POT.get(), PotRecipeCategory.TYPE);
-        registration.addRecipeCatalyst(ModItems.CHOPPING_BOARD.get(), ChoppingBoardRecipeCategory.TYPE);
-        registration.addRecipeCatalyst(ModItems.STOCKPOT.get(), StockpotRecipeCategory.TYPE);
-        registration.addRecipeCatalyst(ModItems.MILLSTONE.get(), MillstoneRecipeCategory.TYPE);
-        registration.addRecipeCatalyst(ModItems.STEAMER.get(), SteamerRecipeCategory.TYPE);
+        registration.addCraftingStation(PotRecipeCategory.TYPE, ModItems.POT);
+        registration.addCraftingStation(ChoppingBoardRecipeCategory.TYPE, ModItems.CHOPPING_BOARD);
+        registration.addCraftingStation(StockpotRecipeCategory.TYPE, ModItems.STOCKPOT);
+        registration.addCraftingStation(MillstoneRecipeCategory.TYPE, ModItems.MILLSTONE);
+        registration.addCraftingStation(SteamerRecipeCategory.TYPE, ModItems.STEAMER);
     }
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public @NotNull Identifier getPluginUid() {
         return UID;
     }
 }

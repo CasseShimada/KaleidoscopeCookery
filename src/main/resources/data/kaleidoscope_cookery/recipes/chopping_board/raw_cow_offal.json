@@ -1,0 +1,10 @@
+{
+  "type": "kaleidoscope_cookery:chopping_board",
+  "cut_count": 4,
+  "model_id": "kaleidoscope_cookery:raw_cow_offal",
+  "ingredient": "minecraft:beef",
+  "result": {
+    "id": "kaleidoscope_cookery:raw_cow_offal",
+    "count": 2
+  }
+}

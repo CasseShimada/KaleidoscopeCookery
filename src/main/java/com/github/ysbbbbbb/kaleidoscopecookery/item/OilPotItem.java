@@ -3,46 +3,46 @@ package com.github.ysbbbbbb.kaleidoscopecookery.item;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.world.item.component.TooltipDisplay;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.List;
+import java.util.function.Consumer;
 
 public class OilPotItem extends BlockItem {
-    public static final ResourceLocation HAS_OIL_PROPERTY = new ResourceLocation(KaleidoscopeCookery.MOD_ID, "has_oil");
+    public static final Identifier HAS_OIL_PROPERTY = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "has_oil");
+    public static final int MAX_COUNT = OilPotBlockEntity.MAX_OIL_COUNT;
 
-    private static final String OIL_COUNT = "oil_count";
     private static final int NO_OIL = 0;
     private static final int HAS_OIL = 1;
 
-    public OilPotItem() {
-        super(ModBlocks.OIL_POT.get(), new Item.Properties().stacksTo(1));
+    public OilPotItem(Properties properties) {
+        super(ModBlocks.OIL_POT, properties.stacksTo(1));
     }
 
     public static void setOilCount(ItemStack stack, int count) {
-        count = Mth.clamp(count, 0, OilPotBlockEntity.MAX_OIL_COUNT);
-        stack.getOrCreateTag().putInt(OIL_COUNT, count);
+        count = Mth.clamp(count, 0, MAX_COUNT);
+        if (count <= 0) {
+            stack.remove(ModDataComponents.OIL_POT_COUNT);
+        } else {
+            stack.set(ModDataComponents.OIL_POT_COUNT, count);
+        }
     }
 
     public static int getOilCount(ItemStack stack) {
-        CompoundTag element = stack.getTag();
-        if (element == null || !element.contains(OIL_COUNT)) {
-            return 0;
-        }
-        return element.getInt(OIL_COUNT);
+        Integer count = stack.get(ModDataComponents.OIL_POT_COUNT);
+        return count == null ? 0 : count;
     }
 
     public static boolean hasOil(ItemStack stack) {
@@ -57,12 +57,12 @@ public class OilPotItem extends BlockItem {
     }
 
     public static ItemStack getFullOilPot() {
-        ItemStack stack = new ItemStack(ModBlocks.OIL_POT.get());
-        setOilCount(stack, OilPotBlockEntity.MAX_OIL_COUNT);
+        ItemStack stack = new ItemStack(ModBlocks.OIL_POT);
+        setOilCount(stack, MAX_COUNT);
         return stack;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public static float getTexture(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
         if (hasOil(stack)) {
             return HAS_OIL;
@@ -71,13 +71,13 @@ public class OilPotItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+        public void appendHoverText(ItemStack pStack, TooltipContext context, TooltipDisplay display, Consumer<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
         int oilCount = getOilCount(pStack);
         if (oilCount > 0) {
-            pTooltipComponents.add(Component.translatable("tooltip.kaleidoscope_cookery.oil_pot.count", oilCount)
+            pTooltipComponents.accept(Component.translatable("tooltip.kaleidoscope_cookery.oil_pot.count", oilCount)
                     .withStyle(ChatFormatting.GRAY));
         } else {
-            pTooltipComponents.add(Component.translatable("tooltip.kaleidoscope_cookery.oil_pot.empty")
+            pTooltipComponents.accept(Component.translatable("tooltip.kaleidoscope_cookery.oil_pot.empty")
                     .withStyle(ChatFormatting.GRAY));
         }
     }

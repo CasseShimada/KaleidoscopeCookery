@@ -5,10 +5,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.material.Fluid;
 
 public class MobSoupBaseRender extends FluidSoupBaseRender {
@@ -21,21 +24,22 @@ public class MobSoupBaseRender extends FluidSoupBaseRender {
 
     @Override
     public void renderWhenPutIngredient(StockpotBlockEntity stockpot, float partialTick, PoseStack poseStack,
-                                        MultiBufferSource buffer, int packedLight, int packedOverlay,
+                                        SubmitNodeCollector collector, CameraRenderState cameraState, int packedLight, int packedOverlay,
                                         float soupHeight) {
-        super.renderWhenPutIngredient(stockpot, partialTick, poseStack, buffer, packedLight, packedOverlay, soupHeight);
-        this.renderInputEntity(stockpot, poseStack, buffer, packedLight);
+        super.renderWhenPutIngredient(stockpot, partialTick, poseStack, collector, cameraState, packedLight, packedOverlay, soupHeight);
+        this.renderInputEntity(stockpot, partialTick, poseStack, collector, cameraState);
     }
 
     @Override
     public void renderWhenCooking(StockpotBlockEntity stockpot, float partialTick, PoseStack poseStack,
-                                  MultiBufferSource buffer, int packedLight, int packedOverlay,
-                                  ResourceLocation cookingTexture, float soupHeight) {
-        super.renderWhenCooking(stockpot, partialTick, poseStack, buffer, packedLight, packedOverlay, cookingTexture, soupHeight);
-        this.renderInputEntity(stockpot, poseStack, buffer, packedLight);
+                                  SubmitNodeCollector collector, CameraRenderState cameraState, int packedLight, int packedOverlay,
+                                  Identifier cookingTexture, float soupHeight) {
+        super.renderWhenCooking(stockpot, partialTick, poseStack, collector, cameraState, packedLight, packedOverlay, cookingTexture, soupHeight);
+        this.renderInputEntity(stockpot, partialTick, poseStack, collector, cameraState);
     }
 
-    private void renderInputEntity(StockpotBlockEntity stockpot, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+    private void renderInputEntity(StockpotBlockEntity stockpot, float partialTick, PoseStack poseStack,
+                                   SubmitNodeCollector collector, CameraRenderState cameraState) {
         ClientLevel world = Minecraft.getInstance().level;
         if (world == null) {
             return;
@@ -43,7 +47,7 @@ public class MobSoupBaseRender extends FluidSoupBaseRender {
         Entity renderEntity = stockpot.renderEntity;
         boolean shouldRefreshCache = renderEntity == null || renderEntity.getType() != mobType;
         if (shouldRefreshCache) {
-            stockpot.renderEntity = mobType.create(world);
+            stockpot.renderEntity = mobType.create(world, EntitySpawnReason.COMMAND);
             if (stockpot.renderEntity != null) {
                 stockpot.renderEntity.setOnGround(true);
             }
@@ -58,8 +62,9 @@ public class MobSoupBaseRender extends FluidSoupBaseRender {
             poseStack.mulPose(Axis.YP.rotationDegrees(random % 360));
             poseStack.translate(-0.5, -0.5, -0.5);
             poseStack.scale(0.5f, 0.5f, 0.5f);
-            Minecraft.getInstance().getEntityRenderDispatcher().render(stockpot.renderEntity, 1, 0.375f + entityY, 1,
-                    0, 0, poseStack, buffer, packedLight);
+            EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+            var renderState = dispatcher.extractEntity(stockpot.renderEntity, partialTick);
+            dispatcher.submit(renderState, cameraState, 1, 0.375f + entityY, 1, poseStack, collector);
             poseStack.popPose();
         }
     }

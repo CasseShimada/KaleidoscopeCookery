@@ -2,41 +2,34 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.block;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModPlugin;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
-import snownee.jade.api.Accessor;
-import snownee.jade.api.view.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import snownee.jade.api.BlockAccessor;
+import snownee.jade.api.IBlockComponentProvider;
+import snownee.jade.api.ITooltip;
+import snownee.jade.api.config.IPluginConfig;
+import snownee.jade.api.ui.JadeUI;
 
-import java.util.Collections;
-import java.util.List;
-
-public enum OilPotComponentProvider implements IServerExtensionProvider<Object, ItemStack>, IClientExtensionProvider<ItemStack, ItemView> {
+public enum OilPotComponentProvider implements IBlockComponentProvider {
     INSTANCE;
 
     @Override
-    public List<ClientViewGroup<ItemView>> getClientGroups(Accessor<?> accessor, List<ViewGroup<ItemStack>> list) {
-        return ClientViewGroup.map(list, ItemView::new, null);
-    }
-
-    @Override
-    @Nullable
-    public List<ViewGroup<ItemStack>> getGroups(ServerPlayer serverPlayer, ServerLevel serverLevel, Object target, boolean showDetails) {
-        if (target instanceof OilPotBlockEntity oilPot) {
-            int oilCount = oilPot.getOilCount();
-            if (oilCount > 0) {
-                ItemStack stack = new ItemStack(ModItems.OIL.get(), oilCount);
-                return List.of(new ViewGroup<>(Collections.singletonList(stack)));
-            }
+    public void appendTooltip(ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
+        if (!(blockAccessor.getBlockEntity() instanceof OilPotBlockEntity oilPot)) {
+            return;
         }
-        return null;
+        int count = oilPot.getOilCount();
+        Component text;
+        if (count > 0) {
+            text = Component.translatable("tooltip.kaleidoscope_cookery.oil_pot.count", count);
+        } else {
+            text = Component.translatable("tooltip.kaleidoscope_cookery.oil_pot.empty");
+        }
+        iTooltip.add(JadeUI.text(text));
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return ModPlugin.OIL_POT;
     }
 }

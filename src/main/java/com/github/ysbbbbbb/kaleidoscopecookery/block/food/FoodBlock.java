@@ -14,8 +14,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class FoodBlock extends Block {
     public static final VoxelShape AABB = Block.box(1, 0, 1, 15, 2, 15);
 
-    public FoodBlock() {
-        super(BlockBehaviour.Properties.of()
+    public FoodBlock(BlockBehaviour.Properties properties) {
+        super(properties
                 .forceSolidOn()
                 .instabreak()
                 .mapColor(MapColor.WOOD)

@@ -1,29 +1,68 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import net.fabricmc.loader.api.FabricLoader;
 
-public class GeneralConfig {
-    public static ForgeConfigSpec init() {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
-        general(builder);
-        return builder.build();
-    }
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public final class GeneralConfig {
+    private static final String FILE_NAME = "kaleidoscope_cookery.json";
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static GeneralConfig INSTANCE;
 
     /**
-     * 饱腹代偿属性可能在某些整合里过于 OP，故提供一个开关来关闭它。
+     * Whether enabling the Satiated Shield effect.
      */
-    public static ForgeConfigSpec.BooleanValue SATIATED_SHIELD_ABSORB_ENABLED;
-    public static ForgeConfigSpec.BooleanValue SATIATED_SHIELD_ABSORB_EXCESS_DAMAGE;
+    public boolean satiatedShieldAbsorbEnabled = true;
+    /**
+     * Whether the Satiated Shield effect should absorb excess damage beyond its capacity.
+     */
+    public boolean satiatedShieldAbsorbExcessDamage = true;
 
-    private static void general(ForgeConfigSpec.Builder builder) {
-        builder.push("cookery");
+    private GeneralConfig() {
+    }
 
-        builder.comment("Whether enabling the Satiated Shield effect.");
-        SATIATED_SHIELD_ABSORB_ENABLED = builder.define("SatiatedShieldAbsorbEnabled", true);
+    public static void init() {
+        get();
+    }
 
-        builder.comment("Whether the Satiated Shield effect should absorb excess damage beyond its capacity.");
-        SATIATED_SHIELD_ABSORB_EXCESS_DAMAGE = builder.define("SatiatedShieldAbsorbExcessDamage", true);
+    public static GeneralConfig get() {
+        if (INSTANCE == null) {
+            INSTANCE = load();
+        }
+        return INSTANCE;
+    }
 
-        builder.pop();
+    private static GeneralConfig load() {
+        Path configPath = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+        if (Files.exists(configPath)) {
+            try {
+                String json = Files.readString(configPath);
+                GeneralConfig config = GSON.fromJson(json, GeneralConfig.class);
+                if (config != null) {
+                    return config;
+                }
+            } catch (IOException | JsonSyntaxException e) {
+                KaleidoscopeCookery.LOGGER.warn("Failed to read config, using defaults.", e);
+            }
+        }
+
+        GeneralConfig config = new GeneralConfig();
+        save(config, configPath);
+        return config;
+    }
+
+    private static void save(GeneralConfig config, Path configPath) {
+        try {
+            Files.createDirectories(configPath.getParent());
+            Files.writeString(configPath, GSON.toJson(config));
+        } catch (IOException e) {
+            KaleidoscopeCookery.LOGGER.warn("Failed to write config file.", e);
+        }
     }
 }

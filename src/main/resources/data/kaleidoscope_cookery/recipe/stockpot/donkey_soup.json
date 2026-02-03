@@ -1,0 +1,14 @@
+{
+  "type": "kaleidoscope_cookery:stockpot",
+  "ingredients": [
+    "kaleidoscope_cookery:raw_donkey_meat",
+    "kaleidoscope_cookery:raw_donkey_meat",
+    "kaleidoscope_cookery:raw_donkey_meat",
+    "kaleidoscope_cookery:raw_donkey_meat",
+    "kaleidoscope_cookery:raw_donkey_meat"
+  ],
+  "result": {
+    "count": 3,
+    "id": "kaleidoscope_cookery:donkey_soup"
+  }
+}

@@ -5,6 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.util.BlockDrop;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
@@ -16,25 +17,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.items.ItemStackHandler;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,8 +59,8 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
     private static final VoxelShape FACE = Block.box(0, 13, 0, 16, 16, 16);
 
-    public TableBlock() {
-        super(Properties.of()
+    public TableBlock(BlockBehaviour.Properties properties) {
+        super(properties
                 .mapColor(MapColor.WOOD)
                 .instrument(NoteBlockInstrument.BASS)
                 .strength(2.0F, 3.0F)
@@ -73,7 +75,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         ItemStack itemInHand = player.getItemInHand(hand);
         if (hand == InteractionHand.MAIN_HAND) {
             if (itemInHand.is(ItemTags.WOOL_CARPETS)) {
@@ -82,12 +84,12 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
                 return useWithOther(level, pos, player, hand, table, itemInHand);
             }
         }
-        return super.use(state, level, pos, player, hand, hit);
+        return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
     @NotNull
     private InteractionResult useWithOther(Level level, BlockPos pos, Player player, InteractionHand hand, TableBlockEntity table, ItemStack itemInHand) {
-        ItemStackHandler tableItems = table.getItems();
+        NonNullList<ItemStack> tableItems = table.getItems();
         Pair<Integer, ItemStack> lastStack = ItemUtils.getLastStack(tableItems);
         Integer tableIndex = lastStack.getLeft();
         ItemStack tableItem = lastStack.getRight();
@@ -98,25 +100,30 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         if (handEmpty && !tableItem.isEmpty()) {
             level.playSound(player, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, player.getSoundSource(), 1.0F, 1.0F);
             BlockDrop.popResource(level, pos, 0.75, tableItem.copy());
-            tableItems.setStackInSlot(tableIndex, ItemStack.EMPTY);
+            tableItems.set(tableIndex, ItemStack.EMPTY);
             table.refresh();
             return InteractionResult.SUCCESS;
         }
 
         // 玩家手有物品，并且可以放入物品时
-        if (!handEmpty && tableIndex < (tableItems.getSlots() - 1)) {
+        if (!handEmpty && tableIndex < (tableItems.size() - 1)) {
             ItemStack split = itemInHand.split(1);
             if (tableItem.isEmpty()) {
-                tableItems.setStackInSlot(tableIndex, split);
+                tableItems.set(tableIndex, split);
             } else {
-                tableItems.setStackInSlot(tableIndex + 1, split);
+                tableItems.set(tableIndex + 1, split);
             }
             table.refresh();
             level.playSound(player, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
             return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.PASS;
+        // 桌子已满时，拦截后续物品交互，避免物品直接放到桌面上方
+        if (!handEmpty && tableIndex >= (tableItems.size() - 1) && !tableItem.isEmpty()) {
+            return InteractionResult.CONSUME.withoutItem();
+        }
+
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @NotNull
@@ -124,7 +131,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         @Nullable DyeColor dyeColor = getColorByCarpet(itemInHand.getItem());
         boolean hasCarpet = state.getValue(HAS_CARPET);
         if (dyeColor == null) {
-            return InteractionResult.PASS;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
 
         // 第一种情况，桌子上没有地毯
@@ -154,22 +161,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.PASS;
-    }
-
-    @Override
-    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide && player.isCreative() && level.getBlockEntity(pos) instanceof TableBlockEntity tableBlockEntity) {
-            ItemStackHandler items = tableBlockEntity.getItems();
-            for (int i = 0; i < items.getSlots(); i++) {
-                ItemStack stack = items.getStackInSlot(i);
-                if (!stack.isEmpty()) {
-                    popResource(level, pos, stack);
-                    items.setStackInSlot(i, ItemStack.EMPTY);
-                }
-            }
-        }
-        super.playerWillDestroy(level, pos, state, player);
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
@@ -181,9 +173,9 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
                 Item carpet = getCarpetByColor(tableBlockEntity.getColor());
                 drops.add(new ItemStack(carpet));
             }
-            ItemStackHandler items = tableBlockEntity.getItems();
-            for (int i = 0; i < items.getSlots(); i++) {
-                drops.add(items.getStackInSlot(i).copy());
+            NonNullList<ItemStack> items = tableBlockEntity.getItems();
+            for (ItemStack item : items) {
+                drops.add(item.copy());
             }
         }
         return drops;
@@ -194,66 +186,55 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         builder.add(AXIS, POSITION, HAS_CARPET, WATERLOGGED);
     }
 
-    private BlockState checkEastWestState(LevelAccessor levelAccessor, BlockPos pos, BlockState baseState) {
+    private BlockState checkEastWestState(LevelReader levelReader, BlockPos pos, BlockState baseState) {
         // 如果自己本身已经成为 Z 方向的组合桌，那么不更新
         if (baseState.getValue(AXIS) == Direction.Axis.Z && baseState.getValue(POSITION) != SINGLE) {
             return baseState;
         }
-        BlockState westState = levelAccessor.getBlockState(pos.west());
-        BlockState eastState = levelAccessor.getBlockState(pos.east());
-        if (checkIfShouldLink(eastState, Direction.Axis.Z) && checkIfShouldLink(westState, Direction.Axis.Z)) {
+        BlockState westState = levelReader.getBlockState(pos.west());
+        BlockState eastState = levelReader.getBlockState(pos.east());
+        if (eastState.is(this) && westState.is(this)) {
             return baseState.setValue(POSITION, MIDDLE).setValue(AXIS, Direction.Axis.X);
         }
-        if (checkIfShouldLink(eastState, Direction.Axis.Z) && !checkIfShouldLink(westState, Direction.Axis.Z)) {
+        if (eastState.is(this) && !westState.is(this)) {
             return baseState.setValue(POSITION, LEFT).setValue(AXIS, Direction.Axis.X);
         }
-        if (!checkIfShouldLink(eastState, Direction.Axis.Z) && checkIfShouldLink(westState, Direction.Axis.Z)) {
+        if (!eastState.is(this) && westState.is(this)) {
             return baseState.setValue(POSITION, RIGHT).setValue(AXIS, Direction.Axis.X);
         }
         return baseState.setValue(POSITION, SINGLE);
     }
 
-    private BlockState checkNorthSouthState(LevelAccessor levelAccessor, BlockPos pos, BlockState baseState) {
+    private BlockState checkNorthSouthState(LevelReader levelReader, BlockPos pos, BlockState baseState) {
         // 如果自己本身已经成为 X 方向的组合桌，那么不更新
         if (baseState.getValue(AXIS) == Direction.Axis.X && baseState.getValue(POSITION) != SINGLE) {
             return baseState;
         }
-        BlockState northState = levelAccessor.getBlockState(pos.north());
-        BlockState southState = levelAccessor.getBlockState(pos.south());
-        if (checkIfShouldLink(southState, Direction.Axis.X) && checkIfShouldLink(northState, Direction.Axis.X)) {
+        BlockState northState = levelReader.getBlockState(pos.north());
+        BlockState southState = levelReader.getBlockState(pos.south());
+        if (northState.is(this) && southState.is(this)) {
             return baseState.setValue(POSITION, MIDDLE).setValue(AXIS, Direction.Axis.Z);
         }
-        if (checkIfShouldLink(southState, Direction.Axis.X) && !checkIfShouldLink(northState, Direction.Axis.X)) {
+        if (!northState.is(this) && southState.is(this)) {
             return baseState.setValue(POSITION, LEFT).setValue(AXIS, Direction.Axis.Z);
         }
-        if (!checkIfShouldLink(southState, Direction.Axis.X) && checkIfShouldLink(northState, Direction.Axis.X)) {
+        if (northState.is(this) && !southState.is(this)) {
             return baseState.setValue(POSITION, RIGHT).setValue(AXIS, Direction.Axis.Z);
         }
         return baseState.setValue(POSITION, SINGLE);
     }
 
-    private boolean checkIfShouldLink(BlockState state, Direction.Axis axis) {
-        if (!state.is(this)) {
-            return false;
-        }
-        // 如果对方与修正方向不同，且对方并不是独立状态，则不可以接
-        if (state.getValue(AXIS) == axis) {
-            return state.getValue(POSITION) == SINGLE;
-        }
-        // 如果双方方向相同且毗邻，则无论如何都可以接
-        return true;
-    }
-
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor levelAccessor, BlockPos pos, BlockPos neighborPos) {
+    public BlockState updateShape(BlockState state, LevelReader levelReader, ScheduledTickAccess tickAccess, BlockPos pos,
+                                  Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         if (state.getValue(WATERLOGGED)) {
-            levelAccessor.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(levelAccessor));
+            tickAccess.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(levelReader));
         }
         if (direction.getAxis() == Direction.Axis.X) {
-            return checkEastWestState(levelAccessor, pos, state);
+            return checkEastWestState(levelReader, pos, state);
         }
         if (direction.getAxis() == Direction.Axis.Z) {
-            return checkNorthSouthState(levelAccessor, pos, state);
+            return checkNorthSouthState(levelReader, pos, state);
         }
         return state;
     }
@@ -290,10 +271,5 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     @Nullable
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new TableBlockEntity(pos, state);
-    }
-
-    @Override
-    public boolean isPathfindable(BlockState state, BlockGetter level, BlockPos pos, PathComputationType type) {
-        return false;
     }
 }

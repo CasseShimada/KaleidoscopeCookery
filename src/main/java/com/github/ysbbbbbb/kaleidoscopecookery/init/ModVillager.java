@@ -2,18 +2,25 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.google.common.collect.ImmutableSet;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 
-@SuppressWarnings("all")
 public class ModVillager {
-    public static final DeferredRegister<VillagerProfession> VILLAGER_PROFESSION = DeferredRegister.create(ForgeRegistries.VILLAGER_PROFESSIONS, KaleidoscopeCookery.MOD_ID);
+    public static final ResourceKey<VillagerProfession> CHEF_KEY = ResourceKey.create(Registries.VILLAGER_PROFESSION,
+            Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chef"));
+    public static final VillagerProfession CHEF = new VillagerProfession(
+            Component.translatable("profession.kaleidoscope_cookery.chef"),
+            poi -> poi.value() == ModPoi.STOVE,
+            poi -> poi.value() == ModPoi.STOVE,
+            ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_WORK_BUTCHER);
 
-    public static final RegistryObject<VillagerProfession> CHEF = VILLAGER_PROFESSION.register("chef", () -> new VillagerProfession("chef",
-            poi -> poi.get() == ModPoi.STOVE.get(),
-            poi -> poi.get() == ModPoi.STOVE.get(),
-            ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_WORK_BUTCHER));
+    public static void registerVillagerProfessions() {
+        Registry.register(BuiltInRegistries.VILLAGER_PROFESSION, CHEF_KEY, CHEF);
+    }
 }

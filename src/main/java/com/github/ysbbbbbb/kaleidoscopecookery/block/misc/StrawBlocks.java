@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RotatedPillarBlock;
@@ -19,8 +18,8 @@ import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 
 public class StrawBlocks extends RotatedPillarBlock {
-    public StrawBlocks() {
-        super(BlockBehaviour.Properties.of()
+    public StrawBlocks(BlockBehaviour.Properties properties) {
+        super(properties
                 .mapColor(MapColor.COLOR_YELLOW)
                 .instrument(NoteBlockInstrument.BANJO)
                 .strength(0.5F)
@@ -29,12 +28,8 @@ public class StrawBlocks extends RotatedPillarBlock {
     }
 
     @Override
-    public void fallOn(Level level, BlockState state, BlockPos pos, Entity entity, float fallDistance) {
+    public void fallOn(Level level, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
         if (level.isClientSide()) {
-            return;
-        }
-        // 只有普通生物才会触发
-        if (!(entity instanceof LivingEntity)) {
             return;
         }
         level.playSound(null, pos, SoundEvents.GRASS_FALL, entity.getSoundSource(), 1.0F, 1.0F);
@@ -43,11 +38,11 @@ public class StrawBlocks extends RotatedPillarBlock {
             return;
         }
         // 完全免伤，但是稻草有几率会被破坏
-        float possibility = Mth.clamp(fallDistance / 30F, 0F, 1F);
+        float possibility = Mth.clamp((float) fallDistance / 30F, 0F, 1F);
         if (level.random.nextFloat() < possibility) {
             level.destroyBlock(pos, false);
-            popResource(level, pos, new ItemStack(ModItems.RICE_PANICLE.get(), 5));
-            popResource(level, pos, new ItemStack(ModItems.RICE_SEED.get(), 4));
+            popResource(level, pos, new ItemStack(ModItems.RICE_PANICLE, 5));
+            popResource(level, pos, new ItemStack(ModItems.RICE_SEED, 4));
             if (level instanceof ServerLevel serverLevel) {
                 serverLevel.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                         10, 0.1, 0.1, 0.1, 0.05);

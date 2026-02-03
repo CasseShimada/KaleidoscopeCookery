@@ -1,8 +1,9 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.advancements.critereon.ModEventTriggerType;
+import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTriggerType;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IPot;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.*;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagCommon;
@@ -10,13 +11,9 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.KitchenShovelItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.OilPotItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -29,16 +26,21 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock.HAS_OIL;
 import static com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock.SHOW_OIL;
@@ -58,7 +60,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     private static final String SEED = "Seed";
 
     private NonNullList<ItemStack> inputs = NonNullList.withSize(PotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
-    private Ingredient carrier = Ingredient.EMPTY;
+    private Optional<Ingredient> carrier = Optional.empty();
     private ItemStack result = ItemStack.EMPTY;
     private int status = PUT_INGREDIENT;
     private int currentTick = 0;
@@ -71,7 +73,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     public StirFryAnimationData animationData = new StirFryAnimationData();
 
     public PotBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(ModBlocks.POT_BE.get(), pPos, pBlockState);
+        super(ModBlocks.POT_BE, pPos, pBlockState);
         this.seed = System.currentTimeMillis();
     }
 
@@ -153,7 +155,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
     private void tickFinished(RandomSource random) {
         if (this.currentTick % 10 == 0 && this.level instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ModParticles.COOKING.get(),
+            serverLevel.sendParticles(ModParticles.COOKING,
                     worldPosition.getX() + 0.5,
                     worldPosition.getY() + 0.1 + random.nextDouble() / 2,
                     worldPosition.getZ() + 0.5,
@@ -175,7 +177,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             // 检查翻炒次数
             if (this.stirFryCount > 0) {
                 this.result = getItem(SUSPICIOUS_STIR_FRY).getDefaultInstance();
-                this.carrier = Ingredient.of(Items.BOWL);
+                this.carrier = Optional.of(Ingredient.of(Items.BOWL));
             }
             this.currentTick = TAKEOUT_TIME;
             this.setChanged();
@@ -186,7 +188,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
     private void tickPutIngredient(Level level, RandomSource random) {
         if (this.currentTick % 10 == 0 && level instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ModParticles.COOKING.get(),
+            serverLevel.sendParticles(ModParticles.COOKING,
                     worldPosition.getX() + 0.5 + random.nextDouble() / 5 * (random.nextBoolean() ? 1 : -1),
                     worldPosition.getY() + 0.1 + random.nextDouble() / 3,
                     worldPosition.getZ() + 0.5 + random.nextDouble() / 5 * (random.nextBoolean() ? 1 : -1),
@@ -200,7 +202,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
                 level.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1F,
                         (random.nextFloat() - random.nextFloat()) * 0.8F);
                 if (this.level instanceof ServerLevel serverLevel) {
-                    serverLevel.sendParticles(ModParticles.COOKING.get(),
+                    serverLevel.sendParticles(ModParticles.COOKING,
                             worldPosition.getX() + 0.5 + random.nextDouble() / 3 * (random.nextBoolean() ? 1 : -1),
                             worldPosition.getY() + 0.1 + random.nextDouble() / 3,
                             worldPosition.getZ() + 0.5 + random.nextDouble() / 3 * (random.nextBoolean() ? 1 : -1),
@@ -221,13 +223,13 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             stack.shrink(1);
             ModTrigger.EVENT.trigger(user, ModEventTriggerType.PUT_OIL_IN_POT);
             return true;
-        } else if (stack.is(ModItems.KITCHEN_SHOVEL.get()) && KitchenShovelItem.hasOil(stack)) {
+        } else if (stack.is(ModItems.KITCHEN_SHOVEL) && KitchenShovelItem.hasOil(stack)) {
             // 带油锅铲特判
             placeOil(level, user, level.random);
             KitchenShovelItem.setHasOil(stack, false);
             ModTrigger.EVENT.trigger(user, ModEventTriggerType.PUT_OIL_IN_POT);
             return true;
-        } else if (stack.is(ModItems.OIL_POT.get()) && OilPotItem.hasOil(stack)) {
+        } else if (stack.is(ModItems.OIL_POT) && OilPotItem.hasOil(stack)) {
             // 油壶特判
             placeOil(level, user, level.random);
             OilPotItem.shrinkOilCount(stack);
@@ -254,7 +256,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
     @Override
     public void onShovelHit(Level level, LivingEntity user, ItemStack shovel) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             this.seed = System.currentTimeMillis();
             this.refresh();
         }
@@ -262,7 +264,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         // 每次翻炒给点粒子效果
         if (this.level instanceof ServerLevel serverLevel) {
             RandomSource random = serverLevel.random;
-            serverLevel.sendParticles(ModParticles.COOKING.get(),
+            serverLevel.sendParticles(ModParticles.COOKING,
                     worldPosition.getX() + 0.5 + random.nextDouble() / 3 * (random.nextBoolean() ? 1 : -1),
                     worldPosition.getY() + 0.1 + random.nextDouble() / 3,
                     worldPosition.getZ() + 0.5 + random.nextDouble() / 3 * (random.nextBoolean() ? 1 : -1),
@@ -287,20 +289,28 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     }
 
     private void startCooking(Level level) {
-        SimpleContainer container = this.getContainer();
-        level.getRecipeManager().getRecipeFor(ModRecipes.POT_RECIPE, container, level).ifPresentOrElse(recipe -> {
-            // 如果合成表符合，那么进入炒菜阶段
-            this.carrier = recipe.carrier();
-            this.result = recipe.assemble(container, level.registryAccess());
-            this.currentTick = recipe.time();
-            this.stirFryCount = recipe.stirFryCount();
-        }, () -> {
-            // 不符合，进入迷之炒菜阶段
-            this.carrier = Ingredient.of(Items.BOWL);
+        SimpleInput simpleInput = new SimpleInput(this.inputs);
+        if (level.recipeAccess() instanceof RecipeManager recipeManager) {
+            recipeManager.getRecipeFor(ModRecipes.POT_RECIPE, simpleInput, level).ifPresentOrElse(recipe -> {
+                // 如果合成表符合，那么进入炒菜阶段
+                PotRecipe value = recipe.value();
+                this.carrier = value.carrier();
+                this.result = value.assemble(simpleInput, level.registryAccess());
+                this.currentTick = value.time();
+                this.stirFryCount = value.stirFryCount();
+            }, () -> {
+                // 不符合，进入迷之炒菜阶段
+                this.carrier = Optional.of(Ingredient.of(Items.BOWL));
+                this.result = getItem(SUSPICIOUS_STIR_FRY).getDefaultInstance();
+                this.currentTick = 10 * 20; // 迷之炒菜时间
+                this.stirFryCount = 0; // 迷之炒菜不计翻炒次数
+            });
+        } else {
+            this.carrier = Optional.of(Ingredient.of(Items.BOWL));
             this.result = getItem(SUSPICIOUS_STIR_FRY).getDefaultInstance();
-            this.currentTick = 10 * 20; // 迷之炒菜时间
-            this.stirFryCount = 0; // 迷之炒菜不计翻炒次数
-        });
+            this.currentTick = 10 * 20;
+            this.stirFryCount = 0;
+        }
         this.status = COOKING;
         this.refresh();
     }
@@ -317,20 +327,17 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         // 迷之炒菜盖饭特判逻辑
         if (finallyResult.is(getItem(SUSPICIOUS_STIR_FRY)) && stack.is(TagCommon.COOKED_RICE)) {
             stack.shrink(1);
-            ItemUtils.getItemToLivingEntity(user, ModItems.SUSPICIOUS_STIR_FRY_RICE_BOWL.get().getDefaultInstance());
+            ItemUtils.getItemToLivingEntity(user, ModItems.SUSPICIOUS_STIR_FRY_RICE_BOWL.getDefaultInstance());
             this.reset();
             return true;
         }
 
-        if (!this.carrier.isEmpty()) {
-            return this.takeOutWithCarrier(level, user, stack, finallyResult);
-        } else {
-            return this.takeOutWithoutCarrier(level, user, stack, finallyResult);
-        }
+        return this.carrier.map(ingredient -> this.takeOutWithCarrier(level, user, stack, finallyResult, ingredient))
+                .orElseGet(() -> this.takeOutWithoutCarrier(level, user, stack, finallyResult));
     }
 
     private boolean takeOutWithoutCarrier(Level level, LivingEntity user, ItemStack stack, ItemStack finallyResult) {
-        if (stack.is(TagMod.KITCHEN_SHOVEL)) {
+        if (stack.is(ModItems.KITCHEN_SHOVEL)) {
             // 如果是玩家，则需要判断是否潜行才能取出
             if (user instanceof Player player && !player.isSecondaryUseActive()) {
                 return false;
@@ -348,9 +355,12 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         }
     }
 
-    private boolean takeOutWithCarrier(Level level, LivingEntity user, ItemStack mainHandItem, ItemStack finallyResult) {
-        Component carrierName = carrier.getItems()[0].getHoverName();
-        if (this.carrier.test(mainHandItem)) {
+    private boolean takeOutWithCarrier(Level level, LivingEntity user, ItemStack mainHandItem, ItemStack finallyResult, Ingredient carrier) {
+        Component carrierName = carrier.items()
+                .findFirst()
+                .map(holder -> holder.value().getDefaultInstance().getHoverName())
+                .orElse(Component.empty());
+        if (carrier.test(mainHandItem)) {
             if (mainHandItem.getCount() < finallyResult.getCount()) {
                 this.sendActionBarMessage(user, "carrier_count_not_enough", finallyResult.getCount(), carrierName);
                 return false;
@@ -362,7 +372,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             }
         }
         // 没有锅铲时才会触发提示和伤害
-        if (!mainHandItem.is(TagMod.KITCHEN_SHOVEL)) {
+        if (!mainHandItem.is(ModItems.KITCHEN_SHOVEL)) {
             if (this.hasHeatSource(level)) {
                 user.hurt(level.damageSources().inFire(), 1);
                 ModTrigger.EVENT.trigger(user, ModEventTriggerType.HURT_WHEN_TAKEOUT_FROM_POT);
@@ -378,6 +388,102 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             MutableComponent message = Component.translatable(key, args);
             serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(message));
         }
+    }
+
+    @Override
+    public boolean addIngredient(Level level, LivingEntity user, ItemStack itemStack) {
+        if (this.status != PUT_INGREDIENT) {
+            return false;
+        }
+        if (itemStack.getItem() instanceof BucketItem) {
+            return false;
+        }
+        // 黑名单物品不可放入
+        if (itemStack.is(TagMod.INGREDIENT_BLOCKLIST)) {
+            return false;
+        }
+        for (int i = 0; i < this.inputs.size(); i++) {
+            ItemStack item = this.inputs.get(i);
+            if (item.isEmpty()) {
+                Item containerItem = ItemUtils.getContainerItem(itemStack);
+                if (containerItem != Items.AIR) {
+                    ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
+                }
+                this.inputs.set(i, itemStack.split(1));
+                level.playSound(null, this.worldPosition, SoundEvents.LANTERN_PLACE, SoundSource.BLOCKS, 1.0F, 0.5F);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean removeIngredient(Level level, LivingEntity user) {
+        if (this.status != PUT_INGREDIENT) {
+            return false;
+        }
+        for (int i = this.inputs.size() - 1; i >= 0; i--) {
+            ItemStack stack = this.inputs.get(i);
+            if (!stack.isEmpty()) {
+                this.inputs.set(i, ItemStack.EMPTY);
+                ItemUtils.getItemToLivingEntity(user, stack);
+                if (this.hasHeatSource(level)) {
+                    user.hurt(level.damageSources().inFire(), 1);
+                    ModTrigger.EVENT.trigger(user, ModEventTriggerType.HURT_WHEN_TAKEOUT_FROM_POT);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void reset() {
+        this.inputs.clear();
+        this.carrier = Optional.empty();
+        this.result = ItemStack.EMPTY;
+        this.status = PUT_INGREDIENT;
+        this.currentTick = 0;
+        this.stirFryCount = 0;
+        this.setChanged();
+        if (level != null) {
+            BlockState state = level.getBlockState(worldPosition);
+            level.setBlockAndUpdate(worldPosition, state.setValue(HAS_OIL, false).setValue(SHOW_OIL, false));
+        }
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output.child(INPUTS), this.inputs);
+        this.carrier.ifPresent(ingredient -> output.store(CARRIER, Ingredient.CODEC, ingredient));
+        if (!this.result.isEmpty()) {
+            output.store(RESULT, ItemStack.CODEC, this.result);
+        }
+        output.putInt(STATUS, this.status);
+        output.putInt(CURRENT_TICK, this.currentTick);
+        output.putInt(STIR_FRY_COUNT, this.stirFryCount);
+        output.putLong(SEED, this.seed);
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.inputs = NonNullList.withSize(PotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(input.childOrEmpty(INPUTS), this.inputs);
+        this.carrier = input.read(CARRIER, Ingredient.CODEC);
+        this.result = input.read(RESULT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.status = input.getIntOr(STATUS, PUT_INGREDIENT);
+        this.currentTick = input.getIntOr(CURRENT_TICK, 0);
+        this.stirFryCount = input.getIntOr(STIR_FRY_COUNT, 0);
+        this.seed = input.getLongOr(SEED, 0L);
+    }
+
+    public List<ItemStack> getInputs() {
+        return inputs;
+    }
+
+    public SimpleInput getInput() {
+        return new SimpleInput(this.inputs);
     }
 
     public void addAllIngredients(List<ItemStack> ingredients, LivingEntity user) {
@@ -401,122 +507,6 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         }
         level.playSound(null, this.worldPosition, SoundEvents.LANTERN_PLACE, SoundSource.BLOCKS, 1.0F, 0.5F);
         this.refresh();
-    }
-
-    @Override
-    public boolean addIngredient(Level level, LivingEntity user, ItemStack itemStack) {
-        if (this.status != PUT_INGREDIENT) {
-            return false;
-        }
-        // 黑名单物品不可放入
-        if (itemStack.is(TagMod.INGREDIENT_BLOCKLIST)) {
-            return false;
-        }
-        for (int i = 0; i < this.inputs.size(); i++) {
-            ItemStack item = this.inputs.get(i);
-            if (item.isEmpty()) {
-                // 如果带有容器，此时返还容器
-                Item containerItem = ItemUtils.getContainerItem(itemStack);
-                if (containerItem != Items.AIR) {
-                    ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
-                }
-                this.inputs.set(i, itemStack.split(1));
-                level.playSound(null, this.worldPosition, SoundEvents.LANTERN_PLACE, SoundSource.BLOCKS, 1.0F, 0.5F);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean removeIngredient(Level level, LivingEntity user) {
-        if (this.status != PUT_INGREDIENT) {
-            return false;
-        }
-        for (int i = this.inputs.size() - 1; i >= 0; i--) {
-            ItemStack stack = this.inputs.get(i);
-            if (stack.isEmpty()) {
-                continue;
-            }
-            // 检查容器是否符合取出条件
-            if (!containerIsMatch(user, stack)) {
-                return false;
-            }
-            this.inputs.set(i, ItemStack.EMPTY);
-            ItemUtils.getItemToLivingEntity(user, stack);
-            if (this.hasHeatSource(level)) {
-                user.hurt(level.damageSources().inFire(), 1);
-                ModTrigger.EVENT.trigger(user, ModEventTriggerType.HURT_WHEN_TAKEOUT_FROM_POT);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean containerIsMatch(LivingEntity user, ItemStack stack) {
-        Item containerItem = ItemUtils.getContainerItem(stack);
-        if (containerItem == Items.AIR) {
-            return true;
-        }
-        if (user.getMainHandItem().is(containerItem)) {
-            user.getMainHandItem().shrink(1);
-            return true;
-        }
-        if (user instanceof ServerPlayer player) {
-            player.sendSystemMessage(Component.translatable("tip.kaleidoscope_cookery.kitchen.remove_ingredient.need_container",
-                    containerItem.getDefaultInstance().getHoverName()));
-        }
-        return false;
-    }
-
-    public void reset() {
-        this.inputs.clear();
-        this.carrier = Ingredient.EMPTY;
-        this.result = ItemStack.EMPTY;
-        this.status = PUT_INGREDIENT;
-        this.currentTick = 0;
-        this.stirFryCount = 0;
-        this.setChanged();
-        if (level != null) {
-            BlockState state = level.getBlockState(worldPosition);
-            level.setBlockAndUpdate(worldPosition, state.setValue(HAS_OIL, false).setValue(SHOW_OIL, false));
-        }
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put(INPUTS, ContainerHelper.saveAllItems(new CompoundTag(), this.inputs));
-        tag.putString(CARRIER, this.carrier.toJson().toString());
-        tag.put(RESULT, this.result.serializeNBT());
-        tag.putInt(STATUS, this.status);
-        tag.putInt(CURRENT_TICK, this.currentTick);
-        tag.putInt(STIR_FRY_COUNT, this.stirFryCount);
-        tag.putLong(SEED, this.seed);
-    }
-
-    @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        this.inputs = NonNullList.withSize(PotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
-        if (tag.contains(INPUTS, Tag.TAG_COMPOUND)) {
-            ContainerHelper.loadAllItems(tag.getCompound(INPUTS), this.inputs);
-        }
-        if (tag.contains(CARRIER, Tag.TAG_STRING)) {
-            JsonElement element = JsonParser.parseString(tag.getString(CARRIER));
-            this.carrier = Ingredient.fromJson(element);
-        }
-        if (tag.contains(RESULT, Tag.TAG_COMPOUND)) {
-            this.result = ItemStack.of(tag.getCompound(RESULT));
-        }
-        this.status = tag.getInt(STATUS);
-        this.currentTick = tag.getInt(CURRENT_TICK);
-        this.stirFryCount = tag.getInt(STIR_FRY_COUNT);
-        this.seed = tag.getLong(SEED);
-    }
-
-    public List<ItemStack> getInputs() {
-        return inputs;
     }
 
     public SimpleContainer getContainer() {
@@ -545,7 +535,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     }
 
     public boolean hasCarrier() {
-        return !carrier.isEmpty();
+        return carrier.isPresent();
     }
 
     public ItemStack getResult() {

@@ -3,184 +3,179 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.OilPotItem;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+
+import java.util.Objects;
 
 public class ModCreativeTabs {
-    public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, KaleidoscopeCookery.MOD_ID);
+    private static final Identifier MAIN_ICON_ID = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "iron_kitchen_knife");
+    private static final Identifier FOOD_ICON_ID = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "red_chili");
 
-    public static RegistryObject<CreativeModeTab> COOKERY_MAIN_TAB = TABS.register("cookery_main", () -> CreativeModeTab.builder()
-            .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_main.name"))
-            .icon(() -> ModItems.IRON_KITCHEN_KNIFE.get().getDefaultInstance())
-            .displayItems((par, output) -> {
-                // 厨具与杂项
-                output.accept(ModItems.STOVE.get());
-                output.accept(ModItems.SHAWARMA_SPIT.get());
-                output.accept(ModItems.STRAW_BLOCK.get());
-                output.accept(ModItems.OIL_BLOCK.get());
-                output.accept(ModItems.POT.get());
-                output.accept(ModItems.STOCKPOT.get());
-                output.accept(ModItems.STOCKPOT_LID.get());
-                output.accept(ModItems.CHOPPING_BOARD.get());
-                output.accept(ModItems.MILLSTONE.get());
-                output.accept(ModItems.STEAMER.get());
-                output.accept(ModItems.KITCHENWARE_RACKS.get());
-                output.accept(ModItems.FRUIT_BASKET.get());
-                output.accept(ModItems.SCARECROW.get());
-                output.accept(ModItems.ENAMEL_BASIN.get());
-                output.accept(ModItems.OIL_POT.get());
-                output.accept(OilPotItem.getFullOilPot());
-                output.accept(ModItems.OIL.get());
-                output.accept(ModItems.RECIPE_ITEM.get());
-                output.accept(ModItems.TRANSMUTATION_LUNCH_BAG.get());
-                // 原材料
-                output.accept(ModItems.FLOUR.get());
-                output.accept(ModItems.RAW_DOUGH.get());
-                output.accept(ModItems.RAW_NOODLES.get());
-                output.accept(ModItems.STUFFED_DOUGH_FOOD.get());
-                output.accept(ModItems.CHILI_RISTRA.get());
-                output.accept(ModItems.STRUNG_MUSHROOMS.get());
-                output.accept(ModItems.RICE_SEED.get());
-                output.accept(ModItems.WILD_RICE_SEED.get());
-                output.accept(ModItems.TOMATO_SEED.get());
-                output.accept(ModItems.CHILI_SEED.get());
-                output.accept(ModItems.LETTUCE_SEED.get());
-                // 工具
-                output.accept(ModItems.KITCHEN_SHOVEL.get());
-                output.accept(ModItems.SICKLE.get());
-                output.accept(ModItems.GOLD_KITCHEN_KNIFE.get());
-                output.accept(ModItems.IRON_KITCHEN_KNIFE.get());
-                output.accept(ModItems.DIAMOND_KITCHEN_KNIFE.get());
-                output.accept(ModItems.NETHERITE_KITCHEN_KNIFE.get());
-                // 服装
-                output.accept(ModItems.STRAW_HAT.get());
-                output.accept(ModItems.STRAW_HAT_FLOWER.get());
-                output.accept(ModItems.FARMER_CHEST_PLATE.get());
-                output.accept(ModItems.FARMER_LEGGINGS.get());
-                output.accept(ModItems.FARMER_BOOTS.get());
-                // 凳子
-                output.accept(ModItems.COOK_STOOL_OAK.get());
-                output.accept(ModItems.COOK_STOOL_SPRUCE.get());
-                output.accept(ModItems.COOK_STOOL_ACACIA.get());
-                output.accept(ModItems.COOK_STOOL_BAMBOO.get());
-                output.accept(ModItems.COOK_STOOL_BIRCH.get());
-                output.accept(ModItems.COOK_STOOL_CHERRY.get());
-                output.accept(ModItems.COOK_STOOL_CRIMSON.get());
-                output.accept(ModItems.COOK_STOOL_DARK_OAK.get());
-                output.accept(ModItems.COOK_STOOL_JUNGLE.get());
-                output.accept(ModItems.COOK_STOOL_MANGROVE.get());
-                output.accept(ModItems.COOK_STOOL_WARPED.get());
-                // 椅子
-                output.accept(ModItems.CHAIR_OAK.get());
-                output.accept(ModItems.CHAIR_SPRUCE.get());
-                output.accept(ModItems.CHAIR_ACACIA.get());
-                output.accept(ModItems.CHAIR_BAMBOO.get());
-                output.accept(ModItems.CHAIR_BIRCH.get());
-                output.accept(ModItems.CHAIR_CHERRY.get());
-                output.accept(ModItems.CHAIR_CRIMSON.get());
-                output.accept(ModItems.CHAIR_DARK_OAK.get());
-                output.accept(ModItems.CHAIR_JUNGLE.get());
-                output.accept(ModItems.CHAIR_MANGROVE.get());
-                output.accept(ModItems.CHAIR_WARPED.get());
-                // 桌子
-                output.accept(ModItems.TABLE_OAK.get());
-                output.accept(ModItems.TABLE_SPRUCE.get());
-                output.accept(ModItems.TABLE_ACACIA.get());
-                output.accept(ModItems.TABLE_BAMBOO.get());
-                output.accept(ModItems.TABLE_BIRCH.get());
-                output.accept(ModItems.TABLE_CHERRY.get());
-                output.accept(ModItems.TABLE_CRIMSON.get());
-                output.accept(ModItems.TABLE_DARK_OAK.get());
-                output.accept(ModItems.TABLE_JUNGLE.get());
-                output.accept(ModItems.TABLE_MANGROVE.get());
-                output.accept(ModItems.TABLE_WARPED.get());
-            }).build());
+    private static final ResourceKey<CreativeModeTab> COOKERY_MAIN_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB,
+            Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cookery_main"));
+    private static final ResourceKey<CreativeModeTab> COOKERY_FOOD_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB,
+            Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cookery_food"));
 
-    public static RegistryObject<CreativeModeTab> COOKERY_FOOD_TAB = TABS.register("cookery_food", () -> CreativeModeTab.builder()
-            .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_food.name"))
-            .icon(() -> ModItems.RED_CHILI.get().getDefaultInstance())
-            .withTabsBefore(COOKERY_MAIN_TAB.getId())
-            .displayItems((par, output) -> {
-                // 原材料
-                output.accept(ModItems.TOMATO.get());
-                output.accept(ModItems.RED_CHILI.get());
-                output.accept(ModItems.GREEN_CHILI.get());
-                output.accept(ModItems.LETTUCE.get());
-                output.accept(ModItems.RICE_PANICLE.get());
-                output.accept(ModItems.CATERPILLAR.get());
-                // 肉类
-                output.accept(ModItems.SASHIMI.get());
-                output.accept(ModItems.RAW_LAMB_CHOPS.get());
-                output.accept(ModItems.COOKED_LAMB_CHOPS.get());
-                output.accept(ModItems.RAW_COW_OFFAL.get());
-                output.accept(ModItems.COOKED_COW_OFFAL.get());
-                output.accept(ModItems.RAW_PORK_BELLY.get());
-                output.accept(ModItems.COOKED_PORK_BELLY.get());
-                output.accept(ModItems.RAW_DONKEY_MEAT.get());
-                output.accept(ModItems.COOKED_DONKEY_MEAT.get());
-                output.accept(ModItems.RAW_CUT_SMALL_MEATS.get());
-                output.accept(ModItems.COOKED_CUT_SMALL_MEATS.get());
-                output.accept(ModItems.RAW_MEATBALL.get());
-                output.accept(ModItems.COOKED_MEATBALL.get());
-                // 基础食物
-                output.accept(ModItems.DONKEY_BURGER.get());
-                output.accept(ModItems.MANTOU.get());
-                output.accept(ModItems.BAOZI.get());
-                output.accept(ModItems.SAMSA.get());
-                output.accept(ModItems.MEAT_PIE.get());
-                output.accept(ModItems.DUMPLING.get());
-                output.accept(ModItems.FRIED_EGG.get());
-                // 小碗菜和盖饭
-                output.accept(ModItems.COOKED_RICE.get());
-                output.accept(ModItems.EGG_FRIED_RICE.get());
-                output.accept(ModItems.DELICIOUS_EGG_FRIED_RICE.get());
-                output.accept(ModItems.SCRAMBLE_EGG_WITH_TOMATOES.get());
-                output.accept(ModItems.SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL.get());
-                output.accept(ModItems.STIR_FRIED_BEEF_OFFAL.get());
-                output.accept(ModItems.STIR_FRIED_BEEF_OFFAL_RICE_BOWL.get());
-                output.accept(ModItems.BRAISED_BEEF.get());
-                output.accept(ModItems.BRAISED_BEEF_RICE_BOWL.get());
-                output.accept(ModItems.STIR_FRIED_PORK_WITH_PEPPERS.get());
-                output.accept(ModItems.STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL.get());
-                output.accept(ModItems.SWEET_AND_SOUR_PORK.get());
-                output.accept(ModItems.SWEET_AND_SOUR_PORK_RICE_BOWL.get());
-                output.accept(ModItems.COUNTRY_STYLE_MIXED_VEGETABLES.get());
-                output.accept(ModItems.FISH_FLAVORED_SHREDDED_PORK.get());
-                output.accept(ModItems.FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL.get());
-                output.accept(ModItems.BRAISED_FISH_RICE_BOWL.get());
-                output.accept(ModItems.SPICY_CHICKEN_RICE_BOWL.get());
-                output.accept(ModItems.SUSPICIOUS_STIR_FRY_RICE_BOWL.get());
-                // 汤类
-                output.accept(ModItems.PORK_BONE_SOUP.get());
-                output.accept(ModItems.SEAFOOD_MISO_SOUP.get());
-                output.accept(ModItems.FEARSOME_THICK_SOUP.get());
-                output.accept(ModItems.LAMB_AND_RADISH_SOUP.get());
-                output.accept(ModItems.BRAISED_BEEF_WITH_POTATOES.get());
-                output.accept(ModItems.WILD_MUSHROOM_RABBIT_SOUP.get());
-                output.accept(ModItems.TOMATO_BEEF_BRISKET_SOUP.get());
-                output.accept(ModItems.PUFFERFISH_SOUP.get());
-                output.accept(ModItems.BORSCHT.get());
-                output.accept(ModItems.BEEF_MEATBALL_SOUP.get());
-                output.accept(ModItems.CHICKEN_AND_MUSHROOM_STEW.get());
-                output.accept(ModItems.DONKEY_SOUP.get());
-                // 面条
-                output.accept(ModItems.BEEF_NOODLE.get());
-                output.accept(ModItems.HUI_NOODLE.get());
-                output.accept(ModItems.UDON_NOODLE.get());
-                // 硬菜
-                FoodBiteRegistry.FOOD_DATA_MAP.keySet().forEach(foodName -> {
-                    // 棕色蘑菇汤之前加入厚切火腿片
-                    if (foodName.equals(FoodBiteRegistry.BROWN_MUSHROOM_POT_SOUP)) {
-                        output.accept(ModItems.COLD_CUT_HAM_SLICES.get());
-                    }
-                    var foodItem = ForgeRegistries.ITEMS.getValue(foodName);
-                    if (foodItem != null) {
-                        output.accept(foodItem);
-                    }
-                });
-            }).build());
+    public static void registerTabs() {
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_MAIN_TAB, FabricItemGroup.builder()
+                .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_main.name"))
+                .icon(() -> Objects.requireNonNull(BuiltInRegistries.ITEM.getValue(MAIN_ICON_ID)).getDefaultInstance())
+                .displayItems((par, output) -> {
+                    output.accept(ModItems.STOVE);
+                    output.accept(ModItems.SHAWARMA_SPIT);
+                    output.accept(ModItems.STRAW_BLOCK);
+                    output.accept(ModItems.OIL_BLOCK);
+                    output.accept(ModItems.POT);
+                    output.accept(ModItems.STOCKPOT);
+                    output.accept(ModItems.STOCKPOT_LID);
+                    output.accept(ModItems.CHOPPING_BOARD);
+                    output.accept(ModItems.MILLSTONE);
+                    output.accept(ModItems.STEAMER);
+                    output.accept(ModItems.KITCHENWARE_RACKS);
+                    output.accept(ModItems.FRUIT_BASKET);
+                    output.accept(ModItems.SCARECROW);
+                    output.accept(ModItems.ENAMEL_BASIN);
+                    output.accept(ModItems.OIL_POT);
+                    output.accept(OilPotItem.getFullOilPot());
+                    output.accept(ModItems.OIL);
+                    output.accept(ModItems.RECIPE_ITEM);
+                    output.accept(ModItems.TRANSMUTATION_LUNCH_BAG);
+                    output.accept(ModItems.FLOUR);
+                    output.accept(ModItems.RAW_DOUGH);
+                    output.accept(ModItems.RAW_NOODLES);
+                    output.accept(ModItems.STUFFED_DOUGH_FOOD);
+                    output.accept(ModItems.CHILI_RISTRA);
+                    output.accept(ModItems.STRUNG_MUSHROOMS);
+                    output.accept(ModItems.RICE_SEED);
+                    output.accept(ModItems.WILD_RICE_SEED);
+                    output.accept(ModItems.TOMATO_SEED);
+                    output.accept(ModItems.CHILI_SEED);
+                    output.accept(ModItems.LETTUCE_SEED);
+                    output.accept(ModItems.KITCHEN_SHOVEL);
+                    output.accept(ModItems.GOLD_KITCHEN_KNIFE);
+                    output.accept(ModItems.IRON_KITCHEN_KNIFE);
+                    output.accept(ModItems.DIAMOND_KITCHEN_KNIFE);
+                    output.accept(ModItems.NETHERITE_KITCHEN_KNIFE);
+                    output.accept(ModItems.SICKLE);
+                    output.accept(ModItems.STRAW_HAT);
+                    output.accept(ModItems.STRAW_HAT_FLOWER);
+                    output.accept(ModItems.FARMER_CHEST_PLATE);
+                    output.accept(ModItems.FARMER_LEGGINGS);
+                    output.accept(ModItems.FARMER_BOOTS);
+                    output.accept(ModItems.COOK_STOOL_OAK);
+                    output.accept(ModItems.COOK_STOOL_SPRUCE);
+                    output.accept(ModItems.COOK_STOOL_ACACIA);
+                    output.accept(ModItems.COOK_STOOL_BAMBOO);
+                    output.accept(ModItems.COOK_STOOL_BIRCH);
+                    output.accept(ModItems.COOK_STOOL_CHERRY);
+                    output.accept(ModItems.COOK_STOOL_CRIMSON);
+                    output.accept(ModItems.COOK_STOOL_DARK_OAK);
+                    output.accept(ModItems.COOK_STOOL_JUNGLE);
+                    output.accept(ModItems.COOK_STOOL_MANGROVE);
+                    output.accept(ModItems.COOK_STOOL_WARPED);
+                    output.accept(ModItems.CHAIR_OAK);
+                    output.accept(ModItems.CHAIR_SPRUCE);
+                    output.accept(ModItems.CHAIR_ACACIA);
+                    output.accept(ModItems.CHAIR_BAMBOO);
+                    output.accept(ModItems.CHAIR_BIRCH);
+                    output.accept(ModItems.CHAIR_CHERRY);
+                    output.accept(ModItems.CHAIR_CRIMSON);
+                    output.accept(ModItems.CHAIR_DARK_OAK);
+                    output.accept(ModItems.CHAIR_JUNGLE);
+                    output.accept(ModItems.CHAIR_MANGROVE);
+                    output.accept(ModItems.CHAIR_WARPED);
+                    output.accept(ModItems.TABLE_OAK);
+                    output.accept(ModItems.TABLE_SPRUCE);
+                    output.accept(ModItems.TABLE_ACACIA);
+                    output.accept(ModItems.TABLE_BAMBOO);
+                    output.accept(ModItems.TABLE_BIRCH);
+                    output.accept(ModItems.TABLE_CHERRY);
+                    output.accept(ModItems.TABLE_CRIMSON);
+                    output.accept(ModItems.TABLE_DARK_OAK);
+                    output.accept(ModItems.TABLE_JUNGLE);
+                    output.accept(ModItems.TABLE_MANGROVE);
+                    output.accept(ModItems.TABLE_WARPED);
+                }).build());
+
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_FOOD_TAB, FabricItemGroup.builder()
+                .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_food.name"))
+                .icon(() -> Objects.requireNonNull(BuiltInRegistries.ITEM.getValue(FOOD_ICON_ID)).getDefaultInstance())
+                .displayItems((par, output) -> {
+                    output.accept(ModItems.TOMATO);
+                    output.accept(ModItems.RED_CHILI);
+                    output.accept(ModItems.GREEN_CHILI);
+                    output.accept(ModItems.LETTUCE);
+                    output.accept(ModItems.RICE_PANICLE);
+                    output.accept(ModItems.CATERPILLAR);
+                    output.accept(ModItems.SASHIMI);
+                    output.accept(ModItems.RAW_LAMB_CHOPS);
+                    output.accept(ModItems.COOKED_LAMB_CHOPS);
+                    output.accept(ModItems.RAW_COW_OFFAL);
+                    output.accept(ModItems.COOKED_COW_OFFAL);
+                    output.accept(ModItems.RAW_PORK_BELLY);
+                    output.accept(ModItems.COOKED_PORK_BELLY);
+                    output.accept(ModItems.RAW_CUT_SMALL_MEATS);
+                    output.accept(ModItems.COOKED_CUT_SMALL_MEATS);
+                    output.accept(ModItems.RAW_DONKEY_MEAT);
+                    output.accept(ModItems.COOKED_DONKEY_MEAT);
+                    output.accept(ModItems.RAW_MEATBALL);
+                    output.accept(ModItems.COOKED_MEATBALL);
+                    output.accept(ModItems.DONKEY_BURGER);
+                    output.accept(ModItems.MANTOU);
+                    output.accept(ModItems.BAOZI);
+                    output.accept(ModItems.SAMSA);
+                    output.accept(ModItems.MEAT_PIE);
+                    output.accept(ModItems.DUMPLING);
+                    output.accept(ModItems.FRIED_EGG);
+                    output.accept(ModItems.COOKED_RICE);
+                    output.accept(ModItems.EGG_FRIED_RICE);
+                    output.accept(ModItems.DELICIOUS_EGG_FRIED_RICE);
+                    output.accept(ModItems.SCRAMBLE_EGG_WITH_TOMATOES);
+                    output.accept(ModItems.SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL);
+                    output.accept(ModItems.STIR_FRIED_BEEF_OFFAL);
+                    output.accept(ModItems.STIR_FRIED_BEEF_OFFAL_RICE_BOWL);
+                    output.accept(ModItems.BRAISED_BEEF);
+                    output.accept(ModItems.BRAISED_BEEF_RICE_BOWL);
+                    output.accept(ModItems.STIR_FRIED_PORK_WITH_PEPPERS);
+                    output.accept(ModItems.STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL);
+                    output.accept(ModItems.SWEET_AND_SOUR_PORK);
+                    output.accept(ModItems.SWEET_AND_SOUR_PORK_RICE_BOWL);
+                    output.accept(ModItems.COUNTRY_STYLE_MIXED_VEGETABLES);
+                    output.accept(ModItems.FISH_FLAVORED_SHREDDED_PORK);
+                    output.accept(ModItems.FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL);
+                    output.accept(ModItems.BRAISED_FISH_RICE_BOWL);
+                    output.accept(ModItems.SPICY_CHICKEN_RICE_BOWL);
+                    output.accept(ModItems.SUSPICIOUS_STIR_FRY_RICE_BOWL);
+                    output.accept(ModItems.PORK_BONE_SOUP);
+                    output.accept(ModItems.SEAFOOD_MISO_SOUP);
+                    output.accept(ModItems.FEARSOME_THICK_SOUP);
+                    output.accept(ModItems.LAMB_AND_RADISH_SOUP);
+                    output.accept(ModItems.BRAISED_BEEF_WITH_POTATOES);
+                    output.accept(ModItems.WILD_MUSHROOM_RABBIT_SOUP);
+                    output.accept(ModItems.TOMATO_BEEF_BRISKET_SOUP);
+                    output.accept(ModItems.PUFFERFISH_SOUP);
+                    output.accept(ModItems.BORSCHT);
+                    output.accept(ModItems.BEEF_MEATBALL_SOUP);
+                    output.accept(ModItems.CHICKEN_AND_MUSHROOM_STEW);
+                    output.accept(ModItems.DONKEY_SOUP);
+                    output.accept(ModItems.BEEF_NOODLE);
+                    output.accept(ModItems.HUI_NOODLE);
+                    output.accept(ModItems.UDON_NOODLE);
+                    output.accept(ModItems.COLD_CUT_HAM_SLICES);
+
+                    FoodBiteRegistry.FOOD_DATA_MAP.keySet().forEach(foodName -> {
+                        var foodItem = BuiltInRegistries.ITEM.getValue(foodName);
+                        if (foodItem != null) {
+                            output.accept(foodItem);
+                        }
+                    });
+                }).build());
+    }
 }

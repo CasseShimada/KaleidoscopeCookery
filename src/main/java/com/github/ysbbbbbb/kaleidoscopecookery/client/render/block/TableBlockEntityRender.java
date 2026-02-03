@@ -4,77 +4,103 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.Util;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.util.Util;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.BlockItem;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.function.BiFunction;
 
-public class TableBlockEntityRender implements BlockEntityRenderer<TableBlockEntity> {
-    private static final BiFunction<DyeColor, Integer, ResourceLocation> CACHE_MODEL = Util.memoize((color, position) -> {
+public class TableBlockEntityRender implements BlockEntityRenderer<TableBlockEntity, TableBlockEntityRender.RenderState> {
+    private static final BiFunction<DyeColor, Integer, Identifier> CACHE_MODEL = Util.memoize((color, position) -> {
         String name = color.getName();
         if (position == TableBlock.SINGLE) {
-            return new ResourceLocation(KaleidoscopeCookery.MOD_ID, "block/carpet/table/" + name + "_single");
+            return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block/carpet/table/" + name + "_single");
         }
         if (position == TableBlock.MIDDLE) {
-            return new ResourceLocation(KaleidoscopeCookery.MOD_ID, "block/carpet/table/" + name + "_middle");
+            return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block/carpet/table/" + name + "_middle");
         }
         if (position == TableBlock.LEFT) {
-            return new ResourceLocation(KaleidoscopeCookery.MOD_ID, "block/carpet/table/" + name + "_left");
+            return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block/carpet/table/" + name + "_left");
         }
-        return new ResourceLocation(KaleidoscopeCookery.MOD_ID, "block/carpet/table/" + name + "_right");
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block/carpet/table/" + name + "_right");
     });
 
-    private final BlockEntityRendererProvider.Context context;
+    private final ItemModelResolver itemModelResolver;
 
     public TableBlockEntityRender(BlockEntityRendererProvider.Context context) {
-        this.context = context;
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     @Override
-    public void render(TableBlockEntity table, float pPartialTick, PoseStack poseStack,
-                       MultiBufferSource buffer, int packedLight, int packedOverlay) {
-        ItemRenderer itemRenderer = this.context.getItemRenderer();
-        BlockState blockState = table.getBlockState();
-        Direction.Axis axis = blockState.getValue(TableBlock.AXIS);
+    public RenderState createRenderState() {
+        return new RenderState();
+    }
 
-        if (blockState.getValue(TableBlock.HAS_CARPET)) {
+    @Override
+    public void extractRenderState(TableBlockEntity table, RenderState state, float partialTick,
+                                   net.minecraft.world.phys.Vec3 cameraPos,
+                                   net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
+        BlockEntityRenderState.extractBase(table, state, crumblingOverlay);
+        BlockState blockState = table.getBlockState();
+        state.axis = blockState.getValue(TableBlock.AXIS);
+        state.hasCarpet = blockState.getValue(TableBlock.HAS_CARPET);
+        if (state.hasCarpet) {
             int position = blockState.getValue(TableBlock.POSITION);
-            ResourceLocation cacheModel = CACHE_MODEL.apply(table.getColor(), position);
-            int rotation = axis == Direction.Axis.X ? 180 : 270;
+            state.carpetModelId = CACHE_MODEL.apply(table.getColor(), position);
+            state.carpetState.clear();
+            if (state.carpetModelId != null) {
+                if (state.carpetStack.isEmpty() || !state.carpetModelId.equals(state.carpetStack.get(DataComponents.ITEM_MODEL))) {
+                    state.carpetStack = new ItemStack(Items.STONE);
+                    state.carpetStack.set(DataComponents.ITEM_MODEL, state.carpetModelId);
+                }
+                itemModelResolver.updateForTopItem(state.carpetState, state.carpetStack, ItemDisplayContext.NONE, table.getLevel(), null, 0);
+            }
+        }
+        NonNullList<ItemStack> items = table.getItems();
+        for (int i = 0; i < state.items.length; i++) {
+            ItemStack stack = items.get(i);
+            state.items[i] = stack;
+            state.itemStates[i].clear();
+            if (!stack.isEmpty()) {
+                itemModelResolver.updateForTopItem(state.itemStates[i], stack, ItemDisplayContext.FIXED, table.getLevel(), null, 0);
+            }
+        }
+    }
+
+    @Override
+    public void submit(RenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+        if (state.hasCarpet && state.carpetModelId != null) {
+            int rotation = state.axis == Direction.Axis.X ? 180 : 270;
             poseStack.pushPose();
             poseStack.translate(0.5, 0, 0.5);
             poseStack.mulPose(Axis.YP.rotationDegrees(-rotation));
             poseStack.translate(-0.5, 0, -0.5);
-            BakedModel model = itemRenderer.getItemModelShaper().getModelManager().getModel(cacheModel);
-            RenderType renderType = RenderType.entityCutoutNoCull(InventoryMenu.BLOCK_ATLAS);
-            VertexConsumer vertexConsumer = ItemRenderer.getFoilBufferDirect(buffer, renderType, true, false);
-            itemRenderer.renderModelLists(model, ItemStack.EMPTY, packedLight, packedOverlay, poseStack, vertexConsumer);
+            poseStack.translate(0.5, 0.5, 0.5);
+            state.carpetState.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();
         }
 
-        ItemStackHandler items = table.getItems();
         int count = 0;
-        for (int i = 0; i < items.getSlots(); i++) {
-            if (items.getStackInSlot(i).isEmpty()) {
-                continue;
+        for (ItemStack stack : state.items) {
+            if (!stack.isEmpty()) {
+                count++;
             }
-            count++;
         }
 
         if (count == 0) {
@@ -86,81 +112,61 @@ public class TableBlockEntityRender implements BlockEntityRenderer<TableBlockEnt
         poseStack.scale(0.65F, 0.65F, 0.65F);
 
         if (count == 1) {
-            this.rotation(poseStack, axis);
-            ItemStack stack1 = items.getStackInSlot(0);
-            this.offsetBlockItem(stack1, poseStack);
-            itemRenderer.renderStatic(stack1, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            this.rotation(poseStack, state.axis);
+            submitItem(state.itemStates[0], poseStack, collector, state.lightCoords);
         } else if (count == 2) {
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(-0.25, 0, 0.1);
-            ItemStack stack1 = items.getStackInSlot(0);
-            this.offsetBlockItem(stack1, poseStack);
-            itemRenderer.renderStatic(stack1, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[0], poseStack, collector, state.lightCoords);
             poseStack.popPose();
 
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(0.25, 0.01, -0.1);
-            ItemStack stack2 = items.getStackInSlot(1);
-            this.offsetBlockItem(stack2, poseStack);
-            itemRenderer.renderStatic(stack2, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[1], poseStack, collector, state.lightCoords);
             poseStack.popPose();
         } else if (count == 3) {
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(0.25, 0, -0.2);
-            ItemStack stack1 = items.getStackInSlot(0);
-            this.offsetBlockItem(stack1, poseStack);
-            itemRenderer.renderStatic(stack1, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[0], poseStack, collector, state.lightCoords);
             poseStack.popPose();
 
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(-0.25, 0.01, 0);
-            ItemStack stack2 = items.getStackInSlot(1);
-            this.offsetBlockItem(stack2, poseStack);
-            itemRenderer.renderStatic(stack2, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[1], poseStack, collector, state.lightCoords);
             poseStack.popPose();
 
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(0.24, 0.02, 0.2);
-            ItemStack stack3 = items.getStackInSlot(2);
-            this.offsetBlockItem(stack3, poseStack);
-            itemRenderer.renderStatic(stack3, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[2], poseStack, collector, state.lightCoords);
             poseStack.popPose();
         } else {
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(0.25, 0, -0.3);
-            ItemStack stack1 = items.getStackInSlot(0);
-            this.offsetBlockItem(stack1, poseStack);
-            itemRenderer.renderStatic(stack1, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[0], poseStack, collector, state.lightCoords);
             poseStack.popPose();
 
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(-0.24, 0.01, -0.1);
-            ItemStack stack2 = items.getStackInSlot(1);
-            this.offsetBlockItem(stack2, poseStack);
-            itemRenderer.renderStatic(stack2, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[1], poseStack, collector, state.lightCoords);
             poseStack.popPose();
 
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(0.24, 0.02, 0.1);
-            ItemStack stack3 = items.getStackInSlot(2);
-            this.offsetBlockItem(stack3, poseStack);
-            itemRenderer.renderStatic(stack3, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[2], poseStack, collector, state.lightCoords);
             poseStack.popPose();
 
             poseStack.pushPose();
-            this.rotation(poseStack, axis);
+            this.rotation(poseStack, state.axis);
             poseStack.translate(-0.25, 0.03, 0.3);
-            ItemStack stack4 = items.getStackInSlot(3);
-            this.offsetBlockItem(stack4, poseStack);
-            itemRenderer.renderStatic(stack4, ItemDisplayContext.FIXED, packedLight, packedOverlay, poseStack, buffer, table.getLevel(), 0);
+            submitItem(state.itemStates[3], poseStack, collector, state.lightCoords);
             poseStack.popPose();
         }
 
@@ -175,9 +181,26 @@ public class TableBlockEntityRender implements BlockEntityRenderer<TableBlockEnt
         }
     }
 
-    private void offsetBlockItem(ItemStack stack, PoseStack poseStack) {
-        if (stack.getItem() instanceof BlockItem) {
-            poseStack.translate(0, -0.25, 0);
+    private static void submitItem(ItemStackRenderState itemState, PoseStack poseStack, SubmitNodeCollector collector, int packedLight) {
+        if (!itemState.isEmpty()) {
+            itemState.submit(poseStack, collector, packedLight, OverlayTexture.NO_OVERLAY, 0);
+        }
+    }
+
+    public static class RenderState extends BlockEntityRenderState {
+        final ItemStackRenderState carpetState = new ItemStackRenderState();
+        final ItemStackRenderState[] itemStates = new ItemStackRenderState[4];
+        final ItemStack[] items = new ItemStack[4];
+        ItemStack carpetStack = ItemStack.EMPTY;
+        Identifier carpetModelId;
+        Direction.Axis axis = Direction.Axis.X;
+        boolean hasCarpet;
+
+        public RenderState() {
+            for (int i = 0; i < itemStates.length; i++) {
+                itemStates[i] = new ItemStackRenderState();
+                items[i] = ItemStack.EMPTY;
+            }
         }
     }
 }

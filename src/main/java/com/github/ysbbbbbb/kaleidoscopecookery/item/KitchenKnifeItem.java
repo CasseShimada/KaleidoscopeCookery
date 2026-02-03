@@ -2,35 +2,31 @@ package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ToolAction;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.item.component.TooltipDisplay;
 
-import java.util.List;
+import java.util.function.Consumer;
 
-import static net.minecraftforge.common.ToolActions.SWORD_DIG;
+public class KitchenKnifeItem extends Item {
+    private static final float ATTACK_DAMAGE = 0.0F;
+    private static final float ATTACK_SPEED = -2.0F;
 
-public class KitchenKnifeItem extends SwordItem {
-    public KitchenKnifeItem(Tier tier) {
-        super(tier, 0, -2.0F, new Properties());
-    }
-
-    public KitchenKnifeItem(Tier tier, Properties properties) {
-        super(tier, 0, -2.0F, properties);
+    public KitchenKnifeItem(ToolMaterial material, Item.Properties properties) {
+        super(material.applySwordProperties(properties, ATTACK_DAMAGE, ATTACK_SPEED));
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.kaleidoscope_cookery.kitchen_knife").withStyle(ChatFormatting.GRAY));
+    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        stack.hurtAndBreak(1, attacker, EquipmentSlot.MAINHAND);
     }
 
     @Override
-    public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
-        // 菜刀不能横扫之刃
-        return toolAction == SWORD_DIG;
+        public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.kitchen_knife").withStyle(ChatFormatting.GRAY));
     }
 }

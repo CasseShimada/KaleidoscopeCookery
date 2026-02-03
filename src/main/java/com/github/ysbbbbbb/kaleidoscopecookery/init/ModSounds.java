@@ -1,23 +1,25 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 
 public class ModSounds {
-    public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, KaleidoscopeCookery.MOD_ID);
+    public static final SoundEvent BLOCK_RECIPE_BLOCK = SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block.recipe_block"));
+    public static final SoundEvent BLOCK_MILLSTONE = SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block.millstone"));
+    public static final SoundEvent BLOCK_STOCKPOT = SoundEvent.createFixedRangeEvent(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block.stockpot"), 16.0F);
+    public static final SoundEvent BLOCK_PADDY = SoundEvent.createFixedRangeEvent(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block.paddy"), 16.0F);
+    public static final SoundEvent ENTITY_FART = SoundEvent.createFixedRangeEvent(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "entity.fart"), 16.0F);
+    public static final SoundEvent ITEM_DOUGH_TRANSFORM = SoundEvent.createFixedRangeEvent(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "item.dough_transform"), 16.0F);
 
-    public static final RegistryObject<SoundEvent> BLOCK_STOCKPOT = registerSound("block.stockpot");
-    public static final RegistryObject<SoundEvent> BLOCK_PADDY = registerSound("block.paddy");
-    public static final RegistryObject<SoundEvent> BLOCK_MILLSTONE = registerSound("block.millstone");
-    public static final RegistryObject<SoundEvent> BLOCK_RECIPE_BLOCK = registerSound("block.recipe_block");
-    public static final RegistryObject<SoundEvent> ENTITY_FART = registerSound("entity.fart");
-    public static final RegistryObject<SoundEvent> ITEM_DOUGH_TRANSFORM = registerSound("item.dough_transform");
-
-    private static RegistryObject<SoundEvent> registerSound(String name) {
-        return SOUND_EVENTS.register(name, () -> SoundEvent.createFixedRangeEvent(new ResourceLocation(KaleidoscopeCookery.MOD_ID, name), 16.0F));
+    public static void registerSounds() {
+        Registry.register(BuiltInRegistries.SOUND_EVENT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block.recipe_block"), BLOCK_RECIPE_BLOCK);
+        Registry.register(BuiltInRegistries.SOUND_EVENT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block.millstone"), BLOCK_MILLSTONE);
+        Registry.register(BuiltInRegistries.SOUND_EVENT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block.stockpot"), BLOCK_STOCKPOT);
+        Registry.register(BuiltInRegistries.SOUND_EVENT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "block.paddy"), BLOCK_PADDY);
+        Registry.register(BuiltInRegistries.SOUND_EVENT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "entity.fart"), ENTITY_FART);
+        Registry.register(BuiltInRegistries.SOUND_EVENT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "item.dough_transform"), ITEM_DOUGH_TRANSFORM);
     }
 }

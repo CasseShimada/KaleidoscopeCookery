@@ -1,0 +1,20 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "time": 200,
+  "stir_fry_count": 3,
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:raw_fishes",
+    "#c:raw_fishes",
+    "#c:raw_fishes",
+    "#c:raw_fishes",
+    "#c:raw_fishes",
+    "#c:raw_fishes",
+    "#c:crops/chilipepper",
+    "#c:crops/chilipepper"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:oil_splashed_fish",
+    "count": 1
+  }
+}

@@ -1,39 +1,36 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe;
-import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraftforge.common.crafting.CraftingHelper;
 
 public class MillstoneRecipeSerializer implements RecipeSerializer<MillstoneRecipe> {
-    @Override
-    public MillstoneRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-        Ingredient ingredient;
-        if (GsonHelper.isArrayNode(json, "ingredient")) {
-            ingredient = Ingredient.fromJson(GsonHelper.getAsJsonArray(json, "ingredient"), false);
-        } else {
-            ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "ingredient"), false);
-        }
-        ItemStack result = CraftingHelper.getItemStack(GsonHelper.getAsJsonObject(json, "result"), true, true);
+    public static final MapCodec<MillstoneRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
+            instance.group(
+                    Ingredient.CODEC.fieldOf("ingredient").forGetter(MillstoneRecipe::getIngredient),
+                    ItemStack.CODEC.fieldOf("result").forGetter(MillstoneRecipe::getResult),
+                    Ingredient.CODEC.optionalFieldOf("carrier").forGetter(MillstoneRecipe::getCarrier)
+            ).apply(instance, MillstoneRecipe::new)
+    );
 
-        return new MillstoneRecipe(recipeId, ingredient, result);
+    public static final StreamCodec<RegistryFriendlyByteBuf, MillstoneRecipe> STREAM_CODEC = StreamCodec.composite(
+            Ingredient.CONTENTS_STREAM_CODEC, MillstoneRecipe::getIngredient,
+            ItemStack.STREAM_CODEC, MillstoneRecipe::getResult,
+            Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC, MillstoneRecipe::getCarrier,
+            MillstoneRecipe::new);
+
+    @Override
+    public MapCodec<MillstoneRecipe> codec() {
+        return CODEC;
     }
 
     @Override
-    public MillstoneRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-        Ingredient ingredient = Ingredient.fromNetwork(buffer);
-        ItemStack result = buffer.readItem();
-        return new MillstoneRecipe(recipeId, ingredient, result);
-    }
-
-    @Override
-    public void toNetwork(FriendlyByteBuf buffer, MillstoneRecipe recipe) {
-        recipe.getIngredient().toNetwork(buffer);
-        buffer.writeItem(recipe.getResult());
+        public StreamCodec<RegistryFriendlyByteBuf, MillstoneRecipe> streamCodec() {
+        return STREAM_CODEC;
     }
 }

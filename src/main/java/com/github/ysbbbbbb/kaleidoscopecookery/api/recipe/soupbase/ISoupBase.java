@@ -1,12 +1,10 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.api.client.render.ISoupBaseRender;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 public interface ISoupBase {
     /**
@@ -14,7 +12,7 @@ public interface ISoupBase {
      *
      * @return 注册 ID
      */
-    ResourceLocation getName();
+    Identifier getName();
 
     /**
      * 当放入该汤底后，冒出的粒子的颜色
@@ -67,8 +65,7 @@ public interface ISoupBase {
     /**
      * 获取对应的渲染器，只能在客户端调用
      *
-     * @return 返回渲染器实例，用于渲染汤底
+     * @return ISoupBaseRender 返回渲染器实例，用于渲染汤底
      */
-    @OnlyIn(Dist.CLIENT)
     ISoupBaseRender getRender();
 }

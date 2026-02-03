@@ -1,0 +1,18 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "minecraft:crimson_fungus",
+    "minecraft:crimson_fungus",
+    "minecraft:warped_fungus",
+    "minecraft:warped_fungus",
+    "#c:raw_fishes/tropical_fish",
+    "#c:raw_fishes/tropical_fish",
+    "#c:raw_fishes/tropical_fish",
+    "#c:raw_fishes/tropical_fish"
+  ],
+  "result": {
+    "count": 1,
+    "id": "kaleidoscope_cookery:nether_style_sashimi"
+  }
+}

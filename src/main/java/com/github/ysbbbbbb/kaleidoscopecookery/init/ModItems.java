@@ -2,183 +2,340 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.*;
-import com.github.ysbbbbbb.kaleidoscopecookery.item.armor.FarmerArmorMaterial;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.*;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraft.world.item.equipment.ArmorType;
 
 public final class ModItems {
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, KaleidoscopeCookery.MOD_ID);
+    // Block items
+    public static final Item STOVE = new WithTooltipsBlockItem(ModBlocks.STOVE, blockItemProperties("stove"), "stove");
+    public static final Item POT = new WithTooltipsBlockItem(ModBlocks.POT, blockItemProperties("pot"), "pot", "pot.fail");
+    public static final Item STOCKPOT = new WithTooltipsBlockItem(ModBlocks.STOCKPOT, blockItemProperties("stockpot"), "stockpot", "stockpot.fail");
+    public static final Item STOCKPOT_LID = new StockpotLidItem(itemProperties("stockpot_lid"));
+    public static final Item OIL = new WithTooltipsItem(itemProperties("oil"), "oil");
+    public static final Item OIL_BLOCK = new BlockItem(ModBlocks.OIL_BLOCK, blockItemProperties("oil_block"));
+    public static final Item CHOPPING_BOARD = new WithTooltipsBlockItem(ModBlocks.CHOPPING_BOARD, blockItemProperties("chopping_board"), "chopping_board");
+    public static final Item ENAMEL_BASIN = new WithTooltipsBlockItem(ModBlocks.ENAMEL_BASIN, blockItemProperties("enamel_basin"), "enamel_basin");
+    public static final Item KITCHENWARE_RACKS = new WithTooltipsBlockItem(ModBlocks.KITCHENWARE_RACKS, blockItemProperties("kitchenware_racks"), "kitchenware_racks");
+    public static final Item CHILI_RISTRA = new BlockItem(ModBlocks.CHILI_RISTRA, blockItemProperties("chili_ristra"));
+    public static final Item STRUNG_MUSHROOMS = new BlockItem(ModBlocks.STRUNG_MUSHROOMS, blockItemProperties("strung_mushrooms"));
+    public static final Item STRAW_BLOCK = new BlockItem(ModBlocks.STRAW_BLOCK, blockItemProperties("straw_block"));
+    public static final Item SHAWARMA_SPIT = new WithTooltipsBlockItem(ModBlocks.SHAWARMA_SPIT, blockItemProperties("shawarma_spit"), "shawarma_spit");
+    public static final Item MILLSTONE = new WithTooltipsBlockItem(ModBlocks.MILLSTONE, blockItemProperties("millstone"), "millstone");
+    public static final Item STEAMER = new SteamerItem(blockItemProperties("steamer"));
+    public static final Item OIL_POT = new OilPotItem(blockItemProperties("oil_pot"));
+    public static final Item COLD_CUT_HAM_SLICES = new LiftBlockItem(
+            ModBlocks.COLD_CUT_HAM_SLICES, blockItemProperties("cold_cut_ham_slices"), "cold_cut_ham_slices");
 
-    // 厨具
-    public static RegistryObject<Item> STOVE = ITEMS.register("stove", () -> new BlockItem(ModBlocks.STOVE.get(), new Item.Properties()));
-    public static RegistryObject<Item> POT = ITEMS.register("pot", () -> new BlockItem(ModBlocks.POT.get(), new Item.Properties()));
-    public static RegistryObject<Item> STOCKPOT = ITEMS.register("stockpot", () -> new BlockItem(ModBlocks.STOCKPOT.get(), new Item.Properties()));
-    public static RegistryObject<Item> STOCKPOT_LID = ITEMS.register("stockpot_lid", StockpotLidItem::new);
-    public static RegistryObject<Item> CHOPPING_BOARD = ITEMS.register("chopping_board", () -> new BlockItem(ModBlocks.CHOPPING_BOARD.get(), new Item.Properties()));
-    public static RegistryObject<Item> KITCHENWARE_RACKS = ITEMS.register("kitchenware_racks", () -> new WithTooltipsBlockItem(ModBlocks.KITCHENWARE_RACKS.get(), "kitchenware_racks"));
-    public static RegistryObject<Item> SHAWARMA_SPIT = ITEMS.register("shawarma_spit", () -> new BlockItem(ModBlocks.SHAWARMA_SPIT.get(), new Item.Properties()));
-    public static RegistryObject<Item> MILLSTONE = ITEMS.register("millstone", () -> new BlockItem(ModBlocks.MILLSTONE.get(), new Item.Properties()));
-    public static RegistryObject<Item> STEAMER = ITEMS.register("steamer", SteamerItem::new);
+    // Tools
+    public static final Item IRON_KITCHEN_KNIFE = new KitchenKnifeItem(ToolMaterial.IRON, itemProperties("iron_kitchen_knife"));
+    public static final Item GOLD_KITCHEN_KNIFE = new KitchenKnifeItem(ToolMaterial.GOLD, itemProperties("gold_kitchen_knife"));
+    public static final Item DIAMOND_KITCHEN_KNIFE = new KitchenKnifeItem(ToolMaterial.DIAMOND, itemProperties("diamond_kitchen_knife"));
+    public static final Item NETHERITE_KITCHEN_KNIFE = new KitchenKnifeItem(ToolMaterial.NETHERITE, itemProperties("netherite_kitchen_knife"));
+    public static final Item SICKLE = new SickleItem(itemProperties("sickle"));
 
-    // 油
-    public static RegistryObject<Item> OIL = ITEMS.register("oil", () -> new WithTooltipsItem(new Item.Properties(), "oil"));
-    public static RegistryObject<Item> OIL_POT = ITEMS.register("oil_pot", OilPotItem::new);
-    public static RegistryObject<Item> OIL_BLOCK = ITEMS.register("oil_block", () -> new BlockItem(ModBlocks.OIL_BLOCK.get(), new Item.Properties()));
-    public static RegistryObject<Item> ENAMEL_BASIN = ITEMS.register("enamel_basin", () -> new BlockItem(ModBlocks.ENAMEL_BASIN.get(), new Item.Properties()));
+    // Special items
+    public static final Item RECIPE_ITEM = new RecipeItem(itemProperties("recipe_item"));
+    public static final Item KITCHEN_SHOVEL = new KitchenShovelItem(itemProperties("kitchen_shovel"));
+    public static final Item FRUIT_BASKET = new FruitBasketItem(itemProperties("fruit_basket"));
+    public static final Item SCARECROW = new ScarecrowItem(itemProperties("scarecrow"));
+    public static final Item STRAW_HAT = new StrawHatItem(false, itemProperties("straw_hat"));
+    public static final Item STRAW_HAT_FLOWER = new StrawHatItem(true, itemProperties("straw_hat_flower"));
+    public static final Item FARMER_CHEST_PLATE = new ModArmorItem(ModArmorMaterials.FARMER.value(), ArmorType.CHESTPLATE, itemProperties("farmer_chest_plate").stacksTo(1));
+    public static final Item FARMER_LEGGINGS = new ModArmorItem(ModArmorMaterials.FARMER.value(), ArmorType.LEGGINGS, itemProperties("farmer_leggings").stacksTo(1));
+    public static final Item FARMER_BOOTS = new ModArmorItem(ModArmorMaterials.FARMER.value(), ArmorType.BOOTS, itemProperties("farmer_boots").stacksTo(1));
+    public static final Item TRANSMUTATION_LUNCH_BAG = new TransmutationLunchBagItem(itemProperties("transmutation_lunch_bag"));
 
-    // 杂项
-    public static RegistryObject<Item> CHILI_RISTRA = ITEMS.register("chili_ristra", () -> new BlockItem(ModBlocks.CHILI_RISTRA.get(), new Item.Properties()));
-    public static RegistryObject<Item> STRUNG_MUSHROOMS = ITEMS.register("strung_mushrooms", () -> new BlockItem(ModBlocks.STRUNG_MUSHROOMS.get(), new Item.Properties()));
-    public static RegistryObject<Item> STRAW_BLOCK = ITEMS.register("straw_block", () -> new BlockItem(ModBlocks.STRAW_BLOCK.get(), new Item.Properties()));
-    public static RegistryObject<Item> FRUIT_BASKET = ITEMS.register("fruit_basket", FruitBasketItem::new);
-    public static RegistryObject<Item> SCARECROW = ITEMS.register("scarecrow", ScarecrowItem::new);
-    public static RegistryObject<Item> RECIPE_ITEM = ITEMS.register("recipe_item", RecipeItem::new);
-    public static RegistryObject<Item> TRANSMUTATION_LUNCH_BAG = ITEMS.register("transmutation_lunch_bag", TransmutationLunchBagItem::new);
+    // Seeds
+    public static final Item TOMATO_SEED = new ItemNameBlockItem(ModBlocks.TOMATO_CROP, itemProperties("tomato_seed"));
+    public static final Item CHILI_SEED = new ItemNameBlockItem(ModBlocks.CHILI_CROP, itemProperties("chili_seed"));
+    public static final Item LETTUCE_SEED = new ItemNameBlockItem(ModBlocks.LETTUCE_CROP, itemProperties("lettuce_seed"));
+    public static final Item RICE_SEED = new RiceItem(itemProperties("rice"));
+    public static final Item WILD_RICE_SEED = new ItemNameBlockItem(ModBlocks.RICE_CROP, itemProperties("wild_rice"));
 
-    // 工具
-    public static RegistryObject<Item> IRON_KITCHEN_KNIFE = ITEMS.register("iron_kitchen_knife", () -> new KitchenKnifeItem(Tiers.IRON));
-    public static RegistryObject<Item> GOLD_KITCHEN_KNIFE = ITEMS.register("gold_kitchen_knife", () -> new KitchenKnifeItem(Tiers.GOLD));
-    public static RegistryObject<Item> DIAMOND_KITCHEN_KNIFE = ITEMS.register("diamond_kitchen_knife", () -> new KitchenKnifeItem(Tiers.DIAMOND));
-    public static RegistryObject<Item> NETHERITE_KITCHEN_KNIFE = ITEMS.register("netherite_kitchen_knife", () -> new KitchenKnifeItem(Tiers.NETHERITE, (new Item.Properties()).fireResistant()));
-    public static RegistryObject<Item> KITCHEN_SHOVEL = ITEMS.register("kitchen_shovel", KitchenShovelItem::new);
-    public static RegistryObject<Item> SICKLE = ITEMS.register("sickle", SickleItem::new);
+    // Cook stools
+    public static final Item COOK_STOOL_OAK = new BlockItem(ModBlocks.COOK_STOOL_OAK, blockItemProperties("cook_stool_oak"));
+    public static final Item COOK_STOOL_SPRUCE = new BlockItem(ModBlocks.COOK_STOOL_SPRUCE, blockItemProperties("cook_stool_spruce"));
+    public static final Item COOK_STOOL_ACACIA = new BlockItem(ModBlocks.COOK_STOOL_ACACIA, blockItemProperties("cook_stool_acacia"));
+    public static final Item COOK_STOOL_BAMBOO = new BlockItem(ModBlocks.COOK_STOOL_BAMBOO, blockItemProperties("cook_stool_bamboo"));
+    public static final Item COOK_STOOL_BIRCH = new BlockItem(ModBlocks.COOK_STOOL_BIRCH, blockItemProperties("cook_stool_birch"));
+    public static final Item COOK_STOOL_CHERRY = new BlockItem(ModBlocks.COOK_STOOL_CHERRY, blockItemProperties("cook_stool_cherry"));
+    public static final Item COOK_STOOL_CRIMSON = new BlockItem(ModBlocks.COOK_STOOL_CRIMSON, blockItemProperties("cook_stool_crimson"));
+    public static final Item COOK_STOOL_DARK_OAK = new BlockItem(ModBlocks.COOK_STOOL_DARK_OAK, blockItemProperties("cook_stool_dark_oak"));
+    public static final Item COOK_STOOL_JUNGLE = new BlockItem(ModBlocks.COOK_STOOL_JUNGLE, blockItemProperties("cook_stool_jungle"));
+    public static final Item COOK_STOOL_MANGROVE = new BlockItem(ModBlocks.COOK_STOOL_MANGROVE, blockItemProperties("cook_stool_mangrove"));
+    public static final Item COOK_STOOL_WARPED = new BlockItem(ModBlocks.COOK_STOOL_WARPED, blockItemProperties("cook_stool_warped"));
 
-    // 服装
-    public static RegistryObject<Item> STRAW_HAT = ITEMS.register("straw_hat", () -> new StrawHatItem(false));
-    public static RegistryObject<Item> STRAW_HAT_FLOWER = ITEMS.register("straw_hat_flower", () -> new StrawHatItem(true));
-    public static RegistryObject<Item> FARMER_CHEST_PLATE = ITEMS.register("farmer_chest_plate", () -> new ArmorItem(FarmerArmorMaterial.INSTANCE, ArmorItem.Type.CHESTPLATE, new Item.Properties()));
-    public static RegistryObject<Item> FARMER_LEGGINGS = ITEMS.register("farmer_leggings", () -> new ArmorItem(FarmerArmorMaterial.INSTANCE, ArmorItem.Type.LEGGINGS, new Item.Properties()));
-    public static RegistryObject<Item> FARMER_BOOTS = ITEMS.register("farmer_boots", () -> new ArmorItem(FarmerArmorMaterial.INSTANCE, ArmorItem.Type.BOOTS, new Item.Properties()));
+    // Chairs
+    public static final Item CHAIR_OAK = new BlockItem(ModBlocks.CHAIR_OAK, blockItemProperties("chair_oak"));
+    public static final Item CHAIR_SPRUCE = new BlockItem(ModBlocks.CHAIR_SPRUCE, blockItemProperties("chair_spruce"));
+    public static final Item CHAIR_ACACIA = new BlockItem(ModBlocks.CHAIR_ACACIA, blockItemProperties("chair_acacia"));
+    public static final Item CHAIR_BAMBOO = new BlockItem(ModBlocks.CHAIR_BAMBOO, blockItemProperties("chair_bamboo"));
+    public static final Item CHAIR_BIRCH = new BlockItem(ModBlocks.CHAIR_BIRCH, blockItemProperties("chair_birch"));
+    public static final Item CHAIR_CHERRY = new BlockItem(ModBlocks.CHAIR_CHERRY, blockItemProperties("chair_cherry"));
+    public static final Item CHAIR_CRIMSON = new BlockItem(ModBlocks.CHAIR_CRIMSON, blockItemProperties("chair_crimson"));
+    public static final Item CHAIR_DARK_OAK = new BlockItem(ModBlocks.CHAIR_DARK_OAK, blockItemProperties("chair_dark_oak"));
+    public static final Item CHAIR_JUNGLE = new BlockItem(ModBlocks.CHAIR_JUNGLE, blockItemProperties("chair_jungle"));
+    public static final Item CHAIR_MANGROVE = new BlockItem(ModBlocks.CHAIR_MANGROVE, blockItemProperties("chair_mangrove"));
+    public static final Item CHAIR_WARPED = new BlockItem(ModBlocks.CHAIR_WARPED, blockItemProperties("chair_warped"));
 
-    // 种子
-    public static RegistryObject<Item> TOMATO_SEED = ITEMS.register("tomato_seed", () -> new ItemNameBlockItem(ModBlocks.TOMATO_CROP.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHILI_SEED = ITEMS.register("chili_seed", () -> new ItemNameBlockItem(ModBlocks.CHILI_CROP.get(), new Item.Properties()));
-    public static RegistryObject<Item> LETTUCE_SEED = ITEMS.register("lettuce_seed", () -> new ItemNameBlockItem(ModBlocks.LETTUCE_CROP.get(), new Item.Properties()));
-    public static RegistryObject<Item> RICE_SEED = ITEMS.register("rice", RiceItem::new);
-    public static RegistryObject<Item> WILD_RICE_SEED = ITEMS.register("wild_rice", () -> new ItemNameBlockItem(ModBlocks.RICE_CROP.get(), new Item.Properties()));
+    // Tables
+    public static final Item TABLE_OAK = new BlockItem(ModBlocks.TABLE_OAK, blockItemProperties("table_oak"));
+    public static final Item TABLE_SPRUCE = new BlockItem(ModBlocks.TABLE_SPRUCE, blockItemProperties("table_spruce"));
+    public static final Item TABLE_ACACIA = new BlockItem(ModBlocks.TABLE_ACACIA, blockItemProperties("table_acacia"));
+    public static final Item TABLE_BAMBOO = new BlockItem(ModBlocks.TABLE_BAMBOO, blockItemProperties("table_bamboo"));
+    public static final Item TABLE_BIRCH = new BlockItem(ModBlocks.TABLE_BIRCH, blockItemProperties("table_birch"));
+    public static final Item TABLE_CHERRY = new BlockItem(ModBlocks.TABLE_CHERRY, blockItemProperties("table_cherry"));
+    public static final Item TABLE_CRIMSON = new BlockItem(ModBlocks.TABLE_CRIMSON, blockItemProperties("table_crimson"));
+    public static final Item TABLE_DARK_OAK = new BlockItem(ModBlocks.TABLE_DARK_OAK, blockItemProperties("table_dark_oak"));
+    public static final Item TABLE_JUNGLE = new BlockItem(ModBlocks.TABLE_JUNGLE, blockItemProperties("table_jungle"));
+    public static final Item TABLE_MANGROVE = new BlockItem(ModBlocks.TABLE_MANGROVE, blockItemProperties("table_mangrove"));
+    public static final Item TABLE_WARPED = new BlockItem(ModBlocks.TABLE_WARPED, blockItemProperties("table_warped"));
 
-    // 凳子
-    public static RegistryObject<Item> COOK_STOOL_OAK = ITEMS.register("cook_stool_oak", () -> new BlockItem(ModBlocks.COOK_STOOL_OAK.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_SPRUCE = ITEMS.register("cook_stool_spruce", () -> new BlockItem(ModBlocks.COOK_STOOL_SPRUCE.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_ACACIA = ITEMS.register("cook_stool_acacia", () -> new BlockItem(ModBlocks.COOK_STOOL_ACACIA.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_BAMBOO = ITEMS.register("cook_stool_bamboo", () -> new BlockItem(ModBlocks.COOK_STOOL_BAMBOO.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_BIRCH = ITEMS.register("cook_stool_birch", () -> new BlockItem(ModBlocks.COOK_STOOL_BIRCH.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_CHERRY = ITEMS.register("cook_stool_cherry", () -> new BlockItem(ModBlocks.COOK_STOOL_CHERRY.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_CRIMSON = ITEMS.register("cook_stool_crimson", () -> new BlockItem(ModBlocks.COOK_STOOL_CRIMSON.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_DARK_OAK = ITEMS.register("cook_stool_dark_oak", () -> new BlockItem(ModBlocks.COOK_STOOL_DARK_OAK.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_JUNGLE = ITEMS.register("cook_stool_jungle", () -> new BlockItem(ModBlocks.COOK_STOOL_JUNGLE.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_MANGROVE = ITEMS.register("cook_stool_mangrove", () -> new BlockItem(ModBlocks.COOK_STOOL_MANGROVE.get(), new Item.Properties()));
-    public static RegistryObject<Item> COOK_STOOL_WARPED = ITEMS.register("cook_stool_warped", () -> new BlockItem(ModBlocks.COOK_STOOL_WARPED.get(), new Item.Properties()));
+    // Food items
+    public static final Item TOMATO = new Item(ModFoods.applyFood(itemProperties("tomato"), ModFoods.TOMATO));
+    public static final Item RED_CHILI = new ChiliItem(2, itemProperties("red_chili"));
+    public static final Item GREEN_CHILI = new ChiliItem(1, itemProperties("green_chili"));
+    public static final Item LETTUCE = new Item(ModFoods.applyFood(itemProperties("lettuce"), ModFoods.LETTUCE));
+    public static final Item RICE_PANICLE = new Item(itemProperties("rice_panicle"));
+    public static final Item CATERPILLAR = new WithTooltipsItem(ModFoods.applyFood(itemProperties("caterpillar"), ModFoods.CATERPILLAR), "caterpillar");
+    public static final Item FRIED_EGG = new Item(ModFoods.applyFood(itemProperties("fried_egg"), ModFoods.FRIED_EGG));
+    public static final Item DONKEY_BURGER = new FoodWithEffectsItem(itemProperties("donkey_burger"), ModFoods.DONKEY_BURGER);
+    public static final Item MANTOU = new FoodWithEffectsItem(itemProperties("mantou"), ModFoods.MANTOU);
+    public static final Item BAOZI = new FoodWithEffectsItem(itemProperties("baozi"), ModFoods.BAOZI);
+    public static final Item SAMSA = new FoodWithEffectsItem(itemProperties("samsa"), ModFoods.SAMSA);
+    public static final Item MEAT_PIE = new FoodWithEffectsItem(itemProperties("meat_pie"), ModFoods.MEAT_PIE);
+    public static final Item DUMPLING = new FoodWithEffectsItem(itemProperties("dumpling"), ModFoods.DUMPLING);
+    public static final Item RAW_DOUGH = new RawDoughItem(itemProperties("raw_dough"));
+    public static final Item FLOUR = new FlourItem(itemProperties("flour"));
+    public static final Item RAW_NOODLES = new Item(itemProperties("raw_noodles"));
+    public static final Item STUFFED_DOUGH_FOOD = new Item(itemProperties("stuffed_dough_food"));
 
-    // 椅子
-    public static RegistryObject<Item> CHAIR_OAK = ITEMS.register("chair_oak", () -> new BlockItem(ModBlocks.CHAIR_OAK.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_SPRUCE = ITEMS.register("chair_spruce", () -> new BlockItem(ModBlocks.CHAIR_SPRUCE.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_ACACIA = ITEMS.register("chair_acacia", () -> new BlockItem(ModBlocks.CHAIR_ACACIA.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_BAMBOO = ITEMS.register("chair_bamboo", () -> new BlockItem(ModBlocks.CHAIR_BAMBOO.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_BIRCH = ITEMS.register("chair_birch", () -> new BlockItem(ModBlocks.CHAIR_BIRCH.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_CHERRY = ITEMS.register("chair_cherry", () -> new BlockItem(ModBlocks.CHAIR_CHERRY.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_CRIMSON = ITEMS.register("chair_crimson", () -> new BlockItem(ModBlocks.CHAIR_CRIMSON.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_DARK_OAK = ITEMS.register("chair_dark_oak", () -> new BlockItem(ModBlocks.CHAIR_DARK_OAK.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_JUNGLE = ITEMS.register("chair_jungle", () -> new BlockItem(ModBlocks.CHAIR_JUNGLE.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_MANGROVE = ITEMS.register("chair_mangrove", () -> new BlockItem(ModBlocks.CHAIR_MANGROVE.get(), new Item.Properties()));
-    public static RegistryObject<Item> CHAIR_WARPED = ITEMS.register("chair_warped", () -> new BlockItem(ModBlocks.CHAIR_WARPED.get(), new Item.Properties()));
+    // Bowl foods
+    public static final Item COOKED_RICE = new BowlFoodOnlyItem(itemProperties("cooked_rice"), ModFoods.COOKED_RICE);
+    public static final Item SCRAMBLE_EGG_WITH_TOMATOES = new BowlFoodOnlyItem(itemProperties("scramble_egg_with_tomatoes"), ModFoods.SCRAMBLE_EGG_WITH_TOMATOES);
+    public static final Item SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("scramble_egg_with_tomatoes_rice_bowl"), ModFoods.SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL);
+    public static final Item STIR_FRIED_BEEF_OFFAL = new BowlFoodOnlyItem(itemProperties("stir_fried_beef_offal"), ModFoods.STIR_FRIED_BEEF_OFFAL);
+    public static final Item STIR_FRIED_BEEF_OFFAL_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("stir_fried_beef_offal_rice_bowl"), ModFoods.STIR_FRIED_BEEF_OFFAL_RICE_BOWL);
+    public static final Item BRAISED_BEEF = new BowlFoodOnlyItem(itemProperties("braised_beef"), ModFoods.BRAISED_BEEF);
+    public static final Item BRAISED_BEEF_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("braised_beef_rice_bowl"), ModFoods.BRAISED_BEEF_RICE_BOWL);
+    public static final Item STIR_FRIED_PORK_WITH_PEPPERS = new BowlFoodOnlyItem(itemProperties("stir_fried_pork_with_peppers"), ModFoods.STIR_FRIED_PORK_WITH_PEPPERS);
+    public static final Item STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("stir_fried_pork_with_peppers_rice_bowl"), ModFoods.STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL);
+    public static final Item SWEET_AND_SOUR_PORK = new BowlFoodOnlyItem(itemProperties("sweet_and_sour_pork"), ModFoods.SWEET_AND_SOUR_PORK);
+    public static final Item SWEET_AND_SOUR_PORK_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("sweet_and_sour_pork_rice_bowl"), ModFoods.SWEET_AND_SOUR_PORK_RICE_BOWL);
+    public static final Item COUNTRY_STYLE_MIXED_VEGETABLES = new BowlFoodOnlyItem(itemProperties("country_style_mixed_vegetables"), ModFoods.COUNTRY_STYLE_MIXED_VEGETABLES);
+    public static final Item FISH_FLAVORED_SHREDDED_PORK = new BowlFoodOnlyItem(itemProperties("fish_flavored_shredded_pork"), ModFoods.FISH_FLAVORED_SHREDDED_PORK);
+    public static final Item FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("fish_flavored_shredded_pork_rice_bowl"), ModFoods.FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL);
+    public static final Item BRAISED_FISH_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("braised_fish_rice_bowl"), ModFoods.BRAISED_FISH_RICE_BOWL);
+    public static final Item SPICY_CHICKEN_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("spicy_chicken_rice_bowl"), ModFoods.SPICY_CHICKEN_RICE_BOWL);
+    public static final Item SUSPICIOUS_STIR_FRY_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("suspicious_stir_fry_rice_bowl"), ModFoods.SUSPICIOUS_STIR_FRY_RICE_BOWL);
+    public static final Item EGG_FRIED_RICE = new BowlFoodOnlyItem(itemProperties("egg_fried_rice"), ModFoods.EGG_FRIED_RICE);
+    public static final Item DELICIOUS_EGG_FRIED_RICE = new BowlFoodOnlyItem(itemProperties("delicious_egg_fried_rice"), ModFoods.DELICIOUS_EGG_FRIED_RICE);
+    public static final Item PORK_BONE_SOUP = new BowlFoodOnlyItem(itemProperties("pork_bone_soup"), ModFoods.PORK_BONE_SOUP);
+    public static final Item SEAFOOD_MISO_SOUP = new BowlFoodOnlyItem(itemProperties("seafood_miso_soup"), ModFoods.SEAFOOD_MISO_SOUP);
+    public static final Item FEARSOME_THICK_SOUP = new BowlFoodOnlyItem(itemProperties("fearsome_thick_soup"), ModFoods.FEARSOME_THICK_SOUP);
+    public static final Item LAMB_AND_RADISH_SOUP = new BowlFoodOnlyItem(itemProperties("lamb_and_radish_soup"), ModFoods.LAMB_AND_RADISH_SOUP);
+    public static final Item BRAISED_BEEF_WITH_POTATOES = new BowlFoodOnlyItem(itemProperties("braised_beef_with_potatoes"), ModFoods.BRAISED_BEEF_WITH_POTATOES);
+    public static final Item WILD_MUSHROOM_RABBIT_SOUP = new BowlFoodOnlyItem(itemProperties("wild_mushroom_rabbit_soup"), ModFoods.WILD_MUSHROOM_RABBIT_SOUP);
+    public static final Item TOMATO_BEEF_BRISKET_SOUP = new BowlFoodOnlyItem(itemProperties("tomato_beef_brisket_soup"), ModFoods.TOMATO_BEEF_BRISKET_SOUP);
+    public static final Item PUFFERFISH_SOUP = new BowlFoodOnlyItem(itemProperties("pufferfish_soup"), ModFoods.PUFFERFISH_SOUP);
+    public static final Item BORSCHT = new BowlFoodOnlyItem(itemProperties("borscht"), ModFoods.BORSCHT);
+    public static final Item BEEF_MEATBALL_SOUP = new BowlFoodOnlyItem(itemProperties("beef_meatball_soup"), ModFoods.BEEF_MEATBALL_SOUP);
+    public static final Item CHICKEN_AND_MUSHROOM_STEW = new BowlFoodOnlyItem(itemProperties("chicken_and_mushroom_stew"), ModFoods.CHICKEN_AND_MUSHROOM_STEW);
+    public static final Item DONKEY_SOUP = new BowlFoodOnlyItem(itemProperties("donkey_soup"), ModFoods.DONKEY_SOUP);
+    public static final Item BEEF_NOODLE = new BowlFoodOnlyItem(itemProperties("beef_noodle"), ModFoods.BEEF_NOODLE);
+    public static final Item HUI_NOODLE = new BowlFoodOnlyItem(itemProperties("hui_noodle"), ModFoods.HUI_NOODLE);
+    public static final Item UDON_NOODLE = new BowlFoodOnlyItem(itemProperties("udon_noodle"), ModFoods.UDON_NOODLE);
 
-    // 桌子
-    public static RegistryObject<Item> TABLE_OAK = ITEMS.register("table_oak", () -> new BlockItem(ModBlocks.TABLE_OAK.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_SPRUCE = ITEMS.register("table_spruce", () -> new BlockItem(ModBlocks.TABLE_SPRUCE.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_ACACIA = ITEMS.register("table_acacia", () -> new BlockItem(ModBlocks.TABLE_ACACIA.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_BAMBOO = ITEMS.register("table_bamboo", () -> new BlockItem(ModBlocks.TABLE_BAMBOO.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_BIRCH = ITEMS.register("table_birch", () -> new BlockItem(ModBlocks.TABLE_BIRCH.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_CHERRY = ITEMS.register("table_cherry", () -> new BlockItem(ModBlocks.TABLE_CHERRY.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_CRIMSON = ITEMS.register("table_crimson", () -> new BlockItem(ModBlocks.TABLE_CRIMSON.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_DARK_OAK = ITEMS.register("table_dark_oak", () -> new BlockItem(ModBlocks.TABLE_DARK_OAK.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_JUNGLE = ITEMS.register("table_jungle", () -> new BlockItem(ModBlocks.TABLE_JUNGLE.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_MANGROVE = ITEMS.register("table_mangrove", () -> new BlockItem(ModBlocks.TABLE_MANGROVE.get(), new Item.Properties()));
-    public static RegistryObject<Item> TABLE_WARPED = ITEMS.register("table_warped", () -> new BlockItem(ModBlocks.TABLE_WARPED.get(), new Item.Properties()));
+    // Raw and cooked foods
+    public static final Item SASHIMI = new Item(ModFoods.applyFood(itemProperties("sashimi"), ModFoods.SASHIMI));
+    public static final Item RAW_LAMB_CHOPS = new Item(ModFoods.applyFood(itemProperties("raw_lamb_chops"), ModFoods.RAW_LAMB_CHOPS));
+    public static final Item RAW_COW_OFFAL = new Item(ModFoods.applyFood(itemProperties("raw_cow_offal"), ModFoods.RAW_COW_OFFAL));
+    public static final Item RAW_PORK_BELLY = new Item(ModFoods.applyFood(itemProperties("raw_pork_belly"), ModFoods.RAW_PORK_BELLY));
+    public static final Item RAW_DONKEY_MEAT = new Item(ModFoods.applyFood(itemProperties("raw_donkey_meat"), ModFoods.RAW_DONKEY_MEAT));
+    public static final Item RAW_CUT_SMALL_MEATS = new Item(ModFoods.applyFood(itemProperties("raw_cut_small_meats"), ModFoods.RAW_CUT_SMALL_MEATS));
+    public static final Item RAW_MEATBALL = new Item(ModFoods.applyFood(itemProperties("raw_meatball"), ModFoods.RAW_MEATBALL));
+    public static final Item COOKED_LAMB_CHOPS = new Item(ModFoods.applyFood(itemProperties("cooked_lamb_chops"), ModFoods.COOKED_LAMB_CHOPS));
+    public static final Item COOKED_COW_OFFAL = new Item(ModFoods.applyFood(itemProperties("cooked_cow_offal"), ModFoods.COOKED_COW_OFFAL));
+    public static final Item COOKED_PORK_BELLY = new Item(ModFoods.applyFood(itemProperties("cooked_pork_belly"), ModFoods.COOKED_PORK_BELLY));
+    public static final Item COOKED_DONKEY_MEAT = new Item(ModFoods.applyFood(itemProperties("cooked_donkey_meat"), ModFoods.COOKED_DONKEY_MEAT));
+    public static final Item COOKED_CUT_SMALL_MEATS = new Item(ModFoods.applyFood(itemProperties("cooked_cut_small_meats"), ModFoods.COOKED_CUT_SMALL_MEATS));
+    public static final Item COOKED_MEATBALL = new Item(ModFoods.applyFood(itemProperties("cooked_meatball"), ModFoods.COOKED_MEATBALL));
 
-    // 蔬菜食材
-    public static RegistryObject<Item> TOMATO = ITEMS.register("tomato", () -> new Item(new Item.Properties().food(ModFoods.TOMATO)));
-    public static RegistryObject<Item> RED_CHILI = ITEMS.register("red_chili", () -> new ChiliItem(2));
-    public static RegistryObject<Item> GREEN_CHILI = ITEMS.register("green_chili", () -> new ChiliItem(1));
-    public static RegistryObject<Item> LETTUCE = ITEMS.register("lettuce", () -> new Item(new Item.Properties().food(ModFoods.LETTUCE)));
-    public static RegistryObject<Item> RICE_PANICLE = ITEMS.register("rice_panicle", () -> new Item(new Item.Properties()));
-    public static RegistryObject<Item> CATERPILLAR = ITEMS.register("caterpillar", () -> new WithTooltipsItem(new Item.Properties().food(ModFoods.CATERPILLAR), "caterpillar"));
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
+    }
 
-    // 面类食材
-    public static RegistryObject<Item> FLOUR = ITEMS.register("flour", FlourItem::new);
-    public static RegistryObject<Item> RAW_DOUGH = ITEMS.register("raw_dough", RawDoughItem::new);
-    public static RegistryObject<Item> RAW_NOODLES = ITEMS.register("raw_noodles", () -> new Item(new Item.Properties()));
-    public static RegistryObject<Item> STUFFED_DOUGH_FOOD = ITEMS.register("stuffed_dough_food", () -> new Item(new Item.Properties()));
+    private static ResourceKey<Item> itemKey(String path) {
+        return ResourceKey.create(Registries.ITEM, id(path));
+    }
 
-    // 基础食物
-    public static RegistryObject<Item> FRIED_EGG = ITEMS.register("fried_egg", () -> new Item(new Item.Properties().food(ModFoods.FRIED_EGG)));
-    public static RegistryObject<Item> DONKEY_BURGER = ITEMS.register("donkey_burger", () -> new FoodWithEffectsItem(ModFoods.DONKEY_BURGER));
-    public static RegistryObject<Item> BAOZI = ITEMS.register("baozi", () -> new FoodWithEffectsItem(ModFoods.BAOZI));
-    public static RegistryObject<Item> DUMPLING = ITEMS.register("dumpling", () -> new BowlFoodOnlyItem(ModFoods.DUMPLING));
-    public static RegistryObject<Item> SAMSA = ITEMS.register("samsa", () -> new FoodWithEffectsItem(ModFoods.SAMSA));
-    public static RegistryObject<Item> MANTOU = ITEMS.register("mantou", () -> new FoodWithEffectsItem(ModFoods.MANTOU));
-    public static RegistryObject<Item> MEAT_PIE = ITEMS.register("meat_pie", () -> new FoodWithEffectsItem(ModFoods.MEAT_PIE));
+    private static Item.Properties itemProperties(String path) {
+        return new Item.Properties().setId(itemKey(path));
+    }
 
-    // 小碗菜和盖饭
-    public static RegistryObject<Item> COOKED_RICE = ITEMS.register("cooked_rice", () -> new BowlFoodOnlyItem(ModFoods.COOKED_RICE));
-    public static RegistryObject<Item> EGG_FRIED_RICE = ITEMS.register("egg_fried_rice", () -> new BowlFoodOnlyItem(ModFoods.EGG_FRIED_RICE));
-    public static RegistryObject<Item> DELICIOUS_EGG_FRIED_RICE = ITEMS.register("delicious_egg_fried_rice", () -> new BowlFoodOnlyItem(ModFoods.DELICIOUS_EGG_FRIED_RICE));
-    public static RegistryObject<Item> SCRAMBLE_EGG_WITH_TOMATOES = ITEMS.register("scramble_egg_with_tomatoes", () -> new BowlFoodOnlyItem(ModFoods.SCRAMBLE_EGG_WITH_TOMATOES));
-    public static RegistryObject<Item> SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL = ITEMS.register("scramble_egg_with_tomatoes_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL));
-    public static RegistryObject<Item> STIR_FRIED_BEEF_OFFAL = ITEMS.register("stir_fried_beef_offal", () -> new BowlFoodOnlyItem(ModFoods.STIR_FRIED_BEEF_OFFAL));
-    public static RegistryObject<Item> STIR_FRIED_BEEF_OFFAL_RICE_BOWL = ITEMS.register("stir_fried_beef_offal_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.STIR_FRIED_BEEF_OFFAL_RICE_BOWL));
-    public static RegistryObject<Item> BRAISED_BEEF = ITEMS.register("braised_beef", () -> new BowlFoodOnlyItem(ModFoods.BRAISED_BEEF));
-    public static RegistryObject<Item> BRAISED_BEEF_RICE_BOWL = ITEMS.register("braised_beef_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.BRAISED_BEEF_RICE_BOWL));
-    public static RegistryObject<Item> STIR_FRIED_PORK_WITH_PEPPERS = ITEMS.register("stir_fried_pork_with_peppers", () -> new BowlFoodOnlyItem(ModFoods.STIR_FRIED_PORK_WITH_PEPPERS));
-    public static RegistryObject<Item> STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL = ITEMS.register("stir_fried_pork_with_peppers_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL));
-    public static RegistryObject<Item> SWEET_AND_SOUR_PORK = ITEMS.register("sweet_and_sour_pork", () -> new BowlFoodOnlyItem(ModFoods.SWEET_AND_SOUR_PORK));
-    public static RegistryObject<Item> SWEET_AND_SOUR_PORK_RICE_BOWL = ITEMS.register("sweet_and_sour_pork_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.SWEET_AND_SOUR_PORK_RICE_BOWL));
-    public static RegistryObject<Item> COUNTRY_STYLE_MIXED_VEGETABLES = ITEMS.register("country_style_mixed_vegetables", () -> new BowlFoodOnlyItem(ModFoods.COUNTRY_STYLE_MIXED_VEGETABLES));
-    public static RegistryObject<Item> FISH_FLAVORED_SHREDDED_PORK = ITEMS.register("fish_flavored_shredded_pork", () -> new BowlFoodOnlyItem(ModFoods.FISH_FLAVORED_SHREDDED_PORK));
-    public static RegistryObject<Item> FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL = ITEMS.register("fish_flavored_shredded_pork_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL));
-    public static RegistryObject<Item> BRAISED_FISH_RICE_BOWL = ITEMS.register("braised_fish_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.BRAISED_FISH_RICE_BOWL));
-    public static RegistryObject<Item> SPICY_CHICKEN_RICE_BOWL = ITEMS.register("spicy_chicken_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.SPICY_CHICKEN_RICE_BOWL));
-    public static RegistryObject<Item> SUSPICIOUS_STIR_FRY_RICE_BOWL = ITEMS.register("suspicious_stir_fry_rice_bowl", () -> new BowlFoodOnlyItem(ModFoods.SUSPICIOUS_STIR_FRY_RICE_BOWL));
+    private static Item.Properties blockItemProperties(String path) {
+        return new Item.Properties().setId(itemKey(path)).useBlockDescriptionPrefix();
+    }
 
-    // 汤类
-    public static RegistryObject<Item> PORK_BONE_SOUP = ITEMS.register("pork_bone_soup", () -> new BowlFoodOnlyItem(ModFoods.PORK_BONE_SOUP));
-    public static RegistryObject<Item> SEAFOOD_MISO_SOUP = ITEMS.register("seafood_miso_soup", () -> new BowlFoodOnlyItem(ModFoods.SEAFOOD_MISO_SOUP));
-    public static RegistryObject<Item> FEARSOME_THICK_SOUP = ITEMS.register("fearsome_thick_soup", () -> new BowlFoodOnlyItem(ModFoods.FEARSOME_THICK_SOUP));
-    public static RegistryObject<Item> LAMB_AND_RADISH_SOUP = ITEMS.register("lamb_and_radish_soup", () -> new BowlFoodOnlyItem(ModFoods.LAMB_AND_RADISH_SOUP));
-    public static RegistryObject<Item> BRAISED_BEEF_WITH_POTATOES = ITEMS.register("braised_beef_with_potatoes", () -> new BowlFoodOnlyItem(ModFoods.BRAISED_BEEF_WITH_POTATOES));
-    public static RegistryObject<Item> WILD_MUSHROOM_RABBIT_SOUP = ITEMS.register("wild_mushroom_rabbit_soup", () -> new BowlFoodOnlyItem(ModFoods.WILD_MUSHROOM_RABBIT_SOUP));
-    public static RegistryObject<Item> TOMATO_BEEF_BRISKET_SOUP = ITEMS.register("tomato_beef_brisket_soup", () -> new BowlFoodOnlyItem(ModFoods.TOMATO_BEEF_BRISKET_SOUP));
-    public static RegistryObject<Item> PUFFERFISH_SOUP = ITEMS.register("pufferfish_soup", () -> new BowlFoodOnlyItem(ModFoods.PUFFERFISH_SOUP));
-    public static RegistryObject<Item> BORSCHT = ITEMS.register("borscht", () -> new BowlFoodOnlyItem(ModFoods.BORSCHT));
-    public static RegistryObject<Item> BEEF_MEATBALL_SOUP = ITEMS.register("beef_meatball_soup", () -> new BowlFoodOnlyItem(ModFoods.BEEF_MEATBALL_SOUP));
-    public static RegistryObject<Item> CHICKEN_AND_MUSHROOM_STEW = ITEMS.register("chicken_and_mushroom_stew", () -> new BowlFoodOnlyItem(ModFoods.CHICKEN_AND_MUSHROOM_STEW));
-    public static RegistryObject<Item> DONKEY_SOUP = ITEMS.register("donkey_soup", () -> new BowlFoodOnlyItem(ModFoods.DONKEY_SOUP));
+    public static void registerItems() {
+        // Block items
+        Registry.register(BuiltInRegistries.ITEM, id("stove"), STOVE);
+        Registry.register(BuiltInRegistries.ITEM, id("pot"), POT);
+        Registry.register(BuiltInRegistries.ITEM, id("stockpot"), STOCKPOT);
+        Registry.register(BuiltInRegistries.ITEM, id("stockpot_lid"), STOCKPOT_LID);
+        Registry.register(BuiltInRegistries.ITEM, id("oil"), OIL);
+        Registry.register(BuiltInRegistries.ITEM, id("oil_block"), OIL_BLOCK);
+        Registry.register(BuiltInRegistries.ITEM, id("chopping_board"), CHOPPING_BOARD);
+        Registry.register(BuiltInRegistries.ITEM, id("enamel_basin"), ENAMEL_BASIN);
+        Registry.register(BuiltInRegistries.ITEM, id("kitchenware_racks"), KITCHENWARE_RACKS);
+        Registry.register(BuiltInRegistries.ITEM, id("chili_ristra"), CHILI_RISTRA);
+        Registry.register(BuiltInRegistries.ITEM, id("strung_mushrooms"), STRUNG_MUSHROOMS);
+        Registry.register(BuiltInRegistries.ITEM, id("straw_block"), STRAW_BLOCK);
+        Registry.register(BuiltInRegistries.ITEM, id("shawarma_spit"), SHAWARMA_SPIT);
+        Registry.register(BuiltInRegistries.ITEM, id("steamer"), STEAMER);
+        Registry.register(BuiltInRegistries.ITEM, id("millstone"), MILLSTONE);
+        Registry.register(BuiltInRegistries.ITEM, id("oil_pot"), OIL_POT);
+        Registry.register(BuiltInRegistries.ITEM, id("cold_cut_ham_slices"), COLD_CUT_HAM_SLICES);
 
-    // 面条类
-    public static RegistryObject<Item> BEEF_NOODLE = ITEMS.register("beef_noodle", () -> new BowlFoodOnlyItem(ModFoods.BEEF_NOODLE));
-    public static RegistryObject<Item> HUI_NOODLE = ITEMS.register("hui_noodle", () -> new BowlFoodOnlyItem(ModFoods.HUI_NOODLE));
-    public static RegistryObject<Item> UDON_NOODLE = ITEMS.register("udon_noodle", () -> new BowlFoodOnlyItem(ModFoods.UDON_NOODLE));
 
-    // 生肉类
-    public static RegistryObject<Item> SASHIMI = ITEMS.register("sashimi", () -> new Item(new Item.Properties().food(ModFoods.SASHIMI)));
-    public static RegistryObject<Item> RAW_LAMB_CHOPS = ITEMS.register("raw_lamb_chops", () -> new Item(new Item.Properties().food(ModFoods.RAW_LAMB_CHOPS)));
-    public static RegistryObject<Item> RAW_COW_OFFAL = ITEMS.register("raw_cow_offal", () -> new Item(new Item.Properties().food(ModFoods.RAW_COW_OFFAL)));
-    public static RegistryObject<Item> RAW_PORK_BELLY = ITEMS.register("raw_pork_belly", () -> new Item(new Item.Properties().food(ModFoods.RAW_PORK_BELLY)));
-    public static RegistryObject<Item> RAW_DONKEY_MEAT = ITEMS.register("raw_donkey_meat", () -> new Item(new Item.Properties().food(ModFoods.RAW_DONKEY_MEAT)));
-    public static RegistryObject<Item> RAW_CUT_SMALL_MEATS = ITEMS.register("raw_cut_small_meats", () -> new Item(new Item.Properties().food(ModFoods.RAW_CUT_SMALL_MEATS)));
-    public static RegistryObject<Item> RAW_MEATBALL = ITEMS.register("raw_meatball", () -> new Item(new Item.Properties().food(ModFoods.RAW_MEATBALL)));
+        // Tools
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "iron_kitchen_knife"), IRON_KITCHEN_KNIFE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "gold_kitchen_knife"), GOLD_KITCHEN_KNIFE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "diamond_kitchen_knife"), DIAMOND_KITCHEN_KNIFE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "netherite_kitchen_knife"), NETHERITE_KITCHEN_KNIFE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sickle"), SICKLE);
 
-    // 熟肉类
-    public static RegistryObject<Item> COOKED_LAMB_CHOPS = ITEMS.register("cooked_lamb_chops", () -> new Item(new Item.Properties().food(ModFoods.COOKED_LAMB_CHOPS)));
-    public static RegistryObject<Item> COOKED_COW_OFFAL = ITEMS.register("cooked_cow_offal", () -> new Item(new Item.Properties().food(ModFoods.COOKED_COW_OFFAL)));
-    public static RegistryObject<Item> COOKED_PORK_BELLY = ITEMS.register("cooked_pork_belly", () -> new Item(new Item.Properties().food(ModFoods.COOKED_PORK_BELLY)));
-    public static RegistryObject<Item> COOKED_DONKEY_MEAT = ITEMS.register("cooked_donkey_meat", () -> new Item(new Item.Properties().food(ModFoods.COOKED_DONKEY_MEAT)));
-    public static RegistryObject<Item> COOKED_CUT_SMALL_MEATS = ITEMS.register("cooked_cut_small_meats", () -> new Item(new Item.Properties().food(ModFoods.COOKED_CUT_SMALL_MEATS)));
-    public static RegistryObject<Item> COOKED_MEATBALL = ITEMS.register("cooked_meatball", () -> new Item(new Item.Properties().food(ModFoods.COOKED_MEATBALL)));
+        // Special items
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "recipe_item"), RECIPE_ITEM);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "kitchen_shovel"), KITCHEN_SHOVEL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fruit_basket"), FRUIT_BASKET);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "scarecrow"), SCARECROW);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "straw_hat"), STRAW_HAT);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "straw_hat_flower"), STRAW_HAT_FLOWER);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "farmer_chest_plate"), FARMER_CHEST_PLATE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "farmer_leggings"), FARMER_LEGGINGS);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "farmer_boots"), FARMER_BOOTS);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "transmutation_lunch_bag"), TRANSMUTATION_LUNCH_BAG);
 
-    // 特殊
-    public static RegistryObject<Item> COLD_CUT_HAM_SLICES = ITEMS.register("cold_cut_ham_slices", () -> new LiftBlockItem(ModBlocks.COLD_CUT_HAM_SLICES.get(), "cold_cut_ham_slices"));
+        // Seeds
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "tomato_seed"), TOMATO_SEED);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chili_seed"), CHILI_SEED);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "lettuce_seed"), LETTUCE_SEED);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "rice"), RICE_SEED);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "wild_rice"), WILD_RICE_SEED);
+
+        // Cook stools
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_oak"), COOK_STOOL_OAK);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_spruce"), COOK_STOOL_SPRUCE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_acacia"), COOK_STOOL_ACACIA);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_bamboo"), COOK_STOOL_BAMBOO);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_birch"), COOK_STOOL_BIRCH);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_cherry"), COOK_STOOL_CHERRY);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_crimson"), COOK_STOOL_CRIMSON);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_dark_oak"), COOK_STOOL_DARK_OAK);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_jungle"), COOK_STOOL_JUNGLE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_mangrove"), COOK_STOOL_MANGROVE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_warped"), COOK_STOOL_WARPED);
+
+        // Chairs
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_oak"), CHAIR_OAK);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_spruce"), CHAIR_SPRUCE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_acacia"), CHAIR_ACACIA);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_bamboo"), CHAIR_BAMBOO);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_birch"), CHAIR_BIRCH);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_cherry"), CHAIR_CHERRY);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_crimson"), CHAIR_CRIMSON);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_dark_oak"), CHAIR_DARK_OAK);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_jungle"), CHAIR_JUNGLE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_mangrove"), CHAIR_MANGROVE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_warped"), CHAIR_WARPED);
+
+        // Tables
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_oak"), TABLE_OAK);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_spruce"), TABLE_SPRUCE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_acacia"), TABLE_ACACIA);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_bamboo"), TABLE_BAMBOO);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_birch"), TABLE_BIRCH);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_cherry"), TABLE_CHERRY);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_crimson"), TABLE_CRIMSON);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_dark_oak"), TABLE_DARK_OAK);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_jungle"), TABLE_JUNGLE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_mangrove"), TABLE_MANGROVE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_warped"), TABLE_WARPED);
+
+        // Food items
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "tomato"), TOMATO);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "red_chili"), RED_CHILI);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "green_chili"), GREEN_CHILI);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "lettuce"), LETTUCE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "rice_panicle"), RICE_PANICLE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "caterpillar"), CATERPILLAR);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fried_egg"), FRIED_EGG);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "donkey_burger"), DONKEY_BURGER);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "baozi"), BAOZI);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "mantou"), MANTOU);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "samsa"), SAMSA);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "dumpling"), DUMPLING);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "meat_pie"), MEAT_PIE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_dough"), RAW_DOUGH);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "flour"), FLOUR);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_noodles"), RAW_NOODLES);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stuffed_dough_food"), STUFFED_DOUGH_FOOD);
+
+        // Bowl foods
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_rice"), COOKED_RICE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "scramble_egg_with_tomatoes"), SCRAMBLE_EGG_WITH_TOMATOES);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "scramble_egg_with_tomatoes_rice_bowl"), SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stir_fried_beef_offal"), STIR_FRIED_BEEF_OFFAL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stir_fried_beef_offal_rice_bowl"), STIR_FRIED_BEEF_OFFAL_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "braised_beef"), BRAISED_BEEF);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "braised_beef_rice_bowl"), BRAISED_BEEF_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stir_fried_pork_with_peppers"), STIR_FRIED_PORK_WITH_PEPPERS);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stir_fried_pork_with_peppers_rice_bowl"), STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sweet_and_sour_pork"), SWEET_AND_SOUR_PORK);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sweet_and_sour_pork_rice_bowl"), SWEET_AND_SOUR_PORK_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "country_style_mixed_vegetables"), COUNTRY_STYLE_MIXED_VEGETABLES);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fish_flavored_shredded_pork"), FISH_FLAVORED_SHREDDED_PORK);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fish_flavored_shredded_pork_rice_bowl"), FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "braised_fish_rice_bowl"), BRAISED_FISH_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "spicy_chicken_rice_bowl"), SPICY_CHICKEN_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "suspicious_stir_fry_rice_bowl"), SUSPICIOUS_STIR_FRY_RICE_BOWL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "egg_fried_rice"), EGG_FRIED_RICE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "delicious_egg_fried_rice"), DELICIOUS_EGG_FRIED_RICE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "pork_bone_soup"), PORK_BONE_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "seafood_miso_soup"), SEAFOOD_MISO_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fearsome_thick_soup"), FEARSOME_THICK_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "lamb_and_radish_soup"), LAMB_AND_RADISH_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "braised_beef_with_potatoes"), BRAISED_BEEF_WITH_POTATOES);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "wild_mushroom_rabbit_soup"), WILD_MUSHROOM_RABBIT_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "tomato_beef_brisket_soup"), TOMATO_BEEF_BRISKET_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "pufferfish_soup"), PUFFERFISH_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "borscht"), BORSCHT);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "beef_meatball_soup"), BEEF_MEATBALL_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chicken_and_mushroom_stew"), CHICKEN_AND_MUSHROOM_STEW);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "donkey_soup"), DONKEY_SOUP);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "beef_noodle"), BEEF_NOODLE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "hui_noodle"), HUI_NOODLE);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "udon_noodle"), UDON_NOODLE);
+
+        // Raw and cooked foods
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sashimi"), SASHIMI);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_lamb_chops"), RAW_LAMB_CHOPS);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_cow_offal"), RAW_COW_OFFAL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_pork_belly"), RAW_PORK_BELLY);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_donkey_meat"), RAW_DONKEY_MEAT);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_cut_small_meats"), RAW_CUT_SMALL_MEATS);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_meatball"), RAW_MEATBALL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_lamb_chops"), COOKED_LAMB_CHOPS);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_cow_offal"), COOKED_COW_OFFAL);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_pork_belly"), COOKED_PORK_BELLY);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_donkey_meat"), COOKED_DONKEY_MEAT);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_cut_small_meats"), COOKED_CUT_SMALL_MEATS);
+        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_meatball"), COOKED_MEATBALL);
+    }
 }
-
