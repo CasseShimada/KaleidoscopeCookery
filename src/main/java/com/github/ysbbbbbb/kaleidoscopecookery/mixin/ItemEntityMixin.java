@@ -25,16 +25,12 @@ public abstract class ItemEntityMixin extends Entity {
     @Shadow
     public abstract void setItem(ItemStack stack);
 
-
-
-    @Inject(method = "tick()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/item/ItemEntity;updateInWaterStateAndDoFluidPushing()Z", shift = At.Shift.AFTER))
-    private void tick(CallbackInfo ci) {
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void kaleidoscopeCookery$hydrateFlour(CallbackInfo ci) {
         if (this.tickCount % 10 == 0) {
             if (this.getItem().getItem() instanceof FlourItem && this.isInWater()) {
                 this.setItem(new ItemStack(ModItems.RAW_DOUGH, this.getItem().getCount()));
             }
         }
     }
-
-
 }
