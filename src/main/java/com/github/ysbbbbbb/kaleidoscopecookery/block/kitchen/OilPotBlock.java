@@ -182,7 +182,7 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
             player.setItemInHand(hand, oilStack);
             oilPot.setOilCount(currentOilCount - takeCount);
             level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
-                    0.8F + level.random.nextFloat() * 0.2F);
+                    0.8F + level.getRandom().nextFloat() * 0.2F);
             return InteractionResult.SUCCESS;
         }
 
@@ -199,7 +199,7 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
                 stack.shrink(addOilCount);
             }
             level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
-                    0.4F + level.random.nextFloat() * 0.2F);
+                    0.4F + level.getRandom().nextFloat() * 0.2F);
             return InteractionResult.SUCCESS;
         }
 

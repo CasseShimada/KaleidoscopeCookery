@@ -215,7 +215,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
             }
             SingleRecipeInput container = new SingleRecipeInput(stack);
             ItemStack resultStack = steamer.quickCheck.getRecipeFor(container, serverLevel)
-                    .map(r -> r.value().assemble(container, level.registryAccess()))
+                    .map(r -> r.value().assemble(container))
                     .orElse(stack);
             if (!resultStack.isEmpty()) {
                 steamer.items.set(i, resultStack);
@@ -245,8 +245,8 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
     }
 
     public void makeCookingParticles(Level level, BlockPos pos) {
-        if (level instanceof ServerLevel serverLevel && level.random.nextFloat() < 0.1F) {
-            RandomSource random = serverLevel.random;
+        if (level instanceof ServerLevel serverLevel && level.getRandom().nextFloat() < 0.1F) {
+            RandomSource random = serverLevel.getRandom();
             boolean half = this.getBlockState().getValue(SteamerBlock.HALF);
             double yOffset = half ? 0.5 : 1;
             serverLevel.sendParticles(ModParticles.COOKING,
@@ -258,8 +258,8 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
     }
 
     public void makeRipeParticles(Level level, BlockPos pos) {
-        if (level instanceof ServerLevel serverLevel && level.random.nextFloat() < 0.5F) {
-            RandomSource random = serverLevel.random;
+        if (level instanceof ServerLevel serverLevel && level.getRandom().nextFloat() < 0.5F) {
+            RandomSource random = serverLevel.getRandom();
             boolean half = this.getBlockState().getValue(SteamerBlock.HALF);
             double yOffset = half ? 0.25 : 0.75;
             serverLevel.sendParticles(ModParticles.COOKING,

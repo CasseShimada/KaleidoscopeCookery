@@ -1,0 +1,37 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 3.0
+  },
+  "gives": {
+    "id": "kaleidoscope_cookery:recipe_item",
+    "components": {
+      "kaleidoscope_cookery:recipe_record": {
+        "input": [
+          {
+            "id": "minecraft:beef"
+          },
+          {
+            "id": "minecraft:beef"
+          },
+          {
+            "id": "kaleidoscope_cookery:tomato"
+          },
+          {
+            "id": "kaleidoscope_cookery:tomato"
+          },
+          {
+            "id": "kaleidoscope_cookery:lettuce"
+          }
+        ],
+        "output": {
+          "id": "kaleidoscope_cookery:borscht"
+        },
+        "type": "kaleidoscope_cookery:stockpot"
+      }
+    }
+  },
+  "max_uses": 16.0,
+  "xp": 4.0,
+  "reputation_discount": 0.1
+}

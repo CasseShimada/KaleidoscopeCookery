@@ -1,7 +1,7 @@
 plugins {
     id 'eclipse'
     id 'idea'
-    id 'fabric-loom' version '1.14.10'
+    id 'net.fabricmc.fabric-loom' version '1.15.5'
 }
 
 version = project.mod_version
@@ -16,6 +16,16 @@ loom {
 
 fabricApi {
     configureDataGeneration()
+}
+
+sourceSets {
+    main {
+        java {
+            exclude 'com/github/ysbbbbbb/kaleidoscopecookery/compat/jei/**'
+            exclude 'com/github/ysbbbbbb/kaleidoscopecookery/compat/jade/**'
+            exclude 'com/github/ysbbbbbb/kaleidoscopecookery/compat/rei/**'
+        }
+    }
 }
 
 repositories {
@@ -42,10 +52,6 @@ repositories {
         }
     }
     maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
-    }
-    maven {
         // location of the maven that hosts JEI files since January 2023
         // Patchouli
         name = "Jared's maven"
@@ -60,26 +66,8 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.layered() {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${project.parchment_version}@zip")
-    }
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    // JEI：只保留一个可用的 Fabric 版本，避免与 common-api / fabric-api 重复类
-    modCompileOnly("mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}") {
-        exclude group: "mezz.jei", module: "jei-${project.minecraft_version}-common-api-intermediary"
-        exclude group: "mezz.jei", module: "jei-${project.minecraft_version}-fabric-api"
-    }
-    modLocalRuntime("mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}") {
-        exclude group: "mezz.jei", module: "jei-${project.minecraft_version}-common-api-intermediary"
-        exclude group: "mezz.jei", module: "jei-${project.minecraft_version}-fabric-api"
-    }
-    modImplementation "curse.maven:jade-324717:7427066"
-    modImplementation "curse.maven:roughly-enough-items-310111:7486489"
-    modImplementation "curse.maven:cloth-config-348521:7361438"
-    modApi("me.shedaniel.cloth:basic-math:+")
-    modImplementation "curse.maven:architectury-api-419699:7339256"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 }
 
 def modVersion = project.version
@@ -101,7 +89,7 @@ processResources {
     }
 }
 
-def targetJavaVersion = 21
+def targetJavaVersion = 25
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
@@ -110,9 +98,8 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
+    sourceCompatibility = JavaVersion.toVersion(targetJavaVersion)
+    targetCompatibility = JavaVersion.toVersion(targetJavaVersion)
+    toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     withSourcesJar()
 }

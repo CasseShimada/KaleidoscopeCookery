@@ -210,7 +210,7 @@ public class RecipeItem extends BlockItem {
                 i++;
             }
             if (!player.level().isClientSide()) {
-                player.displayClientMessage(component, false);
+                player.sendSystemMessage(component);
             }
             return InteractionResult.FAIL;
         }

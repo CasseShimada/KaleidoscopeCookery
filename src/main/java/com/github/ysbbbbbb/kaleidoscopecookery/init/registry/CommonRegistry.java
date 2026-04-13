@@ -9,7 +9,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.event.effect.PreservationEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.effect.SatiatedShieldEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.BowlFoodBlockItem;
-import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
+import net.fabricmc.fabric.api.registry.CompostableRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -62,17 +62,17 @@ public class CommonRegistry {
     }
 
     private static void addComposter() {
-        CompostingChanceRegistry.INSTANCE.add(ModItems.TOMATO_SEED, 0.3F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.CHILI_SEED, 0.3F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.LETTUCE_SEED, 0.3F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.WILD_RICE_SEED, 0.3F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.RICE_SEED, 0.3F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.TOMATO, 0.65F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.RED_CHILI, 0.65F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.GREEN_CHILI, 0.65F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.LETTUCE, 0.65F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.RICE_PANICLE, 0.65F);
-        CompostingChanceRegistry.INSTANCE.add(ModItems.CATERPILLAR, 1.0F);
+        CompostableRegistry.INSTANCE.add(ModItems.TOMATO_SEED, 0.3F);
+        CompostableRegistry.INSTANCE.add(ModItems.CHILI_SEED, 0.3F);
+        CompostableRegistry.INSTANCE.add(ModItems.LETTUCE_SEED, 0.3F);
+        CompostableRegistry.INSTANCE.add(ModItems.WILD_RICE_SEED, 0.3F);
+        CompostableRegistry.INSTANCE.add(ModItems.RICE_SEED, 0.3F);
+        CompostableRegistry.INSTANCE.add(ModItems.TOMATO, 0.65F);
+        CompostableRegistry.INSTANCE.add(ModItems.RED_CHILI, 0.65F);
+        CompostableRegistry.INSTANCE.add(ModItems.GREEN_CHILI, 0.65F);
+        CompostableRegistry.INSTANCE.add(ModItems.LETTUCE, 0.65F);
+        CompostableRegistry.INSTANCE.add(ModItems.RICE_PANICLE, 0.65F);
+        CompostableRegistry.INSTANCE.add(ModItems.CATERPILLAR, 1.0F);
     }
 
     private static void addDispenserBehavior() {

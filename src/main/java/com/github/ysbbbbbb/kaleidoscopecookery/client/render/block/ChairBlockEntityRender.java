@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.function.Function;
 
@@ -43,6 +44,7 @@ public class ChairBlockEntityRender implements BlockEntityRenderer<ChairBlockEnt
                                    net.minecraft.world.phys.Vec3 cameraPos,
                                    net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderState.extractBase(chair, state, crumblingOverlay);
+        state.blockState = chair.getBlockState();
         state.modelId = CACHE_MODEL.apply(chair.getColor());
         state.modelState.clear();
         if (state.modelId != null) {
@@ -56,7 +58,7 @@ public class ChairBlockEntityRender implements BlockEntityRenderer<ChairBlockEnt
 
     @Override
     public void submit(RenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-        if (state.modelId == null) {
+        if (state.modelId == null || state.blockState == null) {
             return;
         }
 
@@ -74,5 +76,6 @@ public class ChairBlockEntityRender implements BlockEntityRenderer<ChairBlockEnt
         final ItemStackRenderState modelState = new ItemStackRenderState();
         ItemStack modelStack = ItemStack.EMPTY;
         Identifier modelId;
+        BlockState blockState;
     }
 }

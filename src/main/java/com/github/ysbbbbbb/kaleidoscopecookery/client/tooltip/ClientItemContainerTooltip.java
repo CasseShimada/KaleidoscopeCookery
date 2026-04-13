@@ -4,7 +4,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.client.tooltip;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.tooltip.ItemContainerTooltip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -45,15 +45,15 @@ public class ClientItemContainerTooltip implements ClientTooltipComponent {
     }
 
     @Override
-    public void renderImage(Font font, int pX, int pY, int width, int height, GuiGraphics guiGraphics) {
+    public void extractImage(Font font, int pX, int pY, int width, int height, GuiGraphicsExtractor guiGraphics) {
         if (emptyTip != null) {
-            guiGraphics.drawString(font, emptyTip, pX, pY, ChatFormatting.GRAY.getColor());
+            guiGraphics.text(font, emptyTip, pX, pY, ChatFormatting.GRAY.getColor());
         } else {
             int i = 0;
             for (ItemStack stack : this.items) {
                 int xOffset = pX + i * 20;
-                guiGraphics.renderFakeItem(stack, xOffset, pY);
-                guiGraphics.renderItemDecorations(font, stack, xOffset, pY);
+                guiGraphics.fakeItem(stack, xOffset, pY);
+                guiGraphics.itemDecorations(font, stack, xOffset, pY);
                 i++;
             }
         }

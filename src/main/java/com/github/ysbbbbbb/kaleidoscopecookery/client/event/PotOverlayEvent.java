@@ -5,16 +5,18 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntit
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -25,11 +27,13 @@ import net.minecraft.world.phys.HitResult;
 
 @Environment(EnvType.CLIENT)
 public class PotOverlayEvent {
+    private static final Identifier ID = Identifier.fromNamespaceAndPath("kaleidoscope_cookery", "pot_overlay");
+
     public static void register() {
-        HudRenderCallback.EVENT.register(PotOverlayEvent::render);
+        HudElementRegistry.attachElementAfter(VanillaHudElements.OVERLAY_MESSAGE, ID, PotOverlayEvent::render);
     }
 
-    private static void render(GuiGraphics guiGraphics, DeltaTracker tickCounter) {
+    private static void render(GuiGraphicsExtractor guiGraphics, DeltaTracker tickCounter) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.gameMode == null || minecraft.gameMode.getPlayerMode() == GameType.SPECTATOR) {
             return;
@@ -56,13 +60,10 @@ public class PotOverlayEvent {
             return;
         }
         Font font = Minecraft.getInstance().font;
-        int screenWidth = minecraft.getWindow().getGuiScaledWidth();
-        int screenHeight = minecraft.getWindow().getGuiScaledHeight();
+        int screenWidth = guiGraphics.guiWidth();
+        int screenHeight = guiGraphics.guiHeight();
         int x = screenWidth / 2;
         int y = screenHeight - 72;
-        if (minecraft.gui.overlayMessageTime > 0) {
-            y = y - 12;
-        }
 
         if (blockState.getValue(PotBlock.HAS_OIL) && pot.hasHeatSource(level)) {
             int status = pot.getStatus();
@@ -80,9 +81,9 @@ public class PotOverlayEvent {
         }
     }
 
-    private static void drawWordWrap(GuiGraphics graphics, Font font, MutableComponent text, int pX, int pY, int color) {
+    private static void drawWordWrap(GuiGraphicsExtractor graphics, Font font, MutableComponent text, int pX, int pY, int color) {
         for (FormattedCharSequence sequence : font.split(text, 100)) {
-            graphics.drawString(font, sequence, pX - font.width(sequence) / 2, pY, color);
+            graphics.text(font, sequence, pX - font.width(sequence) / 2, pY, color);
             pY += font.lineHeight;
         }
     }

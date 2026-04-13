@@ -20,7 +20,6 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +40,7 @@ public class RecipeRandomlyFunction extends LootItemConditionalFunction {
     }
 
     @Override
-    public @NotNull LootItemFunctionType<RecipeRandomlyFunction> getType() {
+    public @NotNull MapCodec<? extends LootItemConditionalFunction> codec() {
         return ModLootModifier.RECIPE_RANDOMLY;
     }
 

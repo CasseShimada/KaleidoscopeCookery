@@ -8,8 +8,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.ChiliRistraBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.minecraft.advancements.criterion.StatePropertiesPredicate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -39,10 +39,10 @@ import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 import java.util.concurrent.CompletableFuture;
 
-public class BlockLootTables extends FabricBlockLootTableProvider {
+public class BlockLootTables extends FabricBlockLootSubProvider {
     public final HolderLookup.RegistryLookup<Enchantment> enchantment;
 
-    public BlockLootTables(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+    public BlockLootTables(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries);
         this.enchantment = this.registries.lookupOrThrow(Registries.ENCHANTMENT);
     }

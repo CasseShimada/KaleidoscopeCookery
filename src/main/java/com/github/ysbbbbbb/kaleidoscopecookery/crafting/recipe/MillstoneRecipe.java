@@ -2,7 +2,9 @@ package com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -19,7 +21,7 @@ public class MillstoneRecipe extends SingleItemRecipe {
     private final Optional<Ingredient> carrier;
 
     public MillstoneRecipe(Ingredient ingredient, ItemStack result, Optional<Ingredient> carrier) {
-        super(StringUtils.EMPTY, ingredient, result);
+        super(new Recipe.CommonInfo(false), ingredient, ItemStackTemplate.fromNonEmptyStack(result));
         this.result = result;
         this.carrier = carrier;
     }
@@ -47,6 +49,11 @@ public class MillstoneRecipe extends SingleItemRecipe {
     @Override
     public boolean isSpecial() {
         return true;
+    }
+
+    @Override
+    public String group() {
+        return StringUtils.EMPTY;
     }
 
     public Ingredient getIngredient() {

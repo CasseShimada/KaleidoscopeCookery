@@ -14,7 +14,6 @@ import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -35,7 +34,7 @@ public class AdvanceEntityMatchTool implements LootItemCondition {
     }
 
     @Override
-    public @NotNull LootItemConditionType getType() {
+    public @NotNull MapCodec<? extends LootItemCondition> codec() {
         return ModLootModifier.ADVANCE_ENTITY_MATCH_TOOL;
     }
 

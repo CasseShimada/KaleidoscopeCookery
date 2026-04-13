@@ -1,0 +1,40 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 5.0
+  },
+  "gives": {
+    "id": "kaleidoscope_cookery:recipe_item",
+    "components": {
+      "kaleidoscope_cookery:recipe_record": {
+        "input": [
+          {
+            "id": "minecraft:crimson_fungus"
+          },
+          {
+            "id": "minecraft:crimson_fungus"
+          },
+          {
+            "id": "minecraft:warped_fungus"
+          },
+          {
+            "id": "minecraft:warped_fungus"
+          },
+          {
+            "id": "minecraft:tropical_fish"
+          },
+          {
+            "id": "minecraft:tropical_fish"
+          }
+        ],
+        "output": {
+          "id": "kaleidoscope_cookery:nether_style_sashimi"
+        },
+        "type": "kaleidoscope_cookery:pot"
+      }
+    }
+  },
+  "max_uses": 16.0,
+  "xp": 4.0,
+  "reputation_discount": 0.1
+}

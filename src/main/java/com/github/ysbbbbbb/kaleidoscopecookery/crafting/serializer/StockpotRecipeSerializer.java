@@ -19,10 +19,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import org.jetbrains.annotations.NotNull;
 
-public class StockpotRecipeSerializer implements RecipeSerializer<StockpotRecipe> {
+public final class StockpotRecipeSerializer {
     public static final int DEFAULT_TIME = 300;
     public static final int DEFAULT_COOKING_BUBBLE_COLOR = 0xFFECC3;
     public static final int DEFAULT_FINISHED_BUBBLE_COLOR = 0xF4AA8B;
@@ -69,13 +68,6 @@ public class StockpotRecipeSerializer implements RecipeSerializer<StockpotRecipe
             ByteBufCodecs.INT, StockpotRecipe::finishedBubbleColor,
             StockpotRecipe::new);
 
-    @Override
-    public @NotNull MapCodec<StockpotRecipe> codec() {
-        return CODEC;
-    }
-
-    @Override
-        public @NotNull StreamCodec<RegistryFriendlyByteBuf, StockpotRecipe> streamCodec() {
-        return STREAM_CODEC;
+    private StockpotRecipeSerializer() {
     }
 }

@@ -15,7 +15,7 @@ public class StrawHatModel extends Model<HumanoidRenderState> {
     private final ModelPart head;
 
     public StrawHatModel(ModelPart root) {
-        super(root, RenderTypes::entityCutoutNoCull);
+        super(root, RenderTypes::entityCutout);
         this.head = root.getChild("head");
     }
 

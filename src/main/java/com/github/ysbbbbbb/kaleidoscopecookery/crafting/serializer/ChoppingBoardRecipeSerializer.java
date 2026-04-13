@@ -11,9 +11,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 
-public class ChoppingBoardRecipeSerializer implements RecipeSerializer<ChoppingBoardRecipe> {
+public final class ChoppingBoardRecipeSerializer {
     public static final Identifier EMPTY = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "empty");
     public static final MapCodec<ChoppingBoardRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
@@ -31,13 +30,6 @@ public class ChoppingBoardRecipeSerializer implements RecipeSerializer<ChoppingB
             Identifier.STREAM_CODEC, ChoppingBoardRecipe::getModelId,
             ChoppingBoardRecipe::new);
 
-    @Override
-    public MapCodec<ChoppingBoardRecipe> codec() {
-        return CODEC;
-    }
-
-    @Override
-        public StreamCodec<RegistryFriendlyByteBuf, ChoppingBoardRecipe> streamCodec() {
-        return STREAM_CODEC;
+    private ChoppingBoardRecipeSerializer() {
     }
 }

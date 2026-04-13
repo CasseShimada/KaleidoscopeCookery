@@ -9,9 +9,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 
-public class PotRecipeSerializer implements RecipeSerializer<PotRecipe> {
+public final class PotRecipeSerializer {
     public static final MapCodec<PotRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     Codec.INT.optionalFieldOf("time", 200).forGetter(PotRecipe::time),
@@ -33,13 +32,6 @@ public class PotRecipeSerializer implements RecipeSerializer<PotRecipe> {
             ItemStack.STREAM_CODEC, PotRecipe::result,
             PotRecipe::new);
 
-    @Override
-    public MapCodec<PotRecipe> codec() {
-        return CODEC;
-    }
-
-    @Override
-        public StreamCodec<RegistryFriendlyByteBuf, PotRecipe> streamCodec() {
-        return STREAM_CODEC;
+    private PotRecipeSerializer() {
     }
 }

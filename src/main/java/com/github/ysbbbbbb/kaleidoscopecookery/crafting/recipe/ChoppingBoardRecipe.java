@@ -3,7 +3,9 @@ package com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -18,7 +20,7 @@ public class ChoppingBoardRecipe extends SingleItemRecipe {
     private final Identifier modelId;
 
     public ChoppingBoardRecipe(Ingredient ingredient, ItemStack result, int cutCount, Identifier modelId) {
-        super(StringUtils.EMPTY, ingredient, result);
+        super(new Recipe.CommonInfo(false), ingredient, ItemStackTemplate.fromNonEmptyStack(result));
         this.cutCount = Math.max(cutCount, 1);
         this.modelId = modelId;
     }
@@ -31,6 +33,11 @@ public class ChoppingBoardRecipe extends SingleItemRecipe {
     @Override
     public boolean isSpecial() {
         return true;
+    }
+
+    @Override
+    public String group() {
+        return StringUtils.EMPTY;
     }
 
     @Override
@@ -53,7 +60,7 @@ public class ChoppingBoardRecipe extends SingleItemRecipe {
     }
 
     public ItemStack getResult() {
-        return result();
+        return result().create();
     }
 
     public int getCutCount() {

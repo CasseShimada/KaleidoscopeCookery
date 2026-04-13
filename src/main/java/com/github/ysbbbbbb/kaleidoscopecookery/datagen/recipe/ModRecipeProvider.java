@@ -9,6 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.item.ItemStackTemplate;
 
 import java.util.Arrays;
 
@@ -29,7 +30,7 @@ public abstract class ModRecipeProvider extends RecipeProvider {
     }
 
     public String getRecipeIdWithCount(ItemLike itemLike, int count) {
-        return RecipeBuilder.getDefaultRecipeId(itemLike.asItem()).getPath() + "_" + count;
+        return RecipeBuilder.getDefaultRecipeId(new ItemStackTemplate(itemLike.asItem())).identifier().getPath() + "_" + count;
     }
 
     public ItemLike[] getItemsWithCount(ItemLike itemLike, int count) {

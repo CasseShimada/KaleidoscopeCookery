@@ -174,7 +174,7 @@ public class StoveBlock extends HorizontalDirectionalBlock {
             level.playSound(player, pos,
                     SoundEvents.FIRE_EXTINGUISH,
                     SoundSource.BLOCKS, 0.5F,
-                    2.6F + (level.random.nextFloat() - level.random.nextFloat()) * 0.8F);
+                    2.6F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.8F);
             itemInHand.hurtAndBreak(1, player, hand);
             return InteractionResult.SUCCESS;
         }

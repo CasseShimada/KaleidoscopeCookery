@@ -14,7 +14,7 @@ public class StockpotParticle extends SingleQuadParticle {
 
     protected StockpotParticle(ClientLevel level, double posX, double posY, double posZ,
                                double xSpeed, double ySpeed, double zSpeed, SpriteSet spriteSet) {
-        super(level, posX, posY, posZ, xSpeed, ySpeed, zSpeed, spriteSet.get(level.random));
+        super(level, posX, posY, posZ, xSpeed, ySpeed, zSpeed, spriteSet.get(level.getRandom()));
         this.friction = 0.96F;
         this.spriteSet = spriteSet;
         this.scale(1.0F);
@@ -23,7 +23,7 @@ public class StockpotParticle extends SingleQuadParticle {
     }
 
     @Override
-    public int getLightColor(float partialTick) {
+    protected int getLightCoords(float partialTick) {
         return 240;
     }
 

@@ -7,9 +7,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 
-public class MillstoneRecipeSerializer implements RecipeSerializer<MillstoneRecipe> {
+public final class MillstoneRecipeSerializer {
     public static final MapCodec<MillstoneRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     Ingredient.CODEC.fieldOf("ingredient").forGetter(MillstoneRecipe::getIngredient),
@@ -24,13 +23,6 @@ public class MillstoneRecipeSerializer implements RecipeSerializer<MillstoneReci
             Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC, MillstoneRecipe::getCarrier,
             MillstoneRecipe::new);
 
-    @Override
-    public MapCodec<MillstoneRecipe> codec() {
-        return CODEC;
-    }
-
-    @Override
-        public StreamCodec<RegistryFriendlyByteBuf, MillstoneRecipe> streamCodec() {
-        return STREAM_CODEC;
+    private MillstoneRecipeSerializer() {
     }
 }

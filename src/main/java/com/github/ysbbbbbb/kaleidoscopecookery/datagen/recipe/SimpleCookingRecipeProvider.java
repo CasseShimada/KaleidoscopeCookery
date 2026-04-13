@@ -3,11 +3,11 @@ package com.github.ysbbbbbb.kaleidoscopecookery.datagen.recipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.datagen.builder.PotRecipeBuilder;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.world.item.crafting.CampfireCookingRecipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SmeltingRecipe;
-import net.minecraft.world.item.crafting.SmokingRecipe;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.world.item.crafting.CookingBookCategory;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 
 public class SimpleCookingRecipeProvider extends ModRecipeProvider {
@@ -23,9 +23,17 @@ public class SimpleCookingRecipeProvider extends ModRecipeProvider {
     }
 
     public void simpleCookingRecipe(ItemLike input, ItemLike output, float experience) {
-        simpleCookingRecipe("smoking", RecipeSerializer.SMOKING_RECIPE, SmokingRecipe::new, 100, input, output, experience);
-        simpleCookingRecipe("campfire_cooking", RecipeSerializer.CAMPFIRE_COOKING_RECIPE, CampfireCookingRecipe::new, 600, input, output, experience);
-        simpleCookingRecipe("smelting", RecipeSerializer.SMELTING_RECIPE, SmeltingRecipe::new, 200, input, output, experience);
+        Ingredient ingredient = Ingredient.of(input);
+        String unlockName = getHasName(input);
+        SimpleCookingRecipeBuilder.smoking(ingredient, RecipeCategory.FOOD, output, experience, 100)
+                .unlockedBy(unlockName, has(input))
+                .save(this.output);
+        SimpleCookingRecipeBuilder.campfireCooking(ingredient, RecipeCategory.FOOD, output, experience, 600)
+                .unlockedBy(unlockName, has(input))
+                .save(this.output);
+        SimpleCookingRecipeBuilder.smelting(ingredient, RecipeCategory.FOOD, CookingBookCategory.FOOD, output, experience, 200)
+                .unlockedBy(unlockName, has(input))
+                .save(this.output);
         PotRecipeBuilder.builder().addInput(input).setResult(output.asItem()).save(this.output);
     }
 }

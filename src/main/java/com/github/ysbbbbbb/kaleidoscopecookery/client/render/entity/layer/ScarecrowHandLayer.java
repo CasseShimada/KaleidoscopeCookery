@@ -7,13 +7,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.LanternBlock;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 
 public class ScarecrowHandLayer extends ItemInHandLayer<ScarecrowRenderState, ScarecrowModel> {
     public ScarecrowHandLayer(ScarecrowRender entityRenderer) {
@@ -31,12 +28,11 @@ public class ScarecrowHandLayer extends ItemInHandLayer<ScarecrowRenderState, Sc
         poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         boolean isLeft = arm == HumanoidArm.LEFT;
-        if (isLeft && stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof LanternBlock) {
+        if (isLeft) {
             poseStack.translate(-0.375, 0.375, -2);
             poseStack.mulPose(Axis.XP.rotationDegrees(90));
             poseStack.scale(0.75F, 0.75F, 0.75F);
-            BlockState blockState = blockItem.getBlock().defaultBlockState();
-            collector.submitBlock(poseStack, blockState, packedLight, OverlayTexture.NO_OVERLAY, 0);
+            itemState.submit(poseStack, collector, packedLight, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();
             return;
         }

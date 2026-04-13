@@ -3,7 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.OilPotItem;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -24,7 +24,7 @@ public class ModCreativeTabs {
             Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cookery_food"));
 
     public static void registerTabs() {
-        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_MAIN_TAB, FabricItemGroup.builder()
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_MAIN_TAB, FabricCreativeModeTab.builder()
                 .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_main.name"))
                 .icon(() -> Objects.requireNonNull(BuiltInRegistries.ITEM.getValue(MAIN_ICON_ID)).getDefaultInstance())
                 .displayItems((par, output) -> {
@@ -104,7 +104,7 @@ public class ModCreativeTabs {
                     output.accept(ModItems.TABLE_WARPED);
                 }).build());
 
-        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_FOOD_TAB, FabricItemGroup.builder()
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_FOOD_TAB, FabricCreativeModeTab.builder()
                 .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_food.name"))
                 .icon(() -> Objects.requireNonNull(BuiltInRegistries.ITEM.getValue(FOOD_ICON_ID)).getDefaultInstance())
                 .displayItems((par, output) -> {

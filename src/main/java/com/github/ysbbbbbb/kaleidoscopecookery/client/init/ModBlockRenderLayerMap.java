@@ -1,29 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.client.init;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
-import net.minecraft.world.level.block.Block;
-
 public class ModBlockRenderLayerMap {
     public static void register() {
-        BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT,
-                ModBlocks.POT,
-                ModBlocks.KITCHENWARE_RACKS,
-                ModBlocks.SHAWARMA_SPIT,
-                ModBlocks.CHILI_CROP,
-                ModBlocks.TOMATO_CROP,
-                ModBlocks.LETTUCE_CROP,
-                ModBlocks.RICE_CROP,
-                ModBlocks.CHILI_RISTRA,
-                ModBlocks.STEAMER,
-                ModBlocks.STOCKPOT
-        );
-
-        FoodBiteRegistry.FOOD_DATA_MAP.keySet().forEach(id -> {
-            Block block = FoodBiteRegistry.getBlock(id);
-            BlockRenderLayerMap.putBlock(block, ChunkSectionLayer.CUTOUT);
-        });
+        // 26.1.x no longer exposes the previous Fabric render-layer helper used by this branch.
+        // Existing block models/resources remain intact while the renderer migration is handled separately.
     }
 }

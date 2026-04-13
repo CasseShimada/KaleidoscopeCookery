@@ -52,7 +52,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
         return this.quickCheck.getRecipeFor(singleRecipeInput, serverLevel).map(recipe -> {
             // 如果找到了配方，则设置正在烹饪的物品和烹饪时间
             this.cookingItem = itemStack.split(MAX_ITEMS);
-            this.cookedItem = recipe.value().assemble(singleRecipeInput, level.registryAccess());
+            this.cookedItem = recipe.value().assemble(singleRecipeInput);
             this.cookedItem.setCount(this.cookingItem.getCount());
             this.cookTime = recipe.value().cookingTime();
             this.refresh();
@@ -63,8 +63,8 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
                         worldPosition.getZ() + 0.5,
                         SoundEvents.ITEM_FRAME_ADD_ITEM,
                         SoundSource.BLOCKS,
-                        0.5F + level.random.nextFloat(),
-                        level.random.nextFloat() * 0.7F + 0.6F);
+                        0.5F + level.getRandom().nextFloat(),
+                        level.getRandom().nextFloat() * 0.7F + 0.6F);
             }
             return true;
         }).orElse(false);
@@ -106,8 +106,8 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
                     worldPosition.getZ() + 0.5,
                     SoundEvents.ITEM_FRAME_REMOVE_ITEM,
                     SoundSource.BLOCKS,
-                    0.5F + level.random.nextFloat(),
-                    level.random.nextFloat() * 0.7F + 0.6F);
+                    0.5F + level.getRandom().nextFloat(),
+                    level.getRandom().nextFloat() * 0.7F + 0.6F);
         }
     }
 
@@ -129,8 +129,8 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
                         worldPosition.getZ() + 0.5,
                         SoundEvents.FIRE_EXTINGUISH,
                         SoundSource.BLOCKS,
-                        0.5F + level.random.nextFloat(),
-                        level.random.nextFloat() * 0.7F + 0.6F);
+                        0.5F + level.getRandom().nextFloat(),
+                        level.getRandom().nextFloat() * 0.7F + 0.6F);
             }
             this.cookingItem = ItemStack.EMPTY;
             this.refresh();
@@ -139,7 +139,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
 
     private void spawnParticles() {
         if (level instanceof ServerLevel serverLevel) {
-            if (level.random.nextFloat() < 0.25f) {
+            if (level.getRandom().nextFloat() < 0.25f) {
                 serverLevel.sendParticles(ModParticles.COOKING,
                         worldPosition.getX() + 0.5,
                         worldPosition.getY() + 0.5,
@@ -148,15 +148,15 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
                         0.25, 0.2, 0.25,
                         0.1f);
             }
-            if (level.random.nextInt(20) == 0) {
+            if (level.getRandom().nextInt(20) == 0) {
                 serverLevel.playSound(null,
                         worldPosition.getX() + 0.5,
                         worldPosition.getY() + 0.5,
                         worldPosition.getZ() + 0.5,
                         SoundEvents.CAMPFIRE_CRACKLE,
                         SoundSource.BLOCKS,
-                        0.5F + level.random.nextFloat(),
-                        level.random.nextFloat() * 0.7F + 0.6F);
+                        0.5F + level.getRandom().nextFloat(),
+                        level.getRandom().nextFloat() * 0.7F + 0.6F);
             }
         }
     }

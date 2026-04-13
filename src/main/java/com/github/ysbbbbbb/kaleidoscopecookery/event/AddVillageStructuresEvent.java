@@ -32,14 +32,19 @@ public class AddVillageStructuresEvent {
     private static boolean initializationAttempted = false;
 
     public static void register() {
-        ServerTickEvents.START_WORLD_TICK.register(minecraftServer -> {
-            var registryAccess = minecraftServer.registryAccess();
+        ServerTickEvents.START_LEVEL_TICK.register(serverLevel -> {
+            if (initializationAttempted) {
+                return;
+            }
+            initializationAttempted = true;
+            var registryAccess = serverLevel.registryAccess();
 
             addBuildingToPool(registryAccess, PLAINS, "village/houses/plains_kitchen", 4);
             addBuildingToPool(registryAccess, SNOWY, "village/houses/snowy_kitchen", 4);
             addBuildingToPool(registryAccess, SAVANNA, "village/houses/savanna_kitchen", 4);
             addBuildingToPool(registryAccess, DESERT, "village/houses/desert_kitchen", 4);
             addBuildingToPool(registryAccess, TAIGA, "village/houses/taiga_kitchen", 4);
+            initializationSuccessful = true;
         });
     }
 
@@ -98,7 +103,6 @@ public class AddVillageStructuresEvent {
                     rawTemplatesField.set(pool, newRawTemplates);
                     fieldFound = true;
                     KaleidoscopeCookery.LOGGER.debug("Successfully updated field '{}' for pool: {}", fieldName, poolId);
-                    initializationSuccessful = true;
                     break;
                 } catch (NoSuchFieldException e) {
                     KaleidoscopeCookery.LOGGER.debug("Field '{}' not found, trying next possible field name", fieldName);
@@ -110,7 +114,6 @@ public class AddVillageStructuresEvent {
             if (!fieldFound) {
                 KaleidoscopeCookery.LOGGER.error("Failed to find any valid field for rawTemplates in StructureTemplatePool. Tried: {}", String.join(", ", possibleFieldNames));
                 initializationSuccessful = false;
-                initializationAttempted = true;
             }
 
         } catch (Exception e) {

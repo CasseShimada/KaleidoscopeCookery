@@ -11,13 +11,14 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class ChoppingBoardBlockEntityRender implements BlockEntityRenderer<ChoppingBoardBlockEntity, ChoppingBoardBlockEntityRender.RenderState> {
     private final ItemModelResolver itemModelResolver;
@@ -36,6 +37,7 @@ public class ChoppingBoardBlockEntityRender implements BlockEntityRenderer<Chopp
                                    net.minecraft.world.phys.Vec3 cameraPos,
                                    net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderState.extractBase(choppingBoard, state, crumblingOverlay);
+        state.blockState = choppingBoard.getBlockState();
         Identifier modelId = choppingBoard.getModelId();
         if (modelId == null) {
             state.modelId = null;
@@ -67,7 +69,7 @@ public class ChoppingBoardBlockEntityRender implements BlockEntityRenderer<Chopp
 
     @Override
     public void submit(RenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-        if (state.modelId == null) {
+        if (state.modelId == null || state.blockState == null) {
             return;
         }
 
@@ -84,5 +86,6 @@ public class ChoppingBoardBlockEntityRender implements BlockEntityRenderer<Chopp
         final ItemStackRenderState modelState = new ItemStackRenderState();
         ItemStack modelStack = ItemStack.EMPTY;
         Identifier modelId;
+        BlockState blockState;
     }
 }

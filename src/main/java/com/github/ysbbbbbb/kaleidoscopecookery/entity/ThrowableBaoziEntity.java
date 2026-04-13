@@ -18,6 +18,7 @@ import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -58,20 +59,20 @@ public class ThrowableBaoziEntity extends ThrowableItemProjectile {
     public void handleEntityEvent(byte id) {
         ItemStack entityStack = new ItemStack(this.getDefaultItem());
         if (id == EntityEvent.DEATH) {
-            ParticleOptions option = new ItemParticleOption(ParticleTypes.ITEM, entityStack);
+            ParticleOptions option = new ItemParticleOption(ParticleTypes.ITEM, ItemStackTemplate.fromNonEmptyStack(entityStack));
             for (int i = 0; i < 12; i++) {
                 this.level().addParticle(option, this.getX(), this.getY(), this.getZ(),
-                        (this.random.nextFloat() * 2 - 1) * 0.1,
-                        (this.random.nextFloat() * 2 - 1) * 0.1 + 0.1,
-                        (this.random.nextFloat() * 2 - 1) * 0.1);
+                        (this.getRandom().nextFloat() * 2 - 1) * 0.1,
+                        (this.getRandom().nextFloat() * 2 - 1) * 0.1 + 0.1,
+                        (this.getRandom().nextFloat() * 2 - 1) * 0.1);
             }
         }
 
         if (id == EntityEvent.LOVE_HEARTS) {
             for (int i = 0; i < 7; i++) {
-                double offsetX = (this.random.nextDouble() - 0.5) * 0.5;
-                double offsetY = this.random.nextDouble() * 0.5 + 0.5;
-                double offsetZ = (this.random.nextDouble() - 0.5) * 0.5;
+                double offsetX = (this.getRandom().nextDouble() - 0.5) * 0.5;
+                double offsetY = this.getRandom().nextDouble() * 0.5 + 0.5;
+                double offsetZ = (this.getRandom().nextDouble() - 0.5) * 0.5;
                 this.level().addParticle(ParticleTypes.HEART,
                         this.getX() + offsetX,
                         this.getY() + offsetY,
@@ -88,7 +89,7 @@ public class ThrowableBaoziEntity extends ThrowableItemProjectile {
         if (this.level() instanceof ServerLevel serverLevel) {
             hitEntity.hurtServer(serverLevel, this.damageSources().thrown(this, this.getOwner()), 0);
         }
-        this.playSound(SoundEvents.SNOW_HIT, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+        this.playSound(SoundEvents.SNOW_HIT, 1.0F, (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.2F + 1.0F);
 
         // 如果是狗，那么直接回满狗的血
         if (hitEntity instanceof Wolf wolf) {
@@ -107,7 +108,7 @@ public class ThrowableBaoziEntity extends ThrowableItemProjectile {
         super.onHit(hitResult);
         if (!this.level().isClientSide()) {
             this.level().broadcastEntityEvent(this, EntityEvent.DEATH);
-            this.playSound(SoundEvents.SNOW_HIT, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+            this.playSound(SoundEvents.SNOW_HIT, 1.0F, (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.2F + 1.0F);
             this.discard();
         }
     }

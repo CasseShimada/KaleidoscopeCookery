@@ -13,7 +13,7 @@ public class CookingParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
 
     protected CookingParticle(ClientLevel level, double pX, double pY, double pZ, double xSpeed, double ySpeed, double zSpeed, SpriteSet sprites) {
-        super(level, pX, pY, pZ, xSpeed, ySpeed, zSpeed, sprites.get(level.random));
+        super(level, pX, pY, pZ, xSpeed, ySpeed, zSpeed, sprites.get(level.getRandom()));
         this.friction = 0.96F;
         this.speedUpWhenYMotionIsBlocked = true;
         this.sprites = sprites;

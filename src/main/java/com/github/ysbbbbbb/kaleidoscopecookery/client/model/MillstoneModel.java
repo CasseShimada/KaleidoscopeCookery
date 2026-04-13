@@ -20,7 +20,7 @@ public class MillstoneModel extends Model<Object> {
     private final ModelPart rotStick;
 
     public MillstoneModel(ModelPart root) {
-        super(root, RenderTypes::entityCutoutNoCull);
+        super(root, RenderTypes::entityCutout);
         this.base = root.getChild("base");
         this.wheel = root.getChild("wheel");
         this.roll = this.wheel.getChild("roll");

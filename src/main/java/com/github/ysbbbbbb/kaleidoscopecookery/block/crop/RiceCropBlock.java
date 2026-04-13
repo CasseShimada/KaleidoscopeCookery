@@ -179,7 +179,7 @@ public class RiceCropBlock extends BaseCropBlock implements SimpleWaterloggedBlo
         if (state.getValue(LOCATION) != DOWN) {
             return;
         }
-        long dayTime = serverLevel.getDayTime() % 24000L;
+        long dayTime = serverLevel.getOverworldClockTime() % 24000L;
         if (dayTime >= 13000L && dayTime <= 23000L) {
             serverLevel.playSound(null,
                     pos.above(),
@@ -223,7 +223,7 @@ public class RiceCropBlock extends BaseCropBlock implements SimpleWaterloggedBlo
 
     @Override
     protected int getBonemealAgeIncrease(Level level) {
-        return Mth.nextInt(level.random, 1, 2);
+        return Mth.nextInt(level.getRandom(), 1, 2);
     }
 
     @Override

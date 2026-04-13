@@ -1,0 +1,40 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 5.0
+  },
+  "gives": {
+    "id": "kaleidoscope_cookery:recipe_item",
+    "components": {
+      "kaleidoscope_cookery:recipe_record": {
+        "input": [
+          {
+            "id": "minecraft:cod"
+          },
+          {
+            "id": "minecraft:cod"
+          },
+          {
+            "id": "minecraft:cod"
+          },
+          {
+            "id": "minecraft:cod"
+          },
+          {
+            "id": "minecraft:cod"
+          },
+          {
+            "id": "minecraft:pumpkin_pie"
+          }
+        ],
+        "output": {
+          "id": "kaleidoscope_cookery:stargazy_pie"
+        },
+        "type": "kaleidoscope_cookery:pot"
+      }
+    }
+  },
+  "max_uses": 16.0,
+  "xp": 4.0,
+  "reputation_discount": 0.1
+}

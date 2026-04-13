@@ -21,9 +21,9 @@ public final class BlockDrop {
         if (!stack.isEmpty() && Boolean.TRUE.equals(serverLevel.getGameRules().get(GameRules.BLOCK_DROPS))) {
             double itemHalfHeight = EntityType.ITEM.getHeight() / 2.0;
             double range = 0.1;
-            double x = pos.getX() + 0.5 + Mth.nextDouble(serverLevel.random, -range, range);
-            double y = pos.getY() + 0.5 + Mth.nextDouble(serverLevel.random, -range, range) - itemHalfHeight + yOffset;
-            double z = pos.getZ() + 0.5 + Mth.nextDouble(serverLevel.random, -range, range);
+            double x = pos.getX() + 0.5 + Mth.nextDouble(serverLevel.getRandom(), -range, range);
+            double y = pos.getY() + 0.5 + Mth.nextDouble(serverLevel.getRandom(), -range, range) - itemHalfHeight + yOffset;
+            double z = pos.getZ() + 0.5 + Mth.nextDouble(serverLevel.getRandom(), -range, range);
             ItemEntity itemEntity = new ItemEntity(serverLevel, x, y, z, stack);
             itemEntity.setDefaultPickUpDelay();
             serverLevel.addFreshEntity(itemEntity);

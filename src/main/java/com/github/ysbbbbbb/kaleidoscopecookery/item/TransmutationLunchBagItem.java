@@ -243,7 +243,7 @@ public class TransmutationLunchBagItem extends Item {
 
             // 处理效果
             for (ApplyStatusEffectsConsumeEffect effect : effects) {
-                if (level.isClientSide() || effect.probability() <= 0.0F || level.random.nextFloat() >= effect.probability()) {
+                if (level.isClientSide() || effect.probability() <= 0.0F || level.getRandom().nextFloat() >= effect.probability()) {
                     continue;
                 }
                 for (MobEffectInstance instance : effect.effects()) {
