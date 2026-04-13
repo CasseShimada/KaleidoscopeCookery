@@ -6,6 +6,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.util.RecipeMatcher;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -15,14 +16,22 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public record StockpotRecipe(NonNullList<Ingredient> ingredients,
-                             Identifier soupBase, ItemStack result, int time,
+                             Identifier soupBase, ItemStackTemplate resultTemplate, int time,
                              Ingredient carrier, Identifier cookingTexture, Identifier finishedTexture,
                              int cookingBubbleColor, int finishedBubbleColor) implements BaseRecipe<StockpotInput> {
+    public StockpotRecipe(List<Ingredient> ingredients, Identifier soupBase, ItemStackTemplate resultTemplate,
+                          int time, Ingredient carrier, Identifier cookingTexture, Identifier finishedTexture,
+                          int cookingBubbleColor, int finishedBubbleColor) {
+        this(toNonNullList(ingredients),
+                soupBase, resultTemplate, time, carrier, cookingTexture, finishedTexture,
+                cookingBubbleColor, finishedBubbleColor);
+    }
+
     public StockpotRecipe(List<Ingredient> ingredients, Identifier soupBase, ItemStack result,
                           int time, Ingredient carrier, Identifier cookingTexture, Identifier finishedTexture,
                           int cookingBubbleColor, int finishedBubbleColor) {
         this(toNonNullList(ingredients),
-                soupBase, result, time, carrier, cookingTexture, finishedTexture,
+                soupBase, ItemStackTemplate.fromNonEmptyStack(result), time, carrier, cookingTexture, finishedTexture,
                 cookingBubbleColor, finishedBubbleColor);
     }
 
@@ -37,6 +46,11 @@ public record StockpotRecipe(NonNullList<Ingredient> ingredients,
 
     public @NotNull NonNullList<Ingredient> getIngredients() {
         return ingredients;
+    }
+
+    @Override
+    public ItemStackTemplate result() {
+        return resultTemplate;
     }
 
     @Override

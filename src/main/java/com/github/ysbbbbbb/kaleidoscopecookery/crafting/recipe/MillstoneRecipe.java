@@ -17,12 +17,15 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Optional;
 
 public class MillstoneRecipe extends SingleItemRecipe {
-    private final ItemStack result;
     private final Optional<Ingredient> carrier;
 
     public MillstoneRecipe(Ingredient ingredient, ItemStack result, Optional<Ingredient> carrier) {
         super(new Recipe.CommonInfo(false), ingredient, ItemStackTemplate.fromNonEmptyStack(result));
-        this.result = result;
+        this.carrier = carrier;
+    }
+
+    public MillstoneRecipe(Ingredient ingredient, ItemStackTemplate resultTemplate, Optional<Ingredient> carrier) {
+        super(new Recipe.CommonInfo(false), ingredient, resultTemplate);
         this.carrier = carrier;
     }
 
@@ -60,8 +63,12 @@ public class MillstoneRecipe extends SingleItemRecipe {
         return input();
     }
 
+    public ItemStackTemplate getResultTemplate() {
+        return result();
+    }
+
     public ItemStack getResult() {
-        return this.result;
+        return result().create();
     }
 
     public Optional<Ingredient> getCarrier() {

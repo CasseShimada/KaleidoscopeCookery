@@ -16,11 +16,14 @@ import org.apache.commons.lang3.StringUtils;
 
 public class SteamerRecipe extends SingleItemRecipe {
     private final int cookTick;
-    private final ItemStack result;
 
     public SteamerRecipe(Ingredient ingredient, ItemStack result, int cookTick) {
         super(new Recipe.CommonInfo(false), ingredient, ItemStackTemplate.fromNonEmptyStack(result));
-        this.result = result;
+        this.cookTick = Math.max(cookTick, 1);
+    }
+
+    public SteamerRecipe(Ingredient ingredient, ItemStackTemplate resultTemplate, int cookTick) {
+        super(new Recipe.CommonInfo(false), ingredient, resultTemplate);
         this.cookTick = Math.max(cookTick, 1);
     }
 
@@ -58,8 +61,12 @@ public class SteamerRecipe extends SingleItemRecipe {
         return input();
     }
 
+    public ItemStackTemplate getResultTemplate() {
+        return result();
+    }
+
     public ItemStack getResult() {
-        return this.result;
+        return result().create();
     }
 
     public int getCookTick() {

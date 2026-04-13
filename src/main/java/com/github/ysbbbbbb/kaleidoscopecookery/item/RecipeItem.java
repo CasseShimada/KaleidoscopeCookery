@@ -257,7 +257,7 @@ public class RecipeItem extends BlockItem {
                 return InteractionResult.PASS;
             }
             recipeManager.getRecipeFor(ModRecipes.POT_RECIPE, pot.getInput(), level).ifPresentOrElse(recipe -> {
-                ItemStack resultItem = recipe.value().result().copy();
+                ItemStack resultItem = recipe.value().result().create();
                 setRecipe(itemInHand, new RecipeRecord(inputs, resultItem, POT));
             }, () -> {
                 ItemStack instance = FoodBiteRegistry.getItem(FoodBiteRegistry.SUSPICIOUS_STIR_FRY).getDefaultInstance();
@@ -272,7 +272,7 @@ public class RecipeItem extends BlockItem {
                 return InteractionResult.PASS;
             }
             recipeManager.getRecipeFor(ModRecipes.STOCKPOT_RECIPE, stockpot.getInput(), level).ifPresentOrElse(recipe -> {
-                ItemStack resultItem = recipe.value().result().copy();
+                ItemStack resultItem = recipe.value().result().create();
                 setRecipe(itemInHand, new RecipeRecord(inputs, resultItem, STOCKPOT));
             }, () -> {
                 ItemStack instance = Items.SUSPICIOUS_STEW.getDefaultInstance();

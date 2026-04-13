@@ -70,7 +70,7 @@ public class RecipeRandomlyFunction extends LootItemConditionalFunction {
                 continue;
             }
             PotRecipe recipe = (PotRecipe) recipeHolder.value();
-            ItemStack resultItem = recipe.result();
+            ItemStack resultItem = recipe.result().create();
             if (!resultItem.is(result)) {
                 continue;
             }
@@ -89,7 +89,7 @@ public class RecipeRandomlyFunction extends LootItemConditionalFunction {
                 continue;
             }
             StockpotRecipe recipe = (StockpotRecipe) recipeHolder.value();
-            ItemStack resultItem = recipe.result();
+            ItemStack resultItem = recipe.result().create();
             if (!resultItem.is(result)) {
                 continue;
             }

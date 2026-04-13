@@ -5,6 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.RecipeMatcher;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -14,10 +15,15 @@ import java.util.List;
 import java.util.Optional;
 
 public record PotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier,
-                        NonNullList<Ingredient> ingredients, ItemStack result) implements BaseRecipe<SimpleInput> {
+                        NonNullList<Ingredient> ingredients, ItemStackTemplate resultTemplate) implements BaseRecipe<SimpleInput> {
+    public PotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier,
+                     List<Ingredient> ingredients, ItemStackTemplate resultTemplate) {
+        this(time, stirFryCount, carrier, toNonNullList(ingredients), resultTemplate);
+    }
+
     public PotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier,
                      List<Ingredient> ingredients, ItemStack result) {
-        this(time, stirFryCount, carrier, toNonNullList(ingredients), result);
+        this(time, stirFryCount, carrier, toNonNullList(ingredients), ItemStackTemplate.fromNonEmptyStack(result));
     }
 
     @Override
@@ -30,6 +36,11 @@ public record PotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier
 
     public NonNullList<Ingredient> getIngredients() {
         return ingredients;
+    }
+
+    @Override
+    public ItemStackTemplate result() {
+        return resultTemplate;
     }
 
     @Override

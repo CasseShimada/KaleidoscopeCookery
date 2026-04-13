@@ -14,7 +14,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -33,7 +33,7 @@ public final class StockpotRecipeSerializer {
 
     public static RecipeHolder<StockpotRecipe> getEmptyRecipe() {
         StockpotRecipe stockpotRecipe = new StockpotRecipe(Lists.newArrayList(), DEFAULT_SOUP_BASE,
-                ItemStack.EMPTY, DEFAULT_TIME, DEFAULT_CARRIER,
+                new ItemStackTemplate(Items.AIR), DEFAULT_TIME, DEFAULT_CARRIER,
                 DEFAULT_COOKING_TEXTURE, DEFAULT_FINISHED_TEXTURE,
                 DEFAULT_COOKING_BUBBLE_COLOR,
                 DEFAULT_FINISHED_BUBBLE_COLOR);
@@ -47,7 +47,7 @@ public final class StockpotRecipeSerializer {
                     list -> list.stream().filter(i -> !i.isEmpty()).toList()
             ).forGetter(StockpotRecipe::getIngredients),
             Identifier.CODEC.optionalFieldOf("soup_base", DEFAULT_SOUP_BASE).forGetter(StockpotRecipe::soupBase),
-            ItemStack.CODEC.fieldOf("result").forGetter(StockpotRecipe::result),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(StockpotRecipe::result),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(StockpotRecipe::time),
             Ingredient.CODEC.optionalFieldOf("carrier", DEFAULT_CARRIER).forGetter(StockpotRecipe::carrier),
             Identifier.CODEC.optionalFieldOf("cooking_texture", DEFAULT_COOKING_TEXTURE).forGetter(StockpotRecipe::cookingTexture),
@@ -59,7 +59,7 @@ public final class StockpotRecipeSerializer {
     public static final StreamCodec<RegistryFriendlyByteBuf, StockpotRecipe> STREAM_CODEC = StreamCodecUtil.composite(
             Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), StockpotRecipe::getIngredients,
             Identifier.STREAM_CODEC, StockpotRecipe::soupBase,
-            ItemStack.STREAM_CODEC, StockpotRecipe::result,
+            ItemStackTemplate.STREAM_CODEC, StockpotRecipe::result,
             ByteBufCodecs.INT, StockpotRecipe::time,
             Ingredient.CONTENTS_STREAM_CODEC, StockpotRecipe::carrier,
             Identifier.STREAM_CODEC, StockpotRecipe::cookingTexture,

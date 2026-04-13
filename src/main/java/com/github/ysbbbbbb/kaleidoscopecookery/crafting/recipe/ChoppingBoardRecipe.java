@@ -25,6 +25,12 @@ public class ChoppingBoardRecipe extends SingleItemRecipe {
         this.modelId = modelId;
     }
 
+    public ChoppingBoardRecipe(Ingredient ingredient, ItemStackTemplate resultTemplate, int cutCount, Identifier modelId) {
+        super(new Recipe.CommonInfo(false), ingredient, resultTemplate);
+        this.cutCount = Math.max(cutCount, 1);
+        this.modelId = modelId;
+    }
+
     @Override
     public boolean matches(SingleRecipeInput inv, Level level) {
         return input().test(inv.getItem(0));
@@ -57,6 +63,10 @@ public class ChoppingBoardRecipe extends SingleItemRecipe {
 
     public Ingredient getIngredient() {
         return input();
+    }
+
+    public ItemStackTemplate getResultTemplate() {
+        return result();
     }
 
     public ItemStack getResult() {
