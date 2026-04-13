@@ -1,4 +1,5 @@
 {
+	"render_type": "minecraft:cutout",
 	"credit": "by YSBB  2025",
 	"textures": {
 		"1": "kaleidoscope_cookery:block/pot_top",
