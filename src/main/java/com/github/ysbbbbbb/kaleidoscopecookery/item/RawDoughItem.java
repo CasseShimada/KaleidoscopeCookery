@@ -9,7 +9,6 @@ import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,7 +36,7 @@ public class RawDoughItem extends Item {
     }
 
     @Environment(EnvType.CLIENT)
-    public static float getTexture(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
+    public static float getTexture(ItemStack stack, @Nullable Level level, @Nullable LivingEntity entity, int seed) {
         if (entity == null) {
             return 0;
         }

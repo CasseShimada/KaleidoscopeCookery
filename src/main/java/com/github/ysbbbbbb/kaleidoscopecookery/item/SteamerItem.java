@@ -5,7 +5,6 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -91,7 +90,7 @@ public class SteamerItem extends BlockItem {
     }
 
     @Environment(EnvType.CLIENT)
-    public static float getTexture(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
+    public static float getTexture(ItemStack stack, @Nullable Level level, @Nullable LivingEntity entity, int seed) {
         if (stack.has(DataComponents.BLOCK_ENTITY_DATA)) {
             return HAS;
         }

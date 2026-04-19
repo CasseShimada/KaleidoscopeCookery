@@ -13,7 +13,6 @@ import com.mojang.serialization.Codec;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -63,7 +62,7 @@ public class TransmutationLunchBagItem extends Item {
     }
 
     @Environment(EnvType.CLIENT)
-    public static float getTexture(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed) {
+    public static float getTexture(ItemStack stack, @Nullable Level level, @Nullable LivingEntity entity, int seed) {
         if (!hasItems(stack)) {
             return NO_ITEMS;
         }
