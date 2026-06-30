@@ -1,6 +1,5 @@
 {
 	"credit": "Made with Blockbench",
-	"ambientocclusion": false,
 	"render_type": "minecraft:cutout",
 	"textures": {
 		"3": "kaleidoscope_cookery:block/kitchenware_racks",
