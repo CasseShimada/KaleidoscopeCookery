@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.ParrotRenderState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.parrot.Parrot;
 
 public class ScarecrowParrotOnShoulderLayer extends RenderLayer<ScarecrowRenderState, ScarecrowModel> {
@@ -35,7 +36,7 @@ public class ScarecrowParrotOnShoulderLayer extends RenderLayer<ScarecrowRenderS
         if (id.isEmpty()) {
             return;
         }
-        EntityType.byString(id).filter(type -> type == EntityType.PARROT).ifPresent(type -> {
+        if (id.equals(EntityType.getKey(EntityTypes.PARROT).toString())) {
             poseStack.pushPose();
             poseStack.translate(0.625F, -1.675F, 0.0625F);
             Parrot.Variant variant = Parrot.Variant.byId(tag.getIntOr("Variant", 0));
@@ -50,6 +51,6 @@ public class ScarecrowParrotOnShoulderLayer extends RenderLayer<ScarecrowRenderS
             collector.submitModel(this.model, parrotState, poseStack, this.model.renderType(ParrotRenderer.getVariantTexture(variant)),
                     packedLight, OverlayTexture.NO_OVERLAY, state.outlineColor, null);
             poseStack.popPose();
-        });
+        }
     }
 }

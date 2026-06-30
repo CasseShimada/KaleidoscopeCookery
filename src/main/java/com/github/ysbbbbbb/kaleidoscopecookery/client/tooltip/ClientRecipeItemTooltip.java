@@ -11,6 +11,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 
 public class ClientRecipeItemTooltip implements ClientTooltipComponent {
+    private static final int GRAY = 0xAAAAAA;
     private final RecipeItem.RecipeRecord recipeRecord;
     private final MutableComponent ingredientsText;
     private final MutableComponent outputText;
@@ -38,7 +39,7 @@ public class ClientRecipeItemTooltip implements ClientTooltipComponent {
         int ingredientsWidth = font.width(ingredientsText);
         int outputWidth = font.width(outputText);
 
-        guiGraphics.text(font, ingredientsText, pX, pY + 4, ChatFormatting.GRAY.getColor());
+        guiGraphics.text(font, ingredientsText, pX, pY + 4, GRAY);
         int i = 0;
         for (ItemStack stack : recipeRecord.input()) {
             int xOffset = pX + ingredientsWidth + i * 12;
@@ -48,7 +49,7 @@ public class ClientRecipeItemTooltip implements ClientTooltipComponent {
 
         int xOffset = pX + outputWidth;
         int yOffset = pY + 12;
-        guiGraphics.text(font, outputText, pX, yOffset + 4, ChatFormatting.GRAY.getColor());
+        guiGraphics.text(font, outputText, pX, yOffset + 4, GRAY);
         ItemStack stack = recipeRecord.output();
         guiGraphics.fakeItem(stack, xOffset, yOffset);
         guiGraphics.itemDecorations(font, stack, xOffset, yOffset);

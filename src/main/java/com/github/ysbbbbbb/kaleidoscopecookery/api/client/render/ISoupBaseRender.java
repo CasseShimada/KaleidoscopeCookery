@@ -25,7 +25,7 @@ public interface ISoupBaseRender {
      * @param y         汤底的高度
      */
     static void renderSurface(TextureAtlasSprite sprite, int color, PoseStack poseStack, SubmitNodeCollector collector, int light, float y) {
-        collector.submitCustomGeometry(poseStack, Sheets.cutoutBlockSheet(), (pose, vertexConsumer) -> {
+        collector.submitCustomGeometry(poseStack, Sheets.cutoutBlockItemSheet(), (pose, vertexConsumer) -> {
             Matrix4f matrix = pose.pose();
 
             // 锅内水面的位置和大小（根据实际锅模型调整）

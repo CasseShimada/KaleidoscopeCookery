@@ -3,12 +3,18 @@ package com.github.ysbbbbbb.kaleidoscopecookery.datagen.recipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 public class ShapedRecipeProvider extends ModRecipeProvider {
+    private static final TagKey<Item> FLOWERS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "flowers"));
+
     public ShapedRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
         super(registries, output);
     }
@@ -109,7 +115,7 @@ public class ShapedRecipeProvider extends ModRecipeProvider {
                 .pattern("FFF")
                 .pattern("FHF")
                 .pattern("FFF")
-                .define('F', ItemTags.FLOWERS)
+                .define('F', FLOWERS)
                 .define('H', ModItems.STRAW_HAT)
                 .unlockedBy("has_ingot_iron", has(Items.IRON_INGOT))
                 .save(consumer);

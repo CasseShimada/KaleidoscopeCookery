@@ -5,8 +5,10 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagCommon;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.tags.ItemTags;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -15,6 +17,8 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 
 public class FoodBiteRecipeProvider extends ModRecipeProvider {
+    private static final TagKey<Item> FLOWERS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "flowers"));
+
     public FoodBiteRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
         super(registries, output);
     }
@@ -224,8 +228,8 @@ public class FoodBiteRecipeProvider extends ModRecipeProvider {
         PotRecipeBuilder.builder()
                 .addInput(TagCommon.RAW_FISHES_TROPICAL, TagCommon.RAW_FISHES_TROPICAL,
                         TagCommon.RAW_FISHES_TROPICAL, TagCommon.RAW_FISHES_TROPICAL,
-                        ItemTags.FLOWERS, ItemTags.FLOWERS, ItemTags.FLOWERS,
-                        ItemTags.FLOWERS, ItemTags.FLOWERS)
+                        FLOWERS, FLOWERS, FLOWERS,
+                        FLOWERS, FLOWERS)
                 .setBowlCarrier()
                 .setResult(FoodBiteRegistry.TUNDRA_STYLE_SASHIMI)
                 .save(consumer);

@@ -7,11 +7,20 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
-import net.minecraft.advancements.criterion.*;
+import net.minecraft.advancements.predicates.DamageSourcePredicate;
+import net.minecraft.advancements.predicates.DistancePredicate;
+import net.minecraft.advancements.predicates.ItemPredicate;
+import net.minecraft.advancements.predicates.LocationPredicate;
+import net.minecraft.advancements.predicates.MinMaxBounds;
+import net.minecraft.advancements.predicates.entity.EntityEquipmentPredicate;
+import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.advancements.triggers.InventoryChangeTrigger;
+import net.minecraft.advancements.triggers.KilledTrigger;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
@@ -46,21 +55,21 @@ public class BaseAdvancement {
         AdvancementHolder oil = makeTask(ModItems.OIL, "oil")
                 .parent(ironKnife)
                 .addCriterion("kill_pig", KilledTrigger.TriggerInstance.playerKilledEntity(
-                        EntityPredicate.Builder.entity().of(entityTypes, EntityType.PIG),
+                        EntityPredicate.Builder.entity().of(entityTypes, EntityTypes.PIG),
                         DamageSourcePredicate.Builder.damageType().direct(EntityPredicate.Builder.entity().equipment(
                                 EntityEquipmentPredicate.Builder.equipment().mainhand(
                                         ItemPredicate.Builder.item().of(items, TagMod.KITCHEN_KNIFE))
                         ))
                 ))
                 .addCriterion("kill_piglin", KilledTrigger.TriggerInstance.playerKilledEntity(
-                        EntityPredicate.Builder.entity().of(entityTypes, EntityType.PIGLIN),
+                        EntityPredicate.Builder.entity().of(entityTypes, EntityTypes.PIGLIN),
                         DamageSourcePredicate.Builder.damageType().direct(EntityPredicate.Builder.entity().equipment(
                                 EntityEquipmentPredicate.Builder.equipment().mainhand(
                                         ItemPredicate.Builder.item().of(items, TagMod.KITCHEN_KNIFE))
                         ))
                 ))
                 .addCriterion("kill_zombified_piglin", KilledTrigger.TriggerInstance.playerKilledEntity(
-                        EntityPredicate.Builder.entity().of(entityTypes, EntityType.ZOMBIFIED_PIGLIN),
+                        EntityPredicate.Builder.entity().of(entityTypes, EntityTypes.ZOMBIFIED_PIGLIN),
                         DamageSourcePredicate.Builder.damageType().direct(EntityPredicate.Builder.entity().equipment(
                                 EntityEquipmentPredicate.Builder.equipment().mainhand(
                                         ItemPredicate.Builder.item().of(items, TagMod.KITCHEN_KNIFE))
@@ -77,7 +86,7 @@ public class BaseAdvancement {
         AdvancementHolder dangerousChef = makeChallenge(ModItems.OIL, "dangerous_chef")
                 .parent(oil)
                 .addCriterion("kill_piglin_brute", KilledTrigger.TriggerInstance.playerKilledEntity(
-                        EntityPredicate.Builder.entity().of(entityTypes, EntityType.PIGLIN_BRUTE),
+                        EntityPredicate.Builder.entity().of(entityTypes, EntityTypes.PIGLIN_BRUTE),
                         DamageSourcePredicate.Builder.damageType().direct(EntityPredicate.Builder.entity().equipment(
                                 EntityEquipmentPredicate.Builder.equipment().mainhand(
                                         ItemPredicate.Builder.item().of(items, TagMod.KITCHEN_KNIFE))

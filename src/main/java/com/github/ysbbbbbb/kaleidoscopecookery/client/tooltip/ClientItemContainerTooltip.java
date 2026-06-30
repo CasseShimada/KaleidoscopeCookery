@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public class ClientItemContainerTooltip implements ClientTooltipComponent {
+    private static final int GRAY = 0xAAAAAA;
     private final NonNullList<ItemStack> items = NonNullList.create();
     private @Nullable MutableComponent emptyTip = null;
 
@@ -47,7 +48,7 @@ public class ClientItemContainerTooltip implements ClientTooltipComponent {
     @Override
     public void extractImage(Font font, int pX, int pY, int width, int height, GuiGraphicsExtractor guiGraphics) {
         if (emptyTip != null) {
-            guiGraphics.text(font, emptyTip, pX, pY, ChatFormatting.GRAY.getColor());
+            guiGraphics.text(font, emptyTip, pX, pY, GRAY);
         } else {
             int i = 0;
             for (ItemStack stack : this.items) {

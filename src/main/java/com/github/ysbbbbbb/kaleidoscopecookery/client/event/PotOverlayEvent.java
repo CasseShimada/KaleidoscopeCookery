@@ -76,7 +76,7 @@ public class PotOverlayEvent {
                 return;
             }
             if (status == PotBlockEntity.FINISHED) {
-                drawWordWrap(guiGraphics, font, Component.translatable("tip.kaleidoscope_cookery.pot.done"), x, y, ChatFormatting.RED.getColor());
+                drawWordWrap(guiGraphics, font, Component.translatable("tip.kaleidoscope_cookery.pot.done"), x, y, 0xFF5555);
             }
         }
     }

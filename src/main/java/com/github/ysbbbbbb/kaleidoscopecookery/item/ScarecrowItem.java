@@ -14,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.PostSpawnProcessor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -47,8 +48,8 @@ public class ScarecrowItem extends Item {
         AABB aabb = ScarecrowEntity.TYPE.getDimensions().makeBoundingBox(center.x(), center.y(), center.z());
         if (level.noCollision(null, aabb) && level.getEntities(null, aabb).isEmpty()) {
             if (level instanceof ServerLevel serverLevel) {
-                Consumer<ScarecrowEntity> consumer = EntityType.createDefaultStackConfig(serverLevel, stack, context.getPlayer());
-                ScarecrowEntity scarecrow = ScarecrowEntity.TYPE.create(serverLevel, consumer, clickedPos, EntitySpawnReason.SPAWN_ITEM_USE, true, true);
+                PostSpawnProcessor<ScarecrowEntity> processor = EntityType.createDefaultStackConfig(serverLevel, stack, context.getPlayer());
+                ScarecrowEntity scarecrow = ScarecrowEntity.TYPE.create(serverLevel, processor, clickedPos, EntitySpawnReason.SPAWN_ITEM_USE, true, true);
                 if (scarecrow == null) {
                     return InteractionResult.FAIL;
                 }

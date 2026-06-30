@@ -26,6 +26,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.parrot.ShoulderRidingEntity;
@@ -351,7 +353,7 @@ public class ScarecrowEntity extends LivingEntity {
     private void respawnEntityOnShoulder(CompoundTag tag) {
         if (this.level() instanceof ServerLevel serverLevel && !tag.isEmpty()) {
             ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, this.level().registryAccess(), tag);
-            EntityType.create(input, this.level(), EntitySpawnReason.LOAD).ifPresent(entity -> {
+            EntityType.create(input, this.level(), new EntitySpawnRequest(EntitySpawnReason.LOAD, false)).ifPresent(entity -> {
                 entity.setPos(this.getX(), this.getY() + 1.675, this.getZ());
                 serverLevel.addWithUUID(entity);
             });
@@ -529,7 +531,7 @@ public class ScarecrowEntity extends LivingEntity {
                 return new CompoundTag();
             }
             CompoundTag tag = new CompoundTag();
-            tag.putString("id", EntityType.getKey(EntityType.PARROT).toString());
+            tag.putString("id", EntityType.getKey(EntityTypes.PARROT).toString());
             tag.putInt("Variant", variant.getAsInt());
             return tag;
         }
@@ -540,11 +542,8 @@ public class ScarecrowEntity extends LivingEntity {
         this.shoulderEntity = tag;
         OptionalInt variant = OptionalInt.empty();
         String id = tag.getStringOr("id", "");
-        if (!id.isEmpty()) {
-            var type = EntityType.byString(id);
-            if (type.isPresent() && type.get() == EntityType.PARROT) {
-                variant = OptionalInt.of(tag.getIntOr("Variant", 0));
-            }
+        if (id.equals(EntityType.getKey(EntityTypes.PARROT).toString())) {
+            variant = OptionalInt.of(tag.getIntOr("Variant", 0));
         }
         this.entityData.set(DATA_SHOULDER, variant);
     }
