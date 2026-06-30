@@ -6,7 +6,7 @@
 		"1": "kaleidoscope_cookery:block/stockpot_base",
 		"3": "kaleidoscope_cookery:block/pot_side",
 		"4": "kaleidoscope_cookery:block/pot_top",
-		"particle": "kaleidoscope_cookery:block/stockpot"
+		"particle": "kaleidoscope_cookery:block/pot_top"
 	},
 	"elements": [
 		{
