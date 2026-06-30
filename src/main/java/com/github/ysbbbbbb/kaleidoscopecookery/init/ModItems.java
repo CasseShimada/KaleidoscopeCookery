@@ -116,7 +116,7 @@ public final class ModItems {
     public static final Item STUFFED_DOUGH_FOOD = new Item(itemProperties("stuffed_dough_food"));
 
     // Bowl foods
-    public static final Item COOKED_RICE = new BowlFoodOnlyItem(itemProperties("cooked_rice"), ModFoods.COOKED_RICE);
+    public static final Item COOKED_RICE = new BowlFoodOnlyItem(itemProperties("cooked_rice").craftRemainder(Items.BOWL), ModFoods.COOKED_RICE);
     public static final Item SCRAMBLE_EGG_WITH_TOMATOES = new BowlFoodOnlyItem(itemProperties("scramble_egg_with_tomatoes"), ModFoods.SCRAMBLE_EGG_WITH_TOMATOES);
     public static final Item SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL = new BowlFoodOnlyItem(itemProperties("scramble_egg_with_tomatoes_rice_bowl"), ModFoods.SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL);
     public static final Item STIR_FRIED_BEEF_OFFAL = new BowlFoodOnlyItem(itemProperties("stir_fried_beef_offal"), ModFoods.STIR_FRIED_BEEF_OFFAL);
