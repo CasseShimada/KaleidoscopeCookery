@@ -4,9 +4,9 @@
   "stir_fry_count": 3,
   "carrier": "minecraft:bowl",
   "ingredients": [
-    "kaleidoscope_cookery:caterpillar",
-    "kaleidoscope_cookery:caterpillar",
-    "kaleidoscope_cookery:caterpillar"
+    "#kaleidoscope_cookery:caterpillars",
+    "#kaleidoscope_cookery:caterpillars",
+    "#kaleidoscope_cookery:caterpillars"
   ],
   "result": {
     "id": "kaleidoscope_cookery:fried_caterpillar",
