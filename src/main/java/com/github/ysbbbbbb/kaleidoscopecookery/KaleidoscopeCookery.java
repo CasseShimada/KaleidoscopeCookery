@@ -34,12 +34,13 @@ public final class KaleidoscopeCookery implements ModInitializer {
         // Data components must exist before item static initialization.
         ModDataComponents.registerDataComponents();
 
-        CommonRegistry.init();
+        CommonRegistry.registerContent();
         NetworkHandler.init();
 
         ModTrigger.init();
         ModBlocks.registerBlocks();
         ModItems.registerItems();
+        CommonRegistry.registerIntegrations();
         ModEntities.registerEntities();
         ModPoi.registerPoiTypes();
         ModVillager.registerVillagerProfessions();
