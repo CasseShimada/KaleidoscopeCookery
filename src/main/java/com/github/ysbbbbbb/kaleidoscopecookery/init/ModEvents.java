@@ -47,13 +47,6 @@ public class ModEvents {
                 }
             });
 
-    public static final Event<ActionEventCallback.PlayerLeftClick> PLAYER_LEFT_CLICK =
-            EventFactory.createArrayBacked(ActionEventCallback.PlayerLeftClick.class, call -> (player, hand) -> {
-                for (ActionEventCallback.PlayerLeftClick listener : call) {
-                    listener.onPlayerLeftClick(player, hand);
-                }
-            });
-
     public static final Event<ActionEventCallback.SickleHarvest> SICKLE_HARVEST =
             EventFactory.createArrayBacked(ActionEventCallback.SickleHarvest.class, call -> event -> {
                 for (ActionEventCallback.SickleHarvest listener : call) {
