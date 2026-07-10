@@ -20,6 +20,11 @@ SERVER_EVENT_REGISTRATIONS = {
     "ServerEntityLoadEvent": SRC / "event/server/ServerEntityLoadEvent.java",
 }
 
+LEGACY_SERVER_EVENT_PATHS = (
+    SRC / "event/effect/FlatulenceServerEvent.java",
+    SRC / "event/effect/SatiatedShieldEvent.java",
+)
+
 CLIENT_ONLY_PATHS = (
     "client/",
     "mixin/client/",
@@ -77,6 +82,10 @@ def main() -> int:
         if f"{event_class}.register();" not in mod_events:
             errors.append(f"ModEvents does not register {event_class}.")
 
+    for path in LEGACY_SERVER_EVENT_PATHS:
+        if path.exists():
+            errors.append(f"Legacy duplicate server event still exists: {path.relative_to(ROOT)}")
+
     if errors:
         print("Server boundary verification failed:")
         print("\n".join(errors))
@@ -85,6 +94,7 @@ def main() -> int:
     print("Server boundary verification passed.")
     print("  common/server sources contain no direct client-only imports")
     print(f"  migrated server events: {len(SERVER_EVENT_REGISTRATIONS)}")
+    print(f"  legacy server event paths checked: {len(LEGACY_SERVER_EVENT_PATHS)}")
     print(f"  common mixins: {len(mixin_data.get('mixins', []))}")
     print(f"  client mixins: {len(mixin_data.get('client', []))}")
     return 0
