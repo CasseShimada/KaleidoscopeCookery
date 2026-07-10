@@ -18,9 +18,12 @@ import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 
-public class MillstoneSpecialRecipeEvent {
+public final class MillstoneSpecialRecipeEvent {
 
-    public static void onMillstoneTakeItem() {
+    private MillstoneSpecialRecipeEvent() {
+    }
+
+    public static void register() {
         ModEvents.MILLSTONE_TAKE_ITEM.register(event -> {
             MillstoneBlockEntity millstone = event.getMillstone();
             ItemStack output = millstone.getOutput();

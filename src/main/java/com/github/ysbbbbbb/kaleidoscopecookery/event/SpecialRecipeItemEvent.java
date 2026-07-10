@@ -10,9 +10,17 @@ import com.github.ysbbbbbb.kaleidoscopecookery.util.neo.ItemStackHandler;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-public class SpecialRecipeItemEvent {
+public final class SpecialRecipeItemEvent {
 
-    public static void onCheckItemEvent() {
+    private SpecialRecipeItemEvent() {
+    }
+
+    public static void register() {
+        registerCheckItemEvent();
+        registerDeductItemEvent();
+    }
+
+    private static void registerCheckItemEvent() {
         ModEvents.CHECK_SPECIAL_ITEM.register(event -> {
             ItemStack stack = event.getStack();
 
@@ -34,7 +42,7 @@ public class SpecialRecipeItemEvent {
     }
 
 
-    public static void onDeductItemEvent() {
+    private static void registerDeductItemEvent() {
         ModEvents.DEDUCT_SPECIAL_ITEM.register(event -> {
             ItemStack stack = event.getStack();
 

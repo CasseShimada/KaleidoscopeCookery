@@ -12,9 +12,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class MillstoneSpecialFinishEvent {
+public final class MillstoneSpecialFinishEvent {
 
-    public static void onMillstoneTakeItem() {
+    private MillstoneSpecialFinishEvent() {
+    }
+
+    public static void register() {
         ModEvents.MILLSTONE_FINISH.register(event -> {
             MillstoneBlockEntity millstone = event.getMillstone();
             ItemStack output = millstone.getOutput();

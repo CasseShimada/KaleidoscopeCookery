@@ -8,7 +8,9 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 
 // 所有的自定义事件
-public class ModEvents {
+public final class ModEvents {
+    private ModEvents() {
+    }
 
     public static final Event<ActionEventCallback.MillstoneFinish> MILLSTONE_FINISH =
             EventFactory.createArrayBacked(ActionEventCallback.MillstoneFinish.class, call -> action -> {
@@ -55,9 +57,8 @@ public class ModEvents {
             });
 
     public static void init() {
-        MillstoneSpecialRecipeEvent.onMillstoneTakeItem();
-        MillstoneSpecialFinishEvent.onMillstoneTakeItem();
-        SpecialRecipeItemEvent.onCheckItemEvent();
-        SpecialRecipeItemEvent.onDeductItemEvent();
+        MillstoneSpecialRecipeEvent.register();
+        MillstoneSpecialFinishEvent.register();
+        SpecialRecipeItemEvent.register();
     }
 }
