@@ -17,11 +17,13 @@ MOD_EVENTS = SRC / "init/ModEvents.java"
 SERVER_EVENT_REGISTRATIONS = {
     "SatiatedShieldEvent": SRC / "event/server/effect/SatiatedShieldEvent.java",
     "FlatulenceServerEvent": SRC / "event/server/effect/FlatulenceServerEvent.java",
+    "PreservationEvent": SRC / "event/server/effect/PreservationEvent.java",
     "ServerEntityLoadEvent": SRC / "event/server/ServerEntityLoadEvent.java",
 }
 
 LEGACY_SERVER_EVENT_PATHS = (
     SRC / "event/effect/FlatulenceServerEvent.java",
+    SRC / "event/effect/PreservationEvent.java",
     SRC / "event/effect/SatiatedShieldEvent.java",
 )
 
