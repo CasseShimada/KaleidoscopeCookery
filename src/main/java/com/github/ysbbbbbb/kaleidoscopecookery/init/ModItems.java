@@ -1,6 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.TeacupBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.*;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -9,6 +11,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.level.block.Block;
 
 public final class ModItems {
     // Block items
@@ -27,6 +30,9 @@ public final class ModItems {
     public static final Item SHAWARMA_SPIT = new WithTooltipsBlockItem(ModBlocks.SHAWARMA_SPIT, blockItemProperties("shawarma_spit"), "shawarma_spit");
     public static final Item MILLSTONE = new WithTooltipsBlockItem(ModBlocks.MILLSTONE, blockItemProperties("millstone"), "millstone");
     public static final Item STEAMER = new SteamerItem(blockItemProperties("steamer"));
+    public static final Item TEAPOT = new TeapotItem(blockItemProperties("teapot").stacksTo(1));
+    public static final Item EMPTY_CUP = new EmptyCupItem(blockItemProperties("empty_cup").stacksTo(16));
+    public static final Item TRASH_CAN = new BlockItem(ModBlocks.TRASH_CAN, blockItemProperties("trash_can"));
     public static final Item OIL_POT = new OilPotItem(blockItemProperties("oil_pot"));
     public static final Item COLD_CUT_HAM_SLICES = new LiftBlockItem(
             ModBlocks.COLD_CUT_HAM_SLICES, blockItemProperties("cold_cut_ham_slices"), "cold_cut_ham_slices");
@@ -39,15 +45,16 @@ public final class ModItems {
     public static final Item SICKLE = new SickleItem(itemProperties("sickle"));
 
     // Special items
-    public static final Item RECIPE_ITEM = new RecipeItem(itemProperties("recipe_item"));
-    public static final Item KITCHEN_SHOVEL = new KitchenShovelItem(itemProperties("kitchen_shovel"));
+    public static final Item RECIPE_ITEM = new RecipeItem(itemProperties("recipe_item").stacksTo(1));
+    public static final Item KITCHEN_SHOVEL = new KitchenShovelItem(
+            itemProperties("kitchen_shovel").component(ModDataComponents.KITCHEN_SHOVEL_HAS_OIL, false));
     public static final Item FRUIT_BASKET = new FruitBasketItem(itemProperties("fruit_basket"));
     public static final Item SCARECROW = new ScarecrowItem(itemProperties("scarecrow"));
     public static final Item STRAW_HAT = new StrawHatItem(false, itemProperties("straw_hat"));
     public static final Item STRAW_HAT_FLOWER = new StrawHatItem(true, itemProperties("straw_hat_flower"));
-    public static final Item FARMER_CHEST_PLATE = new ModArmorItem(ModArmorMaterials.FARMER.value(), ArmorType.CHESTPLATE, itemProperties("farmer_chest_plate").stacksTo(1));
-    public static final Item FARMER_LEGGINGS = new ModArmorItem(ModArmorMaterials.FARMER.value(), ArmorType.LEGGINGS, itemProperties("farmer_leggings").stacksTo(1));
-    public static final Item FARMER_BOOTS = new ModArmorItem(ModArmorMaterials.FARMER.value(), ArmorType.BOOTS, itemProperties("farmer_boots").stacksTo(1));
+    public static final Item FARMER_CHEST_PLATE = new ModArmorItem(ModArmorMaterials.FARMER, ArmorType.CHESTPLATE, itemProperties("farmer_chest_plate").stacksTo(1));
+    public static final Item FARMER_LEGGINGS = new ModArmorItem(ModArmorMaterials.FARMER, ArmorType.LEGGINGS, itemProperties("farmer_leggings").stacksTo(1));
+    public static final Item FARMER_BOOTS = new ModArmorItem(ModArmorMaterials.FARMER, ArmorType.BOOTS, itemProperties("farmer_boots").stacksTo(1));
     public static final Item TRANSMUTATION_LUNCH_BAG = new TransmutationLunchBagItem(itemProperties("transmutation_lunch_bag"));
 
     // Seeds
@@ -110,6 +117,14 @@ public final class ModItems {
     public static final Item SAMSA = new FoodWithEffectsItem(itemProperties("samsa"), ModFoods.SAMSA);
     public static final Item MEAT_PIE = new FoodWithEffectsItem(itemProperties("meat_pie"), ModFoods.MEAT_PIE);
     public static final Item DUMPLING = new FoodWithEffectsItem(itemProperties("dumpling"), ModFoods.DUMPLING);
+    public static final Item QINGTUAN = new FoodWithEffectsItem(itemProperties("qingtuan"), ModFoods.QINGTUAN);
+    public static final Item STICKY_CANDY = new FoodWithEffectsItem(itemProperties("sticky_candy"), ModFoods.STICKY_CANDY);
+    public static final Item STICKY_RICE_CAKE = new FoodWithEffectsItem(itemProperties("sticky_rice_cake"), ModFoods.STICKY_RICE_CAKE);
+    public static final Item ZONGZI = new FoodWithEffectsItem(itemProperties("zongzi"), ModFoods.ZONGZI);
+    public static final Item RAW_ZONGZI = new Item(itemProperties("raw_zongzi"));
+    public static final Item RAW_BAMBOO_TUBE_RICE = new Item(ModFoods.applyFood(itemProperties("raw_bamboo_tube_rice"), ModFoods.RAW_BAMBOO_TUBE_RICE));
+    public static final Item BAMBOO_TUBE_RICE = new BambooTubeRiceBlockItem(
+            ModBlocks.BAMBOO_TUBE_RICE_BLOCK, blockItemProperties("bamboo_tube_rice"), ModFoods.BAMBOO_TUBE_RICE);
     public static final Item RAW_DOUGH = new RawDoughItem(itemProperties("raw_dough"));
     public static final Item FLOUR = new FlourItem(itemProperties("flour"));
     public static final Item RAW_NOODLES = new Item(itemProperties("raw_noodles"));
@@ -150,6 +165,8 @@ public final class ModItems {
     public static final Item BEEF_NOODLE = new BowlFoodOnlyItem(itemProperties("beef_noodle"), ModFoods.BEEF_NOODLE);
     public static final Item HUI_NOODLE = new BowlFoodOnlyItem(itemProperties("hui_noodle"), ModFoods.HUI_NOODLE);
     public static final Item UDON_NOODLE = new BowlFoodOnlyItem(itemProperties("udon_noodle"), ModFoods.UDON_NOODLE);
+    public static final Item HOT_DRY_NOODLES = new BowlFoodOnlyItem(itemProperties("hot_dry_noodles"), ModFoods.HOT_DRY_NOODLES);
+    public static final Item LABA_CONGEE = new BowlFoodOnlyItem(itemProperties("laba_congee"), ModFoods.LABA_CONGEE);
 
     // Raw and cooked foods
     public static final Item SASHIMI = new Item(ModFoods.applyFood(itemProperties("sashimi"), ModFoods.SASHIMI));
@@ -165,6 +182,9 @@ public final class ModItems {
     public static final Item COOKED_DONKEY_MEAT = new Item(ModFoods.applyFood(itemProperties("cooked_donkey_meat"), ModFoods.COOKED_DONKEY_MEAT));
     public static final Item COOKED_CUT_SMALL_MEATS = new Item(ModFoods.applyFood(itemProperties("cooked_cut_small_meats"), ModFoods.COOKED_CUT_SMALL_MEATS));
     public static final Item COOKED_MEATBALL = new Item(ModFoods.applyFood(itemProperties("cooked_meatball"), ModFoods.COOKED_MEATBALL));
+
+    private ModItems() {
+    }
 
     private static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
@@ -182,160 +202,189 @@ public final class ModItems {
         return new Item.Properties().setId(itemKey(path)).useBlockDescriptionPrefix();
     }
 
+    private static void register(String path, Item item) {
+        register(id(path), item);
+    }
+
+    private static void register(Identifier id, Item item) {
+        Registry.register(BuiltInRegistries.ITEM, id, item);
+    }
+
     public static void registerItems() {
         // Block items
-        Registry.register(BuiltInRegistries.ITEM, id("stove"), STOVE);
-        Registry.register(BuiltInRegistries.ITEM, id("pot"), POT);
-        Registry.register(BuiltInRegistries.ITEM, id("stockpot"), STOCKPOT);
-        Registry.register(BuiltInRegistries.ITEM, id("stockpot_lid"), STOCKPOT_LID);
-        Registry.register(BuiltInRegistries.ITEM, id("oil"), OIL);
-        Registry.register(BuiltInRegistries.ITEM, id("oil_block"), OIL_BLOCK);
-        Registry.register(BuiltInRegistries.ITEM, id("chopping_board"), CHOPPING_BOARD);
-        Registry.register(BuiltInRegistries.ITEM, id("enamel_basin"), ENAMEL_BASIN);
-        Registry.register(BuiltInRegistries.ITEM, id("kitchenware_racks"), KITCHENWARE_RACKS);
-        Registry.register(BuiltInRegistries.ITEM, id("chili_ristra"), CHILI_RISTRA);
-        Registry.register(BuiltInRegistries.ITEM, id("strung_mushrooms"), STRUNG_MUSHROOMS);
-        Registry.register(BuiltInRegistries.ITEM, id("straw_block"), STRAW_BLOCK);
-        Registry.register(BuiltInRegistries.ITEM, id("shawarma_spit"), SHAWARMA_SPIT);
-        Registry.register(BuiltInRegistries.ITEM, id("steamer"), STEAMER);
-        Registry.register(BuiltInRegistries.ITEM, id("millstone"), MILLSTONE);
-        Registry.register(BuiltInRegistries.ITEM, id("oil_pot"), OIL_POT);
-        Registry.register(BuiltInRegistries.ITEM, id("cold_cut_ham_slices"), COLD_CUT_HAM_SLICES);
+        register("stove", STOVE);
+        register("pot", POT);
+        register("stockpot", STOCKPOT);
+        register("stockpot_lid", STOCKPOT_LID);
+        register("oil", OIL);
+        register("oil_block", OIL_BLOCK);
+        register("chopping_board", CHOPPING_BOARD);
+        register("enamel_basin", ENAMEL_BASIN);
+        register("kitchenware_racks", KITCHENWARE_RACKS);
+        register("chili_ristra", CHILI_RISTRA);
+        register("strung_mushrooms", STRUNG_MUSHROOMS);
+        register("straw_block", STRAW_BLOCK);
+        register("shawarma_spit", SHAWARMA_SPIT);
+        register("steamer", STEAMER);
+        register("teapot", TEAPOT);
+        register("empty_cup", EMPTY_CUP);
+        register("trash_can", TRASH_CAN);
+        register("millstone", MILLSTONE);
+        register("oil_pot", OIL_POT);
+        register("cold_cut_ham_slices", COLD_CUT_HAM_SLICES);
+
+        TeacupRegistry.forEachData((id, data) -> {
+            Block block = BuiltInRegistries.BLOCK.getOptional(id)
+                    .orElseThrow(() -> new IllegalStateException("Missing registered teacup block: " + id));
+            if (!(block instanceof TeacupBlock teacupBlock)) {
+                throw new IllegalStateException("Registered teacup block has unexpected type: " + id);
+            }
+            register(id, new TeacupItem(teacupBlock, blockItemProperties(id.getPath()).stacksTo(16), data.getEffects()));
+        });
 
 
         // Tools
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "iron_kitchen_knife"), IRON_KITCHEN_KNIFE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "gold_kitchen_knife"), GOLD_KITCHEN_KNIFE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "diamond_kitchen_knife"), DIAMOND_KITCHEN_KNIFE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "netherite_kitchen_knife"), NETHERITE_KITCHEN_KNIFE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sickle"), SICKLE);
+        register("iron_kitchen_knife", IRON_KITCHEN_KNIFE);
+        register("gold_kitchen_knife", GOLD_KITCHEN_KNIFE);
+        register("diamond_kitchen_knife", DIAMOND_KITCHEN_KNIFE);
+        register("netherite_kitchen_knife", NETHERITE_KITCHEN_KNIFE);
+        register("sickle", SICKLE);
 
         // Special items
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "recipe_item"), RECIPE_ITEM);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "kitchen_shovel"), KITCHEN_SHOVEL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fruit_basket"), FRUIT_BASKET);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "scarecrow"), SCARECROW);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "straw_hat"), STRAW_HAT);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "straw_hat_flower"), STRAW_HAT_FLOWER);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "farmer_chest_plate"), FARMER_CHEST_PLATE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "farmer_leggings"), FARMER_LEGGINGS);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "farmer_boots"), FARMER_BOOTS);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "transmutation_lunch_bag"), TRANSMUTATION_LUNCH_BAG);
+        register("recipe_item", RECIPE_ITEM);
+        register("kitchen_shovel", KITCHEN_SHOVEL);
+        register("fruit_basket", FRUIT_BASKET);
+        register("scarecrow", SCARECROW);
+        register("straw_hat", STRAW_HAT);
+        register("straw_hat_flower", STRAW_HAT_FLOWER);
+        register("farmer_chest_plate", FARMER_CHEST_PLATE);
+        register("farmer_leggings", FARMER_LEGGINGS);
+        register("farmer_boots", FARMER_BOOTS);
+        register("transmutation_lunch_bag", TRANSMUTATION_LUNCH_BAG);
 
         // Seeds
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "tomato_seed"), TOMATO_SEED);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chili_seed"), CHILI_SEED);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "lettuce_seed"), LETTUCE_SEED);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "rice"), RICE_SEED);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "wild_rice"), WILD_RICE_SEED);
+        register("tomato_seed", TOMATO_SEED);
+        register("chili_seed", CHILI_SEED);
+        register("lettuce_seed", LETTUCE_SEED);
+        register("rice", RICE_SEED);
+        register("wild_rice", WILD_RICE_SEED);
 
         // Cook stools
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_oak"), COOK_STOOL_OAK);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_spruce"), COOK_STOOL_SPRUCE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_acacia"), COOK_STOOL_ACACIA);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_bamboo"), COOK_STOOL_BAMBOO);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_birch"), COOK_STOOL_BIRCH);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_cherry"), COOK_STOOL_CHERRY);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_crimson"), COOK_STOOL_CRIMSON);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_dark_oak"), COOK_STOOL_DARK_OAK);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_jungle"), COOK_STOOL_JUNGLE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_mangrove"), COOK_STOOL_MANGROVE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cook_stool_warped"), COOK_STOOL_WARPED);
+        register("cook_stool_oak", COOK_STOOL_OAK);
+        register("cook_stool_spruce", COOK_STOOL_SPRUCE);
+        register("cook_stool_acacia", COOK_STOOL_ACACIA);
+        register("cook_stool_bamboo", COOK_STOOL_BAMBOO);
+        register("cook_stool_birch", COOK_STOOL_BIRCH);
+        register("cook_stool_cherry", COOK_STOOL_CHERRY);
+        register("cook_stool_crimson", COOK_STOOL_CRIMSON);
+        register("cook_stool_dark_oak", COOK_STOOL_DARK_OAK);
+        register("cook_stool_jungle", COOK_STOOL_JUNGLE);
+        register("cook_stool_mangrove", COOK_STOOL_MANGROVE);
+        register("cook_stool_warped", COOK_STOOL_WARPED);
 
         // Chairs
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_oak"), CHAIR_OAK);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_spruce"), CHAIR_SPRUCE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_acacia"), CHAIR_ACACIA);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_bamboo"), CHAIR_BAMBOO);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_birch"), CHAIR_BIRCH);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_cherry"), CHAIR_CHERRY);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_crimson"), CHAIR_CRIMSON);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_dark_oak"), CHAIR_DARK_OAK);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_jungle"), CHAIR_JUNGLE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_mangrove"), CHAIR_MANGROVE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chair_warped"), CHAIR_WARPED);
+        register("chair_oak", CHAIR_OAK);
+        register("chair_spruce", CHAIR_SPRUCE);
+        register("chair_acacia", CHAIR_ACACIA);
+        register("chair_bamboo", CHAIR_BAMBOO);
+        register("chair_birch", CHAIR_BIRCH);
+        register("chair_cherry", CHAIR_CHERRY);
+        register("chair_crimson", CHAIR_CRIMSON);
+        register("chair_dark_oak", CHAIR_DARK_OAK);
+        register("chair_jungle", CHAIR_JUNGLE);
+        register("chair_mangrove", CHAIR_MANGROVE);
+        register("chair_warped", CHAIR_WARPED);
 
         // Tables
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_oak"), TABLE_OAK);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_spruce"), TABLE_SPRUCE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_acacia"), TABLE_ACACIA);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_bamboo"), TABLE_BAMBOO);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_birch"), TABLE_BIRCH);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_cherry"), TABLE_CHERRY);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_crimson"), TABLE_CRIMSON);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_dark_oak"), TABLE_DARK_OAK);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_jungle"), TABLE_JUNGLE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_mangrove"), TABLE_MANGROVE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table_warped"), TABLE_WARPED);
+        register("table_oak", TABLE_OAK);
+        register("table_spruce", TABLE_SPRUCE);
+        register("table_acacia", TABLE_ACACIA);
+        register("table_bamboo", TABLE_BAMBOO);
+        register("table_birch", TABLE_BIRCH);
+        register("table_cherry", TABLE_CHERRY);
+        register("table_crimson", TABLE_CRIMSON);
+        register("table_dark_oak", TABLE_DARK_OAK);
+        register("table_jungle", TABLE_JUNGLE);
+        register("table_mangrove", TABLE_MANGROVE);
+        register("table_warped", TABLE_WARPED);
 
         // Food items
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "tomato"), TOMATO);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "red_chili"), RED_CHILI);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "green_chili"), GREEN_CHILI);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "lettuce"), LETTUCE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "rice_panicle"), RICE_PANICLE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "caterpillar"), CATERPILLAR);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fried_egg"), FRIED_EGG);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "donkey_burger"), DONKEY_BURGER);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "baozi"), BAOZI);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "mantou"), MANTOU);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "samsa"), SAMSA);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "dumpling"), DUMPLING);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "meat_pie"), MEAT_PIE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_dough"), RAW_DOUGH);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "flour"), FLOUR);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_noodles"), RAW_NOODLES);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stuffed_dough_food"), STUFFED_DOUGH_FOOD);
+        register("tomato", TOMATO);
+        register("red_chili", RED_CHILI);
+        register("green_chili", GREEN_CHILI);
+        register("lettuce", LETTUCE);
+        register("rice_panicle", RICE_PANICLE);
+        register("caterpillar", CATERPILLAR);
+        register("fried_egg", FRIED_EGG);
+        register("donkey_burger", DONKEY_BURGER);
+        register("baozi", BAOZI);
+        register("mantou", MANTOU);
+        register("samsa", SAMSA);
+        register("dumpling", DUMPLING);
+        register("meat_pie", MEAT_PIE);
+        register("qingtuan", QINGTUAN);
+        register("sticky_candy", STICKY_CANDY);
+        register("sticky_rice_cake", STICKY_RICE_CAKE);
+        register("zongzi", ZONGZI);
+        register("raw_zongzi", RAW_ZONGZI);
+        register("raw_bamboo_tube_rice", RAW_BAMBOO_TUBE_RICE);
+        register("bamboo_tube_rice", BAMBOO_TUBE_RICE);
+        register("raw_dough", RAW_DOUGH);
+        register("flour", FLOUR);
+        register("raw_noodles", RAW_NOODLES);
+        register("stuffed_dough_food", STUFFED_DOUGH_FOOD);
 
         // Bowl foods
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_rice"), COOKED_RICE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "scramble_egg_with_tomatoes"), SCRAMBLE_EGG_WITH_TOMATOES);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "scramble_egg_with_tomatoes_rice_bowl"), SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stir_fried_beef_offal"), STIR_FRIED_BEEF_OFFAL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stir_fried_beef_offal_rice_bowl"), STIR_FRIED_BEEF_OFFAL_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "braised_beef"), BRAISED_BEEF);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "braised_beef_rice_bowl"), BRAISED_BEEF_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stir_fried_pork_with_peppers"), STIR_FRIED_PORK_WITH_PEPPERS);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stir_fried_pork_with_peppers_rice_bowl"), STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sweet_and_sour_pork"), SWEET_AND_SOUR_PORK);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sweet_and_sour_pork_rice_bowl"), SWEET_AND_SOUR_PORK_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "country_style_mixed_vegetables"), COUNTRY_STYLE_MIXED_VEGETABLES);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fish_flavored_shredded_pork"), FISH_FLAVORED_SHREDDED_PORK);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fish_flavored_shredded_pork_rice_bowl"), FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "braised_fish_rice_bowl"), BRAISED_FISH_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "spicy_chicken_rice_bowl"), SPICY_CHICKEN_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "suspicious_stir_fry_rice_bowl"), SUSPICIOUS_STIR_FRY_RICE_BOWL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "egg_fried_rice"), EGG_FRIED_RICE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "delicious_egg_fried_rice"), DELICIOUS_EGG_FRIED_RICE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "pork_bone_soup"), PORK_BONE_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "seafood_miso_soup"), SEAFOOD_MISO_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fearsome_thick_soup"), FEARSOME_THICK_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "lamb_and_radish_soup"), LAMB_AND_RADISH_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "braised_beef_with_potatoes"), BRAISED_BEEF_WITH_POTATOES);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "wild_mushroom_rabbit_soup"), WILD_MUSHROOM_RABBIT_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "tomato_beef_brisket_soup"), TOMATO_BEEF_BRISKET_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "pufferfish_soup"), PUFFERFISH_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "borscht"), BORSCHT);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "beef_meatball_soup"), BEEF_MEATBALL_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chicken_and_mushroom_stew"), CHICKEN_AND_MUSHROOM_STEW);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "donkey_soup"), DONKEY_SOUP);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "beef_noodle"), BEEF_NOODLE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "hui_noodle"), HUI_NOODLE);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "udon_noodle"), UDON_NOODLE);
+        register("cooked_rice", COOKED_RICE);
+        register("scramble_egg_with_tomatoes", SCRAMBLE_EGG_WITH_TOMATOES);
+        register("scramble_egg_with_tomatoes_rice_bowl", SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL);
+        register("stir_fried_beef_offal", STIR_FRIED_BEEF_OFFAL);
+        register("stir_fried_beef_offal_rice_bowl", STIR_FRIED_BEEF_OFFAL_RICE_BOWL);
+        register("braised_beef", BRAISED_BEEF);
+        register("braised_beef_rice_bowl", BRAISED_BEEF_RICE_BOWL);
+        register("stir_fried_pork_with_peppers", STIR_FRIED_PORK_WITH_PEPPERS);
+        register("stir_fried_pork_with_peppers_rice_bowl", STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL);
+        register("sweet_and_sour_pork", SWEET_AND_SOUR_PORK);
+        register("sweet_and_sour_pork_rice_bowl", SWEET_AND_SOUR_PORK_RICE_BOWL);
+        register("country_style_mixed_vegetables", COUNTRY_STYLE_MIXED_VEGETABLES);
+        register("fish_flavored_shredded_pork", FISH_FLAVORED_SHREDDED_PORK);
+        register("fish_flavored_shredded_pork_rice_bowl", FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL);
+        register("braised_fish_rice_bowl", BRAISED_FISH_RICE_BOWL);
+        register("spicy_chicken_rice_bowl", SPICY_CHICKEN_RICE_BOWL);
+        register("suspicious_stir_fry_rice_bowl", SUSPICIOUS_STIR_FRY_RICE_BOWL);
+        register("egg_fried_rice", EGG_FRIED_RICE);
+        register("delicious_egg_fried_rice", DELICIOUS_EGG_FRIED_RICE);
+        register("pork_bone_soup", PORK_BONE_SOUP);
+        register("seafood_miso_soup", SEAFOOD_MISO_SOUP);
+        register("fearsome_thick_soup", FEARSOME_THICK_SOUP);
+        register("lamb_and_radish_soup", LAMB_AND_RADISH_SOUP);
+        register("braised_beef_with_potatoes", BRAISED_BEEF_WITH_POTATOES);
+        register("wild_mushroom_rabbit_soup", WILD_MUSHROOM_RABBIT_SOUP);
+        register("tomato_beef_brisket_soup", TOMATO_BEEF_BRISKET_SOUP);
+        register("pufferfish_soup", PUFFERFISH_SOUP);
+        register("borscht", BORSCHT);
+        register("beef_meatball_soup", BEEF_MEATBALL_SOUP);
+        register("chicken_and_mushroom_stew", CHICKEN_AND_MUSHROOM_STEW);
+        register("donkey_soup", DONKEY_SOUP);
+        register("beef_noodle", BEEF_NOODLE);
+        register("hui_noodle", HUI_NOODLE);
+        register("udon_noodle", UDON_NOODLE);
+        register("hot_dry_noodles", HOT_DRY_NOODLES);
+        register("laba_congee", LABA_CONGEE);
 
         // Raw and cooked foods
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sashimi"), SASHIMI);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_lamb_chops"), RAW_LAMB_CHOPS);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_cow_offal"), RAW_COW_OFFAL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_pork_belly"), RAW_PORK_BELLY);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_donkey_meat"), RAW_DONKEY_MEAT);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_cut_small_meats"), RAW_CUT_SMALL_MEATS);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "raw_meatball"), RAW_MEATBALL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_lamb_chops"), COOKED_LAMB_CHOPS);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_cow_offal"), COOKED_COW_OFFAL);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_pork_belly"), COOKED_PORK_BELLY);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_donkey_meat"), COOKED_DONKEY_MEAT);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_cut_small_meats"), COOKED_CUT_SMALL_MEATS);
-        Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooked_meatball"), COOKED_MEATBALL);
+        register("sashimi", SASHIMI);
+        register("raw_lamb_chops", RAW_LAMB_CHOPS);
+        register("raw_cow_offal", RAW_COW_OFFAL);
+        register("raw_pork_belly", RAW_PORK_BELLY);
+        register("raw_donkey_meat", RAW_DONKEY_MEAT);
+        register("raw_cut_small_meats", RAW_CUT_SMALL_MEATS);
+        register("raw_meatball", RAW_MEATBALL);
+        register("cooked_lamb_chops", COOKED_LAMB_CHOPS);
+        register("cooked_cow_offal", COOKED_COW_OFFAL);
+        register("cooked_pork_belly", COOKED_PORK_BELLY);
+        register("cooked_donkey_meat", COOKED_DONKEY_MEAT);
+        register("cooked_cut_small_meats", COOKED_CUT_SMALL_MEATS);
+        register("cooked_meatball", COOKED_MEATBALL);
     }
 }

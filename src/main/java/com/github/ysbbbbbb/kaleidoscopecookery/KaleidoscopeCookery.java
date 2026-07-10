@@ -1,15 +1,29 @@
 package com.github.ysbbbbbb.kaleidoscopecookery;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
-import com.github.ysbbbbbb.kaleidoscopecookery.event.ExtraLootTableDrop;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.*;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModCreativeTabs;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModLootModifier;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModParticles;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModPoi;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSounds;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrades;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModVillager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.CommonRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.network.NetworkHandler;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 
-public class KaleidoscopeCookery implements ModInitializer {
+public final class KaleidoscopeCookery implements ModInitializer {
     public static final String MOD_ID = "kaleidoscope_cookery";
     public static final Logger LOGGER = LogUtils.getLogger();
 
@@ -22,7 +36,6 @@ public class KaleidoscopeCookery implements ModInitializer {
         CommonRegistry.init();
         NetworkHandler.init();
 
-        ModArmorMaterials.registerArmorMaterials();
         ModTrigger.init();
         ModBlocks.registerBlocks();
         ModItems.registerItems();
@@ -39,8 +52,5 @@ public class KaleidoscopeCookery implements ModInitializer {
         ModDataComponents.registerDataComponents();
         // 事件
         ModEvents.init();
-
-        // 注册额外的战利品表事件
-        ExtraLootTableDrop.register();
     }
 }
