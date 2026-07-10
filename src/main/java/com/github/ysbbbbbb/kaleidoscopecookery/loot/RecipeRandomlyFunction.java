@@ -3,7 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.loot;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModLootModifier;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModLootTypes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
@@ -41,7 +41,7 @@ public class RecipeRandomlyFunction extends LootItemConditionalFunction {
 
     @Override
     public @NotNull MapCodec<? extends LootItemConditionalFunction> codec() {
-        return ModLootModifier.RECIPE_RANDOMLY;
+        return ModLootTypes.RECIPE_RANDOMLY;
     }
 
     @Override

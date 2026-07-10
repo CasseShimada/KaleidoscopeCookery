@@ -1,8 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.loot;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModLootModifier;
-import com.google.common.collect.ImmutableSet;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModLootTypes;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.advancements.predicates.ItemPredicate;
@@ -35,12 +34,12 @@ public class AdvanceBlockMatchTool implements LootItemCondition {
 
     @Override
     public MapCodec<? extends LootItemCondition> codec() {
-        return ModLootModifier.ADVANCE_BLOCK_MATCH_TOOL;
+        return ModLootTypes.ADVANCE_BLOCK_MATCH_TOOL;
     }
 
     @Override
     public Set<ContextKey<?>> getReferencedContextParams() {
-        return ImmutableSet.of(LootContextParams.THIS_ENTITY);
+        return Set.of(LootContextParams.THIS_ENTITY);
     }
 
     @Override
@@ -55,7 +54,7 @@ public class AdvanceBlockMatchTool implements LootItemCondition {
         return false;
     }
 
-    public static Builder toolMatches(EquipmentSlot slot, ItemPredicate builder) {
-        return () -> new AdvanceBlockMatchTool(slot, builder);
+    public static Builder toolMatches(EquipmentSlot slot, ItemPredicate predicate) {
+        return () -> new AdvanceBlockMatchTool(slot, predicate);
     }
 }

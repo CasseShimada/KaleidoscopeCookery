@@ -8,7 +8,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModLootModifier;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModLootTypes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModParticles;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModPoi;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
@@ -48,7 +48,7 @@ public final class KaleidoscopeCookery implements ModInitializer {
         ModSounds.registerSounds();
         ModParticles.registerParticles();
         ModRecipes.registerRecipes();
-        ModLootModifier.registerLootModifiers();
+        ModLootTypes.registerLootTypes();
         ModSoupBases.registerSoupBases();
         // 事件
         ModEvents.init();
