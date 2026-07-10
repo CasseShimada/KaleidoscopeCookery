@@ -4,6 +4,9 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.SpecialRecipeItemEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialFinishEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialRecipeEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.ServerEntityLoadEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FlatulenceServerEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.SatiatedShieldEvent;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 
@@ -57,6 +60,9 @@ public final class ModEvents {
             });
 
     public static void init() {
+        SatiatedShieldEvent.register();
+        FlatulenceServerEvent.register();
+        ServerEntityLoadEvent.register();
         MillstoneSpecialRecipeEvent.register();
         MillstoneSpecialFinishEvent.register();
         SpecialRecipeItemEvent.register();
