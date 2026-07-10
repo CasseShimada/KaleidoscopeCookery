@@ -1,31 +1,31 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.client.event;
 
+import com.github.ysbbbbbb.kaleidoscopecookery.client.network.ClientNetworkHandler;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
-import com.github.ysbbbbbb.kaleidoscopecookery.network.message.FlatulenceMessage;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.phys.Vec3;
 
 @Environment(EnvType.CLIENT)
-public class FlatulenceEvent {
+public final class FlatulenceClientEvent {
     private static boolean wasShiftPressed = false;
 
+    private FlatulenceClientEvent() {
+    }
+
     public static void register() {
-        ClientTickEvents.END_CLIENT_TICK.register(FlatulenceEvent::onClientTick);
+        ClientTickEvents.END_CLIENT_TICK.register(FlatulenceClientEvent::onClientTick);
     }
 
     private static void onClientTick(Minecraft client) {
         KeyMapping keyShift = client.options.keyShift;
         boolean isShiftPressed = keyShift.isDown();
 
-        // 检测 Shift 键的按下事件（从未按下变为按下）
         if (isShiftPressed && !wasShiftPressed) {
-            if (!isInGame()) {
+            if (!isInGame(client)) {
                 return;
             }
             LocalPlayer player = client.player;
@@ -36,24 +36,18 @@ public class FlatulenceEvent {
                 return;
             }
             keyShift.consumeClick();
-            player.addDeltaMovement(new Vec3(0, 0.75, 0));
-            if (ClientPlayNetworking.canSend(FlatulenceMessage.TYPE)) {
-                ClientPlayNetworking.send(new FlatulenceMessage());
-            }
+            ClientNetworkHandler.sendFlatulence();
         }
         wasShiftPressed = isShiftPressed;
     }
 
-    private static boolean isInGame() {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.level == null) {
+    private static boolean isInGame(Minecraft client) {
+        if (client.player == null || client.level == null) {
             return false;
         }
-        // 当前窗口捕获鼠标操作
-        if (!mc.mouseHandler.isMouseGrabbed()) {
+        if (!client.mouseHandler.isMouseGrabbed()) {
             return false;
         }
-        // 选择了当前窗口
-        return mc.isWindowActive();
+        return client.isWindowActive();
     }
 }
