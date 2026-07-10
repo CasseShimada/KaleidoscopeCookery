@@ -15,6 +15,7 @@ MIXINS = ROOT / "src/main/resources/kaleidoscope_cookery.mixins.json"
 MOD_EVENTS = SRC / "init/ModEvents.java"
 
 SERVER_EVENT_REGISTRATIONS = {
+    "FarmerArmorEffectEvent": SRC / "event/server/effect/FarmerArmorEffectEvent.java",
     "SatiatedShieldEvent": SRC / "event/server/effect/SatiatedShieldEvent.java",
     "FlatulenceServerEvent": SRC / "event/server/effect/FlatulenceServerEvent.java",
     "PreservationEvent": SRC / "event/server/effect/PreservationEvent.java",
@@ -22,6 +23,7 @@ SERVER_EVENT_REGISTRATIONS = {
 }
 
 LEGACY_SERVER_EVENT_PATHS = (
+    SRC / "event/ArmorEffectHandler.java",
     SRC / "event/effect/FlatulenceServerEvent.java",
     SRC / "event/effect/PreservationEvent.java",
     SRC / "event/effect/SatiatedShieldEvent.java",
