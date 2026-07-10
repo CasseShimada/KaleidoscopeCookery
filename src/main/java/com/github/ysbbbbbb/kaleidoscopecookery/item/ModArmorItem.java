@@ -1,11 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
-import net.minecraft.world.item.equipment.Equippable;
 
 public class ModArmorItem extends Item {
     private final ArmorMaterial material;
@@ -26,14 +23,6 @@ public class ModArmorItem extends Item {
     }
 
     private static Properties applyArmorProperties(ArmorMaterial material, ArmorType type, Properties properties) {
-        EquipmentSlot slot = type.getSlot();
-        return properties
-                .durability(type.getDurability(material.durability()))
-                .component(DataComponents.EQUIPPABLE, Equippable.builder(slot)
-                        .setEquipSound(material.equipSound())
-                        .setAsset(material.assetId())
-                        .setDamageOnHurt(true)
-                        .build())
-                .attributes(material.createAttributes(type));
+        return properties.humanoidArmor(material, type);
     }
 }
