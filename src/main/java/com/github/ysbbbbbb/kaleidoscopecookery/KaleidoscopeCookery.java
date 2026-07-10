@@ -14,7 +14,6 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModPoi;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSounds;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrades;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModVillager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.CommonRegistry;
@@ -47,7 +46,6 @@ public final class KaleidoscopeCookery implements ModInitializer {
         ModParticles.registerParticles();
         ModRecipes.registerRecipes();
         ModLootModifier.registerLootModifiers();
-        ModTrades.registerTrades();
         ModSoupBases.registerSoupBases();
         ModDataComponents.registerDataComponents();
         // 事件
