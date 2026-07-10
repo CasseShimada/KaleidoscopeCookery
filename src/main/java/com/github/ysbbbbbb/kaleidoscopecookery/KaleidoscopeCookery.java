@@ -31,6 +31,8 @@ public final class KaleidoscopeCookery implements ModInitializer {
         GeneralConfig.init();
         // 药水效果优先注册
         ModEffects.registerEffects();
+        // Data components must exist before item static initialization.
+        ModDataComponents.registerDataComponents();
 
         CommonRegistry.init();
         NetworkHandler.init();
@@ -47,7 +49,6 @@ public final class KaleidoscopeCookery implements ModInitializer {
         ModRecipes.registerRecipes();
         ModLootModifier.registerLootModifiers();
         ModSoupBases.registerSoupBases();
-        ModDataComponents.registerDataComponents();
         // 事件
         ModEvents.init();
     }
