@@ -63,9 +63,11 @@ public final class MillstoneSpecialRecipeEvent {
         ItemUtils.getItemToLivingEntity(user, output.copy());
 
         // 消耗一个容器，并返还
-        Item containerItem = ItemUtils.getContainerItem(heldItem.split(1));
-        if (containerItem != Items.AIR) {
-            ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
+        if (!user.hasInfiniteMaterials()) {
+            Item containerItem = ItemUtils.getContainerItem(heldItem.split(1));
+            if (containerItem != Items.AIR) {
+                ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
+            }
         }
 
         millstone.resetWhenTakeout();
@@ -99,7 +101,7 @@ public final class MillstoneSpecialRecipeEvent {
         // 不足 8 个时，概率产出
         RandomSource random = user.level().getRandom();
         if (random.nextInt(8) < output.getCount()) {
-            ItemStack takeItem = heldItem.split(1);
+            ItemStack takeItem = user.hasInfiniteMaterials() ? heldItem.copyWithCount(1) : heldItem.split(1);
             OilPotItem.setOilCount(takeItem, oilCount + 1);
             ItemUtils.getItemToLivingEntity(user, takeItem);
         }

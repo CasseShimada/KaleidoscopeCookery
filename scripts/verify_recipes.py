@@ -153,6 +153,18 @@ def main() -> int:
         if re.search(r"public\s+static\s+void\s+(?:onMillstoneTakeItem|onCheckItemEvent|onDeductItemEvent)\s*\(\s*\)", event_text):
             errors.append(f"{event_class} still exposes a legacy action-named registration method.")
 
+    millstone_special_event = strip_comments(read(RECIPE_EVENT_FILES["MillstoneSpecialRecipeEvent"]))
+    creative_container_guard = re.search(
+        r"if\s*\(\s*!user\.hasInfiniteMaterials\(\)\s*\)\s*\{.*?"
+        r"ItemUtils\.getContainerItem\(heldItem\.split\(1\)\)",
+        millstone_special_event,
+        flags=re.DOTALL,
+    )
+    if creative_container_guard is None:
+        errors.append("Millstone raw dough handling consumes a container in creative mode.")
+    if "user.hasInfiniteMaterials() ? heldItem.copyWithCount(1) : heldItem.split(1)" not in millstone_special_event:
+        errors.append("Millstone oil pot handling does not preserve the creative-mode held stack.")
+
     declared_serializers = set(serializers)
     registered_serializer_consts = set(serializer_registrations)
     if declared_serializers != registered_serializer_consts:
