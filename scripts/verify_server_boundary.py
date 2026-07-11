@@ -16,6 +16,7 @@ MOD_EVENTS = SRC / "init/ModEvents.java"
 
 SERVER_EVENT_REGISTRATIONS = {
     "FarmerArmorEffectEvent": SRC / "event/server/effect/FarmerArmorEffectEvent.java",
+    "InstantSmeltingEffectEvent": SRC / "event/server/effect/InstantSmeltingEffectEvent.java",
     "SatiatedShieldEvent": SRC / "event/server/effect/SatiatedShieldEvent.java",
     "FlatulenceServerEvent": SRC / "event/server/effect/FlatulenceServerEvent.java",
     "PreservationEvent": SRC / "event/server/effect/PreservationEvent.java",
@@ -28,6 +29,9 @@ LEGACY_SERVER_EVENT_PATHS = (
     SRC / "event/effect/PreservationEvent.java",
     SRC / "event/effect/SatiatedShieldEvent.java",
 )
+
+INSTANT_SMELTING_EVENT = SRC / "event/server/effect/InstantSmeltingEffectEvent.java"
+LEGACY_INSTANT_SMELTING_MIXIN = SRC / "mixin/BlockMixin.java"
 
 CLIENT_ONLY_PATHS = (
     "client/",
@@ -89,6 +93,22 @@ def main() -> int:
     for path in LEGACY_SERVER_EVENT_PATHS:
         if path.exists():
             errors.append(f"Legacy duplicate server event still exists: {path.relative_to(ROOT)}")
+
+    if INSTANT_SMELTING_EVENT.exists():
+        instant_smelting_text = INSTANT_SMELTING_EVENT.read_text(encoding="utf-8")
+        for required_reference in (
+            "LootTableEvents.MODIFY_DROPS",
+            "LootContextParams.BLOCK_STATE",
+            "LootContextParams.THIS_ENTITY",
+            "ConventionalBlockTags.ORES",
+            "isRootBlockLootTable",
+        ):
+            if required_reference not in instant_smelting_text:
+                errors.append(f"Instant smelting event is missing {required_reference}.")
+    if LEGACY_INSTANT_SMELTING_MIXIN.exists():
+        errors.append(f"Legacy instant smelting mixin still exists: {LEGACY_INSTANT_SMELTING_MIXIN.relative_to(ROOT)}")
+    if "BlockMixin" in mixin_data.get("mixins", []):
+        errors.append("Legacy instant smelting BlockMixin is still registered.")
 
     if errors:
         print("Server boundary verification failed:")

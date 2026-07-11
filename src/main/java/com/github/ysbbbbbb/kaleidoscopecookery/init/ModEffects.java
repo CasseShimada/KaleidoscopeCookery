@@ -17,6 +17,7 @@ public class ModEffects {
     public static Holder<MobEffect> SULFUR;
     public static Holder<MobEffect> MUSTARD;
     public static Holder<MobEffect> PRESERVATION;
+    public static Holder<MobEffect> INSTANT_SMELTING;
 
     public static void registerEffects() {
         FLATULENCE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "flatulence"), new FlatulenceEffect(0xFFC6C6));
@@ -27,5 +28,6 @@ public class ModEffects {
         SULFUR = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sulfur"), new SulfurEffect(0xE8B75E));
         MUSTARD = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "mustard"), new BaseEffect(0x5A6D09));
         PRESERVATION = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "preservation"), new BaseEffect(0xAEC639));
+        INSTANT_SMELTING = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "instant_smelting"), new BaseEffect(0xF07C1C));
     }
 }
