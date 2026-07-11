@@ -20,6 +20,7 @@ public class ModEffects {
     public static Holder<MobEffect> INSTANT_SMELTING;
     public static Holder<MobEffect> HINDER;
     public static Holder<MobEffect> VITALITY;
+    public static Holder<MobEffect> PROJECTILE_DODGE;
 
     public static void registerEffects() {
         FLATULENCE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "flatulence"), new FlatulenceEffect(0xFFC6C6));
@@ -33,5 +34,6 @@ public class ModEffects {
         INSTANT_SMELTING = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "instant_smelting"), new BaseEffect(0xF07C1C));
         HINDER = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "hinder"), new BaseEffect(0x9E7E5A));
         VITALITY = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "vitality"), new BaseEffect(0x6A9E4E));
+        PROJECTILE_DODGE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "projectile_dodge"), new BaseEffect(0x8E27F7));
     }
 }

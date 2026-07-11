@@ -38,6 +38,9 @@ INSTANT_SMELTING_EVENT = SRC / "event/server/effect/InstantSmeltingEffectEvent.j
 LEGACY_INSTANT_SMELTING_MIXIN = SRC / "mixin/BlockMixin.java"
 HINDER_EFFECT_EVENT = SRC / "event/server/effect/HinderEffectEvent.java"
 VITALITY_EFFECT_EVENT = SRC / "event/server/effect/VitalityEffectEvent.java"
+PROJECTILE_DODGE_HANDLER = SRC / "event/server/effect/ProjectileDodgeHandler.java"
+PROJECTILE_MIXIN = SRC / "mixin/ProjectileMixin.java"
+LEGACY_NEW_EFFECT_EVENTS = SRC / "event/server/effect/NewEffectEvents.java"
 
 CLIENT_ONLY_PATHS = (
     "client/",
@@ -135,6 +138,38 @@ def main() -> int:
         ):
             if required_reference not in vitality_text:
                 errors.append(f"Vitality effect event is missing {required_reference}.")
+
+    if LEGACY_NEW_EFFECT_EVENTS.exists():
+        errors.append(f"Legacy combined effect handler still exists: {LEGACY_NEW_EFFECT_EVENTS.relative_to(ROOT)}")
+
+    if not PROJECTILE_DODGE_HANDLER.exists():
+        errors.append(f"Projectile dodge handler is missing: {PROJECTILE_DODGE_HANDLER.relative_to(ROOT)}")
+    else:
+        projectile_handler_text = PROJECTILE_DODGE_HANDLER.read_text(encoding="utf-8")
+        for required_reference in (
+            "DODGE_DURATION_COST = 200",
+            "living.hasEffect(ModEffects.PROJECTILE_DODGE)",
+            "randomTeleport",
+        ):
+            if required_reference not in projectile_handler_text:
+                errors.append(f"Projectile dodge handler is missing {required_reference}.")
+
+    if not PROJECTILE_MIXIN.exists():
+        errors.append(f"Projectile mixin is missing: {PROJECTILE_MIXIN.relative_to(ROOT)}")
+    else:
+        projectile_mixin_text = PROJECTILE_MIXIN.read_text(encoding="utf-8")
+        for required_reference in (
+            "hitTargetOrDeflectSelf",
+            "CallbackInfoReturnable<ProjectileDeflection>",
+            "ProjectileDodgeHandler.dodgeProjectile",
+            "ProjectileDeflection.NONE",
+        ):
+            if required_reference not in projectile_mixin_text:
+                errors.append(f"Projectile mixin is missing {required_reference}.")
+        if 'method = "onHitEntity"' in projectile_mixin_text:
+            errors.append("Projectile mixin still injects the overridable onHitEntity method.")
+    if "ProjectileMixin" not in mixin_data.get("mixins", []):
+        errors.append("ProjectileMixin is not registered as a common mixin.")
 
     if errors:
         print("Server boundary verification failed:")
