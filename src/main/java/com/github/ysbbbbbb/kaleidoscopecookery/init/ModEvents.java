@@ -6,6 +6,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.CaterpillarChic
 import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.WetFieldHoeUseEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialFinishEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialRecipeEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.SickleHarvestNetherWartEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.ServerEntityLoadEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FarmerArmorEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FlatulenceServerEvent;
@@ -76,6 +77,7 @@ public final class ModEvents {
         VitalityEffectEvent.register();
         WetFieldHoeUseEvent.register();
         CaterpillarChickenFeedEvent.register();
+        SickleHarvestNetherWartEvent.register();
         ServerEntityLoadEvent.register();
         MillstoneSpecialRecipeEvent.register();
         MillstoneSpecialFinishEvent.register();

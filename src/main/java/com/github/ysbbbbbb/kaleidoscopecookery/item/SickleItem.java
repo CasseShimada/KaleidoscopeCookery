@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -53,6 +54,11 @@ public class SickleItem extends Item {
     }
 
     @Override
+    public boolean canDestroyBlock(ItemStack stack, BlockState state, Level level, BlockPos pos, LivingEntity entity) {
+        return true;
+    }
+
+    @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
         // 生成挥动音效和粒子
         Player player = context.getPlayer();
@@ -82,7 +88,9 @@ public class SickleItem extends Item {
                 player.getX(), player.getY(), player.getZ(),
                 SoundEvents.PLAYER_ATTACK_SWEEP, player.getSoundSource(),
                 1.0F, 1.0F);
-        stack.hurtAndBreak(breakCount, player, EquipmentSlot.MAINHAND);
+        if (!player.hasInfiniteMaterials() && breakCount > 0) {
+            stack.hurtAndBreak(breakCount, player, EquipmentSlot.MAINHAND);
+        }
         player.getCooldowns().addCooldown(stack, 10);
         return InteractionResult.SUCCESS;
     }

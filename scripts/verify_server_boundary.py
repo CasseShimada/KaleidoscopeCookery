@@ -22,6 +22,7 @@ SERVER_EVENT_REGISTRATIONS = {
     "FlatulenceServerEvent": SRC / "event/server/effect/FlatulenceServerEvent.java",
     "PreservationEvent": SRC / "event/server/effect/PreservationEvent.java",
     "ServerEntityLoadEvent": SRC / "event/server/ServerEntityLoadEvent.java",
+    "SickleHarvestNetherWartEvent": SRC / "event/server/SickleHarvestNetherWartEvent.java",
     "VitalityEffectEvent": SRC / "event/server/effect/VitalityEffectEvent.java",
 }
 
@@ -37,6 +38,7 @@ LEGACY_SERVER_EVENT_PATHS = (
     SRC / "event/effect/PreservationEvent.java",
     SRC / "event/effect/SatiatedShieldEvent.java",
     SRC / "event/effect/VitalityEvent.java",
+    SRC / "event/SickleHarvestNetherWartEvent.java",
 )
 
 LEGACY_INTERACTION_EVENT_PATHS = (
@@ -56,6 +58,8 @@ LEGACY_NEW_EFFECT_EVENTS = SRC / "event/server/effect/NewEffectEvents.java"
 WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
 CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeedEvent.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
+SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
+SICKLE_ITEM = SRC / "item/SickleItem.java"
 
 CLIENT_ONLY_PATHS = (
     "client/",
@@ -224,6 +228,35 @@ def main() -> int:
     ):
         if required_reference not in fruit_basket_text:
             errors.append(f"Fruit basket native interaction is missing {required_reference}.")
+
+    if SICKLE_NETHER_WART_EVENT.exists():
+        sickle_nether_wart_text = SICKLE_NETHER_WART_EVENT.read_text(encoding="utf-8")
+        for required_reference in (
+            "if (!serverPlayer.gameMode.destroyBlock(pos))",
+            "level.getBlockState(pos).isAir()",
+            "Blocks.NETHER_WART.defaultBlockState()",
+            "event.setCostDurability(true)",
+            "event.setCanceled(true)",
+        ):
+            if required_reference not in sickle_nether_wart_text:
+                errors.append(f"Sickle nether wart event is missing {required_reference}.")
+        for duplicate_side_effect in ("LevelEvent.PARTICLES_DESTROY_BLOCK",):
+            if duplicate_side_effect in sickle_nether_wart_text:
+                errors.append(f"Sickle nether wart event retains duplicate side effect: {duplicate_side_effect}.")
+
+    sickle_item_text = SICKLE_ITEM.read_text(encoding="utf-8")
+    if re.search(
+        r"public\s+boolean\s+canDestroyBlock\s*\([^)]*LivingEntity\s+\w+\s*\)\s*\{\s*return\s+true\s*;\s*\}",
+        sickle_item_text,
+        re.DOTALL,
+    ) is None:
+        errors.append("SickleItem does not preserve creative-mode block destruction.")
+    for required_reference in (
+        "!player.hasInfiniteMaterials()",
+        "breakCount > 0",
+    ):
+        if required_reference not in sickle_item_text:
+            errors.append(f"SickleItem durability handling is missing {required_reference}.")
 
     if errors:
         print("Server boundary verification failed:")
