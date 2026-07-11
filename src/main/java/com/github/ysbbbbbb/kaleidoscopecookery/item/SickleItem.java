@@ -21,9 +21,9 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.LevelEvent;
+import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -140,8 +140,8 @@ public class SickleItem extends Item {
             return false;
         }
 
-        // 如果是灌木，直接破坏
-        if (block instanceof BushBlock && player instanceof ServerPlayer serverPlayer) {
+        // 如果是植被，直接破坏
+        if (block instanceof VegetationBlock && player instanceof ServerPlayer serverPlayer) {
             return serverPlayer.gameMode.destroyBlock(newPos)
                     && !level.getBlockState(newPos).equals(blockState);
         }

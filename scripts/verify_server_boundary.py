@@ -60,6 +60,16 @@ CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeed
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
 SICKLE_ITEM = SRC / "item/SickleItem.java"
+SICKLE_HARVEST_BLACKLIST = (
+    ROOT / "src/main/resources/data/kaleidoscope_cookery/tags/block/sickle_harvest_blacklist.json"
+)
+
+REQUIRED_SICKLE_HARVEST_BLACKLIST = {
+    "minecraft:attached_melon_stem",
+    "minecraft:attached_pumpkin_stem",
+    "minecraft:melon_stem",
+    "minecraft:pumpkin_stem",
+}
 
 CLIENT_ONLY_PATHS = (
     "client/",
@@ -258,23 +268,36 @@ def main() -> int:
         if required_reference not in sickle_item_text:
             errors.append(f"SickleItem durability handling is missing {required_reference}.")
 
-    bush_harvest = re.search(
-        r"if\s*\(block\s+instanceof\s+BushBlock.*?serverPlayer\s*\)\s*\{(?P<body>.*?)\n\s*\}",
+    vegetation_harvest = re.search(
+        r"if\s*\(block\s+instanceof\s+VegetationBlock.*?serverPlayer\s*\)\s*\{(?P<body>.*?)\n\s*\}",
         sickle_item_text,
         re.DOTALL,
     )
-    if bush_harvest is None:
-        errors.append("SickleItem bush harvest branch is missing.")
+    if vegetation_harvest is None:
+        errors.append("SickleItem vegetation harvest branch is missing.")
     else:
-        bush_harvest_body = bush_harvest.group("body")
+        vegetation_harvest_body = vegetation_harvest.group("body")
         for required_reference in (
             "return serverPlayer.gameMode.destroyBlock(newPos)",
             "!level.getBlockState(newPos).equals(blockState)",
         ):
-            if required_reference not in bush_harvest_body:
-                errors.append(f"SickleItem bush harvest is missing {required_reference}.")
-        if "LevelEvent.PARTICLES_DESTROY_BLOCK" in bush_harvest_body:
-            errors.append("SickleItem bush harvest retains duplicate destroy particles.")
+            if required_reference not in vegetation_harvest_body:
+                errors.append(f"SickleItem vegetation harvest is missing {required_reference}.")
+        if "LevelEvent.PARTICLES_DESTROY_BLOCK" in vegetation_harvest_body:
+            errors.append("SickleItem vegetation harvest retains duplicate destroy particles.")
+    if "instanceof BushBlock" in sickle_item_text:
+        errors.append("SickleItem still uses the legacy BushBlock-only vegetation boundary.")
+
+    if not SICKLE_HARVEST_BLACKLIST.exists():
+        errors.append(f"Sickle harvest blacklist is missing: {SICKLE_HARVEST_BLACKLIST.relative_to(ROOT)}")
+    else:
+        blacklist_data = json.loads(SICKLE_HARVEST_BLACKLIST.read_text(encoding="utf-8"))
+        blacklist_values = {
+            value for value in blacklist_data.get("values", []) if isinstance(value, str)
+        }
+        missing_blacklist_values = REQUIRED_SICKLE_HARVEST_BLACKLIST - blacklist_values
+        for value in sorted(missing_blacklist_values):
+            errors.append(f"Sickle harvest blacklist is missing {value}.")
 
     if errors:
         print("Server boundary verification failed:")
