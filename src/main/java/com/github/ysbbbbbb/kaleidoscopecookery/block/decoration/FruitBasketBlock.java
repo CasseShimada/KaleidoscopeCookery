@@ -89,17 +89,35 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
         if (hand == InteractionHand.OFF_HAND) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
+        if (stack.isEmpty()) {
+            return this.useWithoutItem(state, level, pos, player, hitResult);
+        }
         if (level.getBlockEntity(pos) instanceof FruitBasketBlockEntity fruitBasket) {
             if (player.isSecondaryUseActive()) {
-                fruitBasket.takeOut(player);
-                return InteractionResult.SUCCESS;
+                if (!level.isClientSide()) {
+                    fruitBasket.takeOut(player);
+                }
+                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
             }
             if (!player.getMainHandItem().isEmpty()) {
-                fruitBasket.putOn(player.getMainHandItem());
-                return InteractionResult.SUCCESS;
+                if (!level.isClientSide()) {
+                    fruitBasket.putOn(player.getMainHandItem(), !player.hasInfiniteMaterials());
+                }
+                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
             }
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    @Override
+    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!player.isSecondaryUseActive() || !(level.getBlockEntity(pos) instanceof FruitBasketBlockEntity fruitBasket)) {
+            return InteractionResult.PASS;
+        }
+        if (!level.isClientSide()) {
+            fruitBasket.takeOut(player);
+        }
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
 
     @Override

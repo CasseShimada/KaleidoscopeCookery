@@ -25,6 +25,11 @@ SERVER_EVENT_REGISTRATIONS = {
     "VitalityEffectEvent": SRC / "event/server/effect/VitalityEffectEvent.java",
 }
 
+INTERACTION_EVENT_REGISTRATIONS = {
+    "CaterpillarChickenFeedEvent": SRC / "event/interaction/CaterpillarChickenFeedEvent.java",
+    "WetFieldHoeUseEvent": SRC / "event/interaction/WetFieldHoeUseEvent.java",
+}
+
 LEGACY_SERVER_EVENT_PATHS = (
     SRC / "event/ArmorEffectHandler.java",
     SRC / "event/effect/FlatulenceServerEvent.java",
@@ -34,6 +39,13 @@ LEGACY_SERVER_EVENT_PATHS = (
     SRC / "event/effect/VitalityEvent.java",
 )
 
+LEGACY_INTERACTION_EVENT_PATHS = (
+    SRC / "event/HoeUseEvent.java",
+    SRC / "event/PlayerUseEvent.java",
+    SRC / "event/RightClickEvent.java",
+    SRC / "event/WetFieldHoeUseEvent.java",
+)
+
 INSTANT_SMELTING_EVENT = SRC / "event/server/effect/InstantSmeltingEffectEvent.java"
 LEGACY_INSTANT_SMELTING_MIXIN = SRC / "mixin/BlockMixin.java"
 HINDER_EFFECT_EVENT = SRC / "event/server/effect/HinderEffectEvent.java"
@@ -41,6 +53,9 @@ VITALITY_EFFECT_EVENT = SRC / "event/server/effect/VitalityEffectEvent.java"
 PROJECTILE_DODGE_HANDLER = SRC / "event/server/effect/ProjectileDodgeHandler.java"
 PROJECTILE_MIXIN = SRC / "mixin/ProjectileMixin.java"
 LEGACY_NEW_EFFECT_EVENTS = SRC / "event/server/effect/NewEffectEvents.java"
+WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
+CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeedEvent.java"
+FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 
 CLIENT_ONLY_PATHS = (
     "client/",
@@ -89,7 +104,8 @@ def main() -> int:
             errors.append(f"Non-client mixin listed in client mixins section: {mixin}")
 
     mod_events = MOD_EVENTS.read_text(encoding="utf-8")
-    for event_class, path in SERVER_EVENT_REGISTRATIONS.items():
+    event_registrations = SERVER_EVENT_REGISTRATIONS | INTERACTION_EVENT_REGISTRATIONS
+    for event_class, path in event_registrations.items():
         if not path.exists():
             errors.append(f"Migrated server event source is missing: {path.relative_to(ROOT)}")
             continue
@@ -102,6 +118,10 @@ def main() -> int:
     for path in LEGACY_SERVER_EVENT_PATHS:
         if path.exists():
             errors.append(f"Legacy duplicate server event still exists: {path.relative_to(ROOT)}")
+
+    for path in LEGACY_INTERACTION_EVENT_PATHS:
+        if path.exists():
+            errors.append(f"Legacy interaction event still exists: {path.relative_to(ROOT)}")
 
     if INSTANT_SMELTING_EVENT.exists():
         instant_smelting_text = INSTANT_SMELTING_EVENT.read_text(encoding="utf-8")
@@ -171,6 +191,40 @@ def main() -> int:
     if "ProjectileMixin" not in mixin_data.get("mixins", []):
         errors.append("ProjectileMixin is not registered as a common mixin.")
 
+    if WET_FIELD_HOE_EVENT.exists():
+        wet_field_text = WET_FIELD_HOE_EVENT.read_text(encoding="utf-8")
+        for required_reference in (
+            "UseBlockCallback.EVENT",
+            "player.isSpectator()",
+            "FluidTags.WATER",
+            "player.hasInfiniteMaterials()",
+            "USE_HOE_ON_WATER_FIELD",
+        ):
+            if required_reference not in wet_field_text:
+                errors.append(f"Wet field hoe event is missing {required_reference}.")
+
+    if CATERPILLAR_CHICKEN_FEED_EVENT.exists():
+        chicken_feed_text = CATERPILLAR_CHICKEN_FEED_EVENT.read_text(encoding="utf-8")
+        for required_reference in (
+            "UseEntityCallback.EVENT",
+            "player.isSpectator()",
+            "player.getItemInHand(hand)",
+            "player.hasInfiniteMaterials()",
+            "USE_CATERPILLAR_FEED_CHICKEN",
+        ):
+            if required_reference not in chicken_feed_text:
+                errors.append(f"Caterpillar chicken feed event is missing {required_reference}.")
+
+    fruit_basket_text = FRUIT_BASKET_BLOCK.read_text(encoding="utf-8")
+    for required_reference in (
+        "useItemOn",
+        "useWithoutItem",
+        "if (!level.isClientSide())",
+        "!player.hasInfiniteMaterials()",
+    ):
+        if required_reference not in fruit_basket_text:
+            errors.append(f"Fruit basket native interaction is missing {required_reference}.")
+
     if errors:
         print("Server boundary verification failed:")
         print("\n".join(errors))
@@ -179,6 +233,7 @@ def main() -> int:
     print("Server boundary verification passed.")
     print("  common/server sources contain no direct client-only imports")
     print(f"  migrated server events: {len(SERVER_EVENT_REGISTRATIONS)}")
+    print(f"  migrated interaction events: {len(INTERACTION_EVENT_REGISTRATIONS)}")
     print(f"  legacy server event paths checked: {len(LEGACY_SERVER_EVENT_PATHS)}")
     print(f"  common mixins: {len(mixin_data.get('mixins', []))}")
     print(f"  client mixins: {len(mixin_data.get('client', []))}")

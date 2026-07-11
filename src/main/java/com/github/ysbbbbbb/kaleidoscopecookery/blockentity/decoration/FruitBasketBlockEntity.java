@@ -25,7 +25,7 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
         super(ModBlocks.FRUIT_BASKET_BE, pPos, pBlockState);
     }
 
-    public void putOn(ItemStack stack) {
+    public void putOn(ItemStack stack, boolean consumeSourceStack) {
         if (!stack.getItem().canFitInsideContainerItems()) {
             return;
         }
@@ -34,7 +34,9 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
             long inserted = storage.insert(ItemVariant.of(stack), stack.getCount(), tx);
             if (inserted > 0) {
                 tx.commit();
-                stack.shrink((int) inserted);
+                if (consumeSourceStack) {
+                    stack.shrink((int) inserted);
+                }
                 if (this.level != null) {
                     this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS);
                 }

@@ -2,6 +2,8 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.SpecialRecipeItemEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.CaterpillarChickenFeedEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.WetFieldHoeUseEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialFinishEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialRecipeEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.ServerEntityLoadEvent;
@@ -72,6 +74,8 @@ public final class ModEvents {
         InstantSmeltingEffectEvent.register();
         HinderEffectEvent.register();
         VitalityEffectEvent.register();
+        WetFieldHoeUseEvent.register();
+        CaterpillarChickenFeedEvent.register();
         ServerEntityLoadEvent.register();
         MillstoneSpecialRecipeEvent.register();
         MillstoneSpecialFinishEvent.register();
