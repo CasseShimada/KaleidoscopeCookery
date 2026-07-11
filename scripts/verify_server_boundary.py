@@ -258,6 +258,24 @@ def main() -> int:
         if required_reference not in sickle_item_text:
             errors.append(f"SickleItem durability handling is missing {required_reference}.")
 
+    bush_harvest = re.search(
+        r"if\s*\(block\s+instanceof\s+BushBlock.*?serverPlayer\s*\)\s*\{(?P<body>.*?)\n\s*\}",
+        sickle_item_text,
+        re.DOTALL,
+    )
+    if bush_harvest is None:
+        errors.append("SickleItem bush harvest branch is missing.")
+    else:
+        bush_harvest_body = bush_harvest.group("body")
+        for required_reference in (
+            "return serverPlayer.gameMode.destroyBlock(newPos)",
+            "!level.getBlockState(newPos).equals(blockState)",
+        ):
+            if required_reference not in bush_harvest_body:
+                errors.append(f"SickleItem bush harvest is missing {required_reference}.")
+        if "LevelEvent.PARTICLES_DESTROY_BLOCK" in bush_harvest_body:
+            errors.append("SickleItem bush harvest retains duplicate destroy particles.")
+
     if errors:
         print("Server boundary verification failed:")
         print("\n".join(errors))

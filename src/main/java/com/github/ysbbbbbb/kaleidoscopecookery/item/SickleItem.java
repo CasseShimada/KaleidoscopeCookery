@@ -141,12 +141,9 @@ public class SickleItem extends Item {
         }
 
         // 如果是灌木，直接破坏
-        if (block instanceof BushBlock) {
-            if (player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.gameMode.destroyBlock(newPos);
-                level.levelEvent(null, LevelEvent.PARTICLES_DESTROY_BLOCK, newPos, Block.getId(blockState));
-                return true;
-            }
+        if (block instanceof BushBlock && player instanceof ServerPlayer serverPlayer) {
+            return serverPlayer.gameMode.destroyBlock(newPos)
+                    && !level.getBlockState(newPos).equals(blockState);
         }
         return false;
     }
