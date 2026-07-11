@@ -7,9 +7,11 @@ import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialReci
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.ServerEntityLoadEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FarmerArmorEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FlatulenceServerEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.HinderEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.InstantSmeltingEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.PreservationEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.SatiatedShieldEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.VitalityEffectEvent;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 
@@ -68,6 +70,8 @@ public final class ModEvents {
         PreservationEvent.register();
         FarmerArmorEffectEvent.register();
         InstantSmeltingEffectEvent.register();
+        HinderEffectEvent.register();
+        VitalityEffectEvent.register();
         ServerEntityLoadEvent.register();
         MillstoneSpecialRecipeEvent.register();
         MillstoneSpecialFinishEvent.register();

@@ -16,22 +16,28 @@ MOD_EVENTS = SRC / "init/ModEvents.java"
 
 SERVER_EVENT_REGISTRATIONS = {
     "FarmerArmorEffectEvent": SRC / "event/server/effect/FarmerArmorEffectEvent.java",
+    "HinderEffectEvent": SRC / "event/server/effect/HinderEffectEvent.java",
     "InstantSmeltingEffectEvent": SRC / "event/server/effect/InstantSmeltingEffectEvent.java",
     "SatiatedShieldEvent": SRC / "event/server/effect/SatiatedShieldEvent.java",
     "FlatulenceServerEvent": SRC / "event/server/effect/FlatulenceServerEvent.java",
     "PreservationEvent": SRC / "event/server/effect/PreservationEvent.java",
     "ServerEntityLoadEvent": SRC / "event/server/ServerEntityLoadEvent.java",
+    "VitalityEffectEvent": SRC / "event/server/effect/VitalityEffectEvent.java",
 }
 
 LEGACY_SERVER_EVENT_PATHS = (
     SRC / "event/ArmorEffectHandler.java",
     SRC / "event/effect/FlatulenceServerEvent.java",
+    SRC / "event/effect/HinderEvent.java",
     SRC / "event/effect/PreservationEvent.java",
     SRC / "event/effect/SatiatedShieldEvent.java",
+    SRC / "event/effect/VitalityEvent.java",
 )
 
 INSTANT_SMELTING_EVENT = SRC / "event/server/effect/InstantSmeltingEffectEvent.java"
 LEGACY_INSTANT_SMELTING_MIXIN = SRC / "mixin/BlockMixin.java"
+HINDER_EFFECT_EVENT = SRC / "event/server/effect/HinderEffectEvent.java"
+VITALITY_EFFECT_EVENT = SRC / "event/server/effect/VitalityEffectEvent.java"
 
 CLIENT_ONLY_PATHS = (
     "client/",
@@ -109,6 +115,26 @@ def main() -> int:
         errors.append(f"Legacy instant smelting mixin still exists: {LEGACY_INSTANT_SMELTING_MIXIN.relative_to(ROOT)}")
     if "BlockMixin" in mixin_data.get("mixins", []):
         errors.append("Legacy instant smelting BlockMixin is still registered.")
+
+    if HINDER_EFFECT_EVENT.exists():
+        hinder_text = HINDER_EFFECT_EVENT.read_text(encoding="utf-8")
+        for required_reference in (
+            "ServerLivingEntityEvents.AFTER_DAMAGE",
+            "blocked || damageTaken <= 0.0F",
+            "ModEffects.HINDER",
+        ):
+            if required_reference not in hinder_text:
+                errors.append(f"Hinder effect event is missing {required_reference}.")
+
+    if VITALITY_EFFECT_EVENT.exists():
+        vitality_text = VITALITY_EFFECT_EVENT.read_text(encoding="utf-8")
+        for required_reference in (
+            "ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY",
+            "killer instanceof LivingEntity",
+            "ModEffects.VITALITY",
+        ):
+            if required_reference not in vitality_text:
+                errors.append(f"Vitality effect event is missing {required_reference}.")
 
     if errors:
         print("Server boundary verification failed:")
