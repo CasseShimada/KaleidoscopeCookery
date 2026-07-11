@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -64,6 +65,9 @@ public class SickleItem extends Item {
         Player player = context.getPlayer();
         if (player == null) {
             return super.useOn(context);
+        }
+        if (context.getHand() != InteractionHand.MAIN_HAND) {
+            return InteractionResult.PASS;
         }
         Level level = context.getLevel();
         if (!(level instanceof ServerLevel serverLevel)) {

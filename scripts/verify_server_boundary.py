@@ -261,6 +261,13 @@ def main() -> int:
         re.DOTALL,
     ) is None:
         errors.append("SickleItem does not preserve creative-mode block destruction.")
+    if re.search(
+        r"if\s*\(context\.getHand\(\)\s*!=\s*InteractionHand\.MAIN_HAND\)\s*\{\s*"
+        r"return\s+InteractionResult\.PASS\s*;\s*\}",
+        sickle_item_text,
+        re.DOTALL,
+    ) is None:
+        errors.append("SickleItem does not reject unsupported offhand harvesting.")
     for required_reference in (
         "!player.hasInfiniteMaterials()",
         "breakCount > 0",
