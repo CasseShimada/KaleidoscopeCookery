@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 TEXT_ROOTS = (
     ROOT / "src/main/java",
+    ROOT / "src/client/java",
     ROOT / "src/main/resources",
 )
 TEXT_FILES = (
@@ -44,6 +45,7 @@ FORBIDDEN_PATHS = (
     ROOT / "src/generated/resources",
     ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/util/neo",
     ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/event/ModModelEvent.java",
+    ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery/client/event/ModModelEvent.java",
     ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/init/ModPredicateRegistry.java",
     ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/util/RecipeMatcher.java",
     ROOT / ".github/workflows/gradle-publish-1.21.1.yml",

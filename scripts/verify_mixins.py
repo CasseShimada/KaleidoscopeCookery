@@ -12,7 +12,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 JAVA_ROOT = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
+CLIENT_JAVA_ROOT = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery"
 MIXIN_ROOT = JAVA_ROOT / "mixin"
+CLIENT_MIXIN_ROOT = CLIENT_JAVA_ROOT / "mixin"
 RESOURCES = ROOT / "src/main/resources"
 MIXINS_JSON = RESOURCES / "kaleidoscope_cookery.mixins.json"
 ACCESS_WIDENER = RESOURCES / "kaleidoscope_cookery.accesswidener"
@@ -83,11 +85,13 @@ def java_package(path: Path) -> str | None:
     return match.group(1) if match else None
 
 
-def mixin_name_from_path(path: Path) -> str:
-    return path.relative_to(MIXIN_ROOT).with_suffix("").as_posix().replace("/", ".")
+def mixin_name_from_path(path: Path, root: Path) -> str:
+    return path.relative_to(root).with_suffix("").as_posix().replace("/", ".")
 
 
 def mixin_path_from_name(name: str) -> Path:
+    if name.startswith("client."):
+        return CLIENT_MIXIN_ROOT / Path(*name.split(".")).with_suffix(".java")
     return MIXIN_ROOT / Path(*name.split(".")).with_suffix(".java")
 
 
@@ -160,7 +164,14 @@ def validate_mixin_config() -> tuple[list[str], int, int]:
         if not name.startswith("client."):
             errors.append(f"Non-client mixin listed in client mixins section: {name}")
 
-    source_mixins = {mixin_name_from_path(path): path for path in sorted(MIXIN_ROOT.rglob("*.java"))}
+    source_mixins = {
+        mixin_name_from_path(path, MIXIN_ROOT): path
+        for path in sorted(MIXIN_ROOT.rglob("*.java"))
+    }
+    source_mixins.update({
+        mixin_name_from_path(path, CLIENT_MIXIN_ROOT): path
+        for path in sorted(CLIENT_MIXIN_ROOT.rglob("*.java"))
+    })
     listed_set = set(listed_mixins)
     missing_files = sorted(listed_set - set(source_mixins))
     unlisted_files = sorted(set(source_mixins) - listed_set)
@@ -185,7 +196,7 @@ def validate_mixin_config() -> tuple[list[str], int, int]:
             for pattern in CLIENT_ONLY_PATTERNS:
                 if pattern.search(text):
                     errors.append(f"{path.relative_to(ROOT)} common mixin contains client-only reference: {pattern.pattern}")
-        if name in client_mixins and not path.relative_to(MIXIN_ROOT).as_posix().startswith("client/"):
+        if name in client_mixins and not path.relative_to(CLIENT_MIXIN_ROOT).as_posix().startswith("client/"):
             errors.append(f"{path.relative_to(ROOT)} is a client mixin but is not under mixin/client/.")
 
     return errors, len(common_mixins), len(client_mixins)

@@ -13,7 +13,8 @@ from typing import Any, Iterable
 MOD_ID = "kaleidoscope_cookery"
 ROOT = Path(__file__).resolve().parents[1]
 JAVA_ROOT = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
-CLIENT_ROOT = JAVA_ROOT / "client"
+CLIENT_JAVA_ROOT = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery"
+CLIENT_ROOT = CLIENT_JAVA_ROOT / "client"
 RESOURCES = ROOT / "src/main/resources"
 ASSETS = RESOURCES / "assets" / MOD_ID
 
@@ -101,7 +102,7 @@ def collect_mod_texture_refs() -> list[tuple[Path, str]]:
 
 
 def collect_client_init_calls() -> set[str]:
-    text = strip_comments(read(JAVA_ROOT / "KaleidoscopeCookeryClient.java"))
+    text = strip_comments(read(CLIENT_JAVA_ROOT / "KaleidoscopeCookeryClient.java"))
     calls = set(re.findall(r"\b(\w+)\.(?:init|register)\(\s*\)", text))
     if "ClientRegistry.init()" in text:
         calls.add("ClientRegistry")

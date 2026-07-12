@@ -10,9 +10,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 JAVA_ROOT = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
+CLIENT_JAVA_ROOT = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery"
 MESSAGE_DIR = JAVA_ROOT / "network/message"
 NETWORK_HANDLER = JAVA_ROOT / "network/NetworkHandler.java"
-CLIENT_NETWORK_HANDLER = JAVA_ROOT / "client/network/ClientNetworkHandler.java"
+CLIENT_NETWORK_HANDLER = CLIENT_JAVA_ROOT / "client/network/ClientNetworkHandler.java"
 
 
 def read(path: Path) -> str:

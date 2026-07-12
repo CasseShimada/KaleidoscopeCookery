@@ -11,8 +11,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
+CLIENT_SRC = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery"
 MIXINS = ROOT / "src/main/resources/kaleidoscope_cookery.mixins.json"
 MOD_EVENTS = SRC / "init/ModEvents.java"
+
+LEGACY_CLIENT_LOCATIONS = (
+    SRC / "KaleidoscopeCookeryClient.java",
+    SRC / "client",
+    SRC / "api/client",
+    SRC / "mixin/client",
+    SRC / "compat/jei",
+)
 
 SERVER_EVENT_REGISTRATIONS = {
     "FarmerArmorEffectEvent": SRC / "event/server/effect/FarmerArmorEffectEvent.java",
@@ -108,6 +117,13 @@ def is_client_only_path(path: Path) -> bool:
 
 def main() -> int:
     errors: list[str] = []
+
+    client_entrypoint = CLIENT_SRC / "KaleidoscopeCookeryClient.java"
+    if not client_entrypoint.exists():
+        errors.append(f"Client entrypoint is missing from the client source set: {client_entrypoint.relative_to(ROOT)}")
+    for path in LEGACY_CLIENT_LOCATIONS:
+        if path.is_file() or (path.is_dir() and any(path.rglob("*.java"))):
+            errors.append(f"Client source remains in the common source set: {path.relative_to(ROOT)}")
 
     for path in sorted(SRC.rglob("*.java")):
         if is_client_only_path(path):
