@@ -37,6 +37,7 @@ public class SickleItem extends Item {
     private static final ToolMaterial SICKLE_MATERIAL = ToolMaterial.STONE;
     private static final float ATTACK_DAMAGE = 3.0F;
     private static final float ATTACK_SPEED = -2.4F;
+    private final ThreadLocal<BlockPos> activeHarvestPos = new ThreadLocal<>();
 
     public SickleItem() {
         this(new Item.Properties());
@@ -57,6 +58,14 @@ public class SickleItem extends Item {
     @Override
     public boolean canDestroyBlock(ItemStack stack, BlockState state, Level level, BlockPos pos, LivingEntity entity) {
         return true;
+    }
+
+    @Override
+    public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+        if (pos.equals(activeHarvestPos.get())) {
+            return true;
+        }
+        return super.mineBlock(stack, level, state, pos, entity);
     }
 
     @Override
@@ -112,6 +121,20 @@ public class SickleItem extends Item {
             return false;
         }
 
+        BlockPos previousHarvestPos = activeHarvestPos.get();
+        activeHarvestPos.set(newPos);
+        try {
+            return harvestBlock(newPos, level, player, stack, blockState);
+        } finally {
+            if (previousHarvestPos == null) {
+                activeHarvestPos.remove();
+            } else {
+                activeHarvestPos.set(previousHarvestPos);
+            }
+        }
+    }
+
+    private boolean harvestBlock(BlockPos newPos, Level level, Player player, ItemStack stack, BlockState blockState) {
         Block block = blockState.getBlock();
 
         SickleHarvestEvent event = new SickleHarvestEvent(player, stack, newPos, blockState);

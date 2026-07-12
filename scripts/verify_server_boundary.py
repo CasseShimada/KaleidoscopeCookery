@@ -261,6 +261,19 @@ def main() -> int:
         re.DOTALL,
     ) is None:
         errors.append("SickleItem does not preserve creative-mode block destruction.")
+    for required_reference in (
+        "ThreadLocal<BlockPos> activeHarvestPos",
+        "pos.equals(activeHarvestPos.get())",
+        "return super.mineBlock(stack, level, state, pos, entity)",
+        "BlockPos previousHarvestPos = activeHarvestPos.get()",
+        "activeHarvestPos.set(newPos)",
+        "return harvestBlock(newPos, level, player, stack, blockState)",
+        "} finally {",
+        "activeHarvestPos.remove()",
+        "activeHarvestPos.set(previousHarvestPos)",
+    ):
+        if required_reference not in sickle_item_text:
+            errors.append(f"SickleItem scoped durability handling is missing {required_reference}.")
     if re.search(
         r"if\s*\(context\.getHand\(\)\s*!=\s*InteractionHand\.MAIN_HAND\)\s*\{\s*"
         r"return\s+InteractionResult\.PASS\s*;\s*\}",
