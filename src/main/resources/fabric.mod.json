@@ -26,7 +26,13 @@
       "com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModClientPlugin"
     ]
   },
-  "mixins": ["kaleidoscope_cookery.mixins.json"],
+  "mixins": [
+    "kaleidoscope_cookery.mixins.json",
+    {
+      "config": "kaleidoscope_cookery.client.mixins.json",
+      "environment": "client"
+    }
+  ],
   "accessWidener": "kaleidoscope_cookery.accesswidener",
   "depends": {
     "java": ">=25",

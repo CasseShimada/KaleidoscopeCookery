@@ -16,7 +16,9 @@ CLIENT_JAVA_ROOT = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecooke
 MIXIN_ROOT = JAVA_ROOT / "mixin"
 CLIENT_MIXIN_ROOT = CLIENT_JAVA_ROOT / "mixin"
 RESOURCES = ROOT / "src/main/resources"
+CLIENT_RESOURCES = ROOT / "src/client/resources"
 MIXINS_JSON = RESOURCES / "kaleidoscope_cookery.mixins.json"
+CLIENT_MIXINS_JSON = CLIENT_RESOURCES / "kaleidoscope_cookery.client.mixins.json"
 ACCESS_WIDENER = RESOURCES / "kaleidoscope_cookery.accesswidener"
 FABRIC_MOD_JSON = RESOURCES / "fabric.mod.json"
 BUILD_GRADLE = ROOT / "build.gradle"
@@ -24,6 +26,7 @@ ADD_VILLAGE_STRUCTURES_EVENT = JAVA_ROOT / "event/server/AddVillageStructuresEve
 
 MIXIN_PACKAGE = "com.github.ysbbbbbb.kaleidoscopecookery.mixin"
 MIXIN_CONFIG_NAME = "kaleidoscope_cookery.mixins.json"
+CLIENT_MIXIN_CONFIG_NAME = "kaleidoscope_cookery.client.mixins.json"
 ACCESS_WIDENER_NAME = "kaleidoscope_cookery.accesswidener"
 
 CLIENT_ONLY_PATTERNS = (
@@ -102,19 +105,21 @@ def expected_package_for_mixin(name: str) -> str:
     return f"{MIXIN_PACKAGE}.{'.'.join(parts)}"
 
 
-def parse_mixin_list(data: dict[str, Any], section: str, errors: list[str]) -> list[str]:
+def parse_mixin_list(
+        data: dict[str, Any], section: str, config_name: str, errors: list[str]
+) -> list[str]:
     value = data.get(section, [])
     if not isinstance(value, list):
-        errors.append(f"{MIXIN_CONFIG_NAME} section {section!r} must be a list.")
+        errors.append(f"{config_name} section {section!r} must be a list.")
         return []
 
     mixins: list[str] = []
     for entry in value:
         if not isinstance(entry, str):
-            errors.append(f"{MIXIN_CONFIG_NAME} section {section!r} contains non-string entry {entry!r}.")
+            errors.append(f"{config_name} section {section!r} contains non-string entry {entry!r}.")
             continue
         if not re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*", entry):
-            errors.append(f"{MIXIN_CONFIG_NAME} has malformed mixin class name: {entry!r}.")
+            errors.append(f"{config_name} has malformed mixin class name: {entry!r}.")
             continue
         mixins.append(entry)
     return mixins
@@ -123,39 +128,60 @@ def parse_mixin_list(data: dict[str, Any], section: str, errors: list[str]) -> l
 def validate_mixin_config() -> tuple[list[str], int, int]:
     errors: list[str] = []
     data = parse_json(MIXINS_JSON)
+    client_data = parse_json(CLIENT_MIXINS_JSON)
 
-    if data.get("required") is not True:
-        errors.append(f"{MIXIN_CONFIG_NAME} should keep required=true so remap drift fails fast.")
-    if data.get("minVersion") != "0.8":
-        errors.append(f"{MIXIN_CONFIG_NAME} should keep minVersion=\"0.8\".")
-    if data.get("package") != MIXIN_PACKAGE:
-        errors.append(f"{MIXIN_CONFIG_NAME} package should be {MIXIN_PACKAGE}.")
-    if data.get("injectors", {}).get("defaultRequire") != 1:
-        errors.append(f"{MIXIN_CONFIG_NAME} should keep injectors.defaultRequire=1.")
+    for config_name, config_data in (
+            (MIXIN_CONFIG_NAME, data),
+            (CLIENT_MIXIN_CONFIG_NAME, client_data),
+    ):
+        if config_data.get("required") is not True:
+            errors.append(f"{config_name} should keep required=true so remap drift fails fast.")
+        if config_data.get("minVersion") != "0.8":
+            errors.append(f"{config_name} should keep minVersion=\"0.8\".")
+        if config_data.get("package") != MIXIN_PACKAGE:
+            errors.append(f"{config_name} package should be {MIXIN_PACKAGE}.")
+        if config_data.get("injectors", {}).get("defaultRequire") != 1:
+            errors.append(f"{config_name} should keep injectors.defaultRequire=1.")
 
     target_java = parse_target_java_version()
     if target_java is None:
         errors.append("build.gradle does not declare targetJavaVersion.")
     else:
         expected_compatibility = f"JAVA_{target_java}"
-        if data.get("compatibilityLevel") != expected_compatibility:
-            errors.append(
-                f"{MIXIN_CONFIG_NAME} compatibilityLevel should be {expected_compatibility} "
-                f"to match build.gradle targetJavaVersion={target_java}."
-            )
+        for config_name, config_data in (
+                (MIXIN_CONFIG_NAME, data),
+                (CLIENT_MIXIN_CONFIG_NAME, client_data),
+        ):
+            if config_data.get("compatibilityLevel") != expected_compatibility:
+                errors.append(
+                    f"{config_name} compatibilityLevel should be {expected_compatibility} "
+                    f"to match build.gradle targetJavaVersion={target_java}."
+                )
 
     fabric_mod = parse_json(FABRIC_MOD_JSON)
     mixin_configs = fabric_mod.get("mixins", [])
     if MIXIN_CONFIG_NAME not in mixin_configs:
         errors.append(f"fabric.mod.json does not reference {MIXIN_CONFIG_NAME}.")
+    client_config_entries = [
+        entry for entry in mixin_configs
+        if isinstance(entry, dict) and entry.get("config") == CLIENT_MIXIN_CONFIG_NAME
+    ]
+    if client_config_entries != [{"config": CLIENT_MIXIN_CONFIG_NAME, "environment": "client"}]:
+        errors.append(
+            f"fabric.mod.json should reference {CLIENT_MIXIN_CONFIG_NAME} only in the client environment."
+        )
 
-    common_mixins = parse_mixin_list(data, "mixins", errors)
-    client_mixins = parse_mixin_list(data, "client", errors)
+    common_mixins = parse_mixin_list(data, "mixins", MIXIN_CONFIG_NAME, errors)
+    client_mixins = parse_mixin_list(client_data, "client", CLIENT_MIXIN_CONFIG_NAME, errors)
+    if data.get("client"):
+        errors.append(f"{MIXIN_CONFIG_NAME} still contains client mixins.")
+    if client_data.get("mixins"):
+        errors.append(f"{CLIENT_MIXIN_CONFIG_NAME} contains common mixins.")
     listed_mixins = common_mixins + client_mixins
 
     duplicates = sorted({name for name in listed_mixins if listed_mixins.count(name) > 1})
     if duplicates:
-        errors.append(f"{MIXIN_CONFIG_NAME} contains duplicate mixin entries: {duplicates}")
+        errors.append(f"Mixin configurations contain duplicate entries: {duplicates}")
 
     for name in common_mixins:
         if name.startswith("client."):
@@ -176,9 +202,9 @@ def validate_mixin_config() -> tuple[list[str], int, int]:
     missing_files = sorted(listed_set - set(source_mixins))
     unlisted_files = sorted(set(source_mixins) - listed_set)
     if missing_files:
-        errors.append(f"{MIXIN_CONFIG_NAME} references missing mixin classes: {missing_files}")
+        errors.append(f"Mixin configurations reference missing mixin classes: {missing_files}")
     if unlisted_files:
-        errors.append(f"Mixin source files are not listed in {MIXIN_CONFIG_NAME}: {unlisted_files}")
+        errors.append(f"Mixin source files are not listed in a Mixin config: {unlisted_files}")
 
     for name in sorted(listed_set & set(source_mixins)):
         path = mixin_path_from_name(name)

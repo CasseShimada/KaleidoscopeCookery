@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
 CLIENT_SRC = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery"
 MIXINS = ROOT / "src/main/resources/kaleidoscope_cookery.mixins.json"
+CLIENT_MIXINS = ROOT / "src/client/resources/kaleidoscope_cookery.client.mixins.json"
 FABRIC_MOD = ROOT / "src/main/resources/fabric.mod.json"
 BUILD_GRADLE = ROOT / "build.gradle"
 MOD_EVENTS = SRC / "init/ModEvents.java"
@@ -159,12 +160,17 @@ def main() -> int:
             errors.append(f"build.gradle still excludes optional integration sources: {excluded_path}")
 
     mixin_data = json.loads(MIXINS.read_text(encoding="utf-8"))
+    client_mixin_data = json.loads(CLIENT_MIXINS.read_text(encoding="utf-8"))
     for mixin in mixin_data.get("mixins", []):
         if mixin.startswith("client."):
             errors.append(f"Client mixin listed in common mixins section: {mixin}")
-    for mixin in mixin_data.get("client", []):
+    if mixin_data.get("client"):
+        errors.append("Common Mixin config still contains a client section.")
+    for mixin in client_mixin_data.get("client", []):
         if not mixin.startswith("client."):
             errors.append(f"Non-client mixin listed in client mixins section: {mixin}")
+    if client_mixin_data.get("mixins"):
+        errors.append("Client Mixin config contains a common mixins section.")
 
     mod_events = MOD_EVENTS.read_text(encoding="utf-8")
     event_registrations = SERVER_EVENT_REGISTRATIONS | INTERACTION_EVENT_REGISTRATIONS
@@ -513,7 +519,7 @@ def main() -> int:
     print(f"  migrated interaction events: {len(INTERACTION_EVENT_REGISTRATIONS)}")
     print(f"  legacy server event paths checked: {len(LEGACY_SERVER_EVENT_PATHS)}")
     print(f"  common mixins: {len(mixin_data.get('mixins', []))}")
-    print(f"  client mixins: {len(mixin_data.get('client', []))}")
+    print(f"  client mixins: {len(client_mixin_data.get('client', []))}")
     return 0
 
 

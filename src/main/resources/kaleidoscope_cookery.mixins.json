@@ -13,9 +13,6 @@
     "PowderSnowBlockMixin",
     "ProjectileMixin"
   ],
-  "client": [
-    "client.HumanoidModelMixin"
-  ],
   "injectors": {
     "defaultRequire": 1
   }
