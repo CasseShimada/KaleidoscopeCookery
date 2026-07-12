@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
@@ -65,14 +66,9 @@ public class RecipeBlock extends FaceAttachedHorizontalDirectionalBlock implemen
     }
 
     @Override
-    public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        // 空手右击取下来
-        if (hand != InteractionHand.MAIN_HAND) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
-        }
-        ItemStack mainHandItem = player.getMainHandItem();
-        if (!mainHandItem.isEmpty()) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!player.getMainHandItem().isEmpty()) {
+            return InteractionResult.PASS;
         }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
@@ -81,14 +77,18 @@ public class RecipeBlock extends FaceAttachedHorizontalDirectionalBlock implemen
         if (blockEntity instanceof RecipeBlockEntity recipeBlockEntity) {
             ItemStack itemStack = recipeBlockEntity.getItems().getStackInSlot(0);
             if (itemStack.isEmpty()) {
-                return InteractionResult.TRY_WITH_EMPTY_HAND;
+                return super.useWithoutItem(state, level, pos, player, hitResult);
             }
-            player.setItemInHand(hand, itemStack.copy());
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            ItemStack returnedStack = itemStack.copy();
+            if (!level.removeBlock(pos, false)) {
+                return InteractionResult.FAIL;
+            }
+            player.setItemInHand(InteractionHand.MAIN_HAND, returnedStack);
             level.playSound(null, pos, ModSoundType.RECIPE_BLOCK.getBreakSound(), player.getSoundSource(), 1.0F, 1.0F);
+            level.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(player, state));
             return InteractionResult.SUCCESS;
         }
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        return super.useWithoutItem(state, level, pos, player, hitResult);
     }
 
     @Override

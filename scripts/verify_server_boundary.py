@@ -58,6 +58,7 @@ LEGACY_NEW_EFFECT_EVENTS = SRC / "event/server/effect/NewEffectEvents.java"
 WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
 CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeedEvent.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
+RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
 SICKLE_ITEM = SRC / "item/SickleItem.java"
 RICE_CROP_BLOCK = SRC / "block/crop/RiceCropBlock.java"
@@ -249,6 +250,26 @@ def main() -> int:
     ):
         if required_reference not in fruit_basket_text:
             errors.append(f"Fruit basket native interaction is missing {required_reference}.")
+
+    recipe_block_text = RECIPE_BLOCK.read_text(encoding="utf-8")
+    for required_reference in (
+        "useWithoutItem",
+        "player.getMainHandItem().isEmpty()",
+        "if (!level.removeBlock(pos, false))",
+        "player.setItemInHand(InteractionHand.MAIN_HAND, returnedStack)",
+        "GameEvent.BLOCK_DESTROY",
+        "GameEvent.Context.of(player, state)",
+    ):
+        if required_reference not in recipe_block_text:
+            errors.append(f"RecipeBlock native empty-hand interaction is missing {required_reference}.")
+    if "useItemOn" in recipe_block_text:
+        errors.append("RecipeBlock still handles empty-hand removal through the item interaction path.")
+    remove_recipe_block_index = recipe_block_text.find("level.removeBlock(pos, false)")
+    return_recipe_item_index = recipe_block_text.find(
+        "player.setItemInHand(InteractionHand.MAIN_HAND, returnedStack)"
+    )
+    if remove_recipe_block_index > return_recipe_item_index:
+        errors.append("RecipeBlock returns the recipe item before confirming block removal.")
 
     if SICKLE_NETHER_WART_EVENT.exists():
         sickle_nether_wart_text = SICKLE_NETHER_WART_EVENT.read_text(encoding="utf-8")
