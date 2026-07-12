@@ -62,6 +62,7 @@ LEGACY_INTERACTION_EVENT_PATHS = (
 )
 
 UNWIRED_LEGACY_EVENT_PATHS = (
+    SRC / "api/event/LivingDamageEvent.java",
     SRC / "api/event/StockpotMatchRecipeEvent.java",
 )
 
@@ -199,6 +200,20 @@ def main() -> int:
     for path in UNWIRED_LEGACY_EVENT_PATHS:
         if path.exists():
             errors.append(f"Unwired legacy event still exists: {path.relative_to(ROOT)}")
+
+    satiated_shield_text = (SRC / "event/server/effect/SatiatedShieldEvent.java").read_text(encoding="utf-8")
+    for required_reference in (
+        "ServerLivingEntityEvents.ALLOW_DAMAGE.register(SatiatedShieldEvent::onAllowDamage)",
+        "REMAINING_DAMAGE_BYPASS.contains(player.getUUID())",
+        "source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)",
+        "applyBypassingShield(player, source, remainingDamage)",
+        "return false;",
+    ):
+        if required_reference not in satiated_shield_text:
+            errors.append(f"Satiated shield Fabric damage handling is missing {required_reference}.")
+    for legacy_reference in ("LivingDamageEvent", "ModEvents.LIVING_ENTITY_HURT"):
+        if legacy_reference in satiated_shield_text or legacy_reference in mod_events:
+            errors.append(f"Satiated shield still uses legacy damage event bridge: {legacy_reference}.")
 
     if INSTANT_SMELTING_EVENT.exists():
         instant_smelting_text = INSTANT_SMELTING_EVENT.read_text(encoding="utf-8")

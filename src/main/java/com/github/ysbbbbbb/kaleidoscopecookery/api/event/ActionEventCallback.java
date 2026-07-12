@@ -23,11 +23,6 @@ public interface ActionEventCallback {
     }
 
     @FunctionalInterface
-    interface LivingEntityHurt {
-        void onLivingEntityHurt(LivingDamageEvent event);
-    }
-
-    @FunctionalInterface
     interface SickleHarvest {
         void onSickleHarvest(SickleHarvestEvent event);
     }

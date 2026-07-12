@@ -5,6 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntit
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
@@ -13,10 +14,13 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.GameType;
 
 import java.util.List;
 
@@ -62,6 +66,23 @@ public final class KaleidoscopeCookeryGameTests {
                 "Generated baked potato recipe rejected its declared ingredient");
         helper.assertFalse(recipe.matches(new SimpleInput(List.of(new ItemStack(Items.CARROT))), helper.getLevel()),
                 "Generated baked potato recipe accepted an unrelated ingredient");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void satiatedShieldCancelsFabricDamageCallback(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getFoodData().setFoodLevel(20);
+        player.getFoodData().setSaturation(5.0F);
+        player.getActiveEffectsMap().put(ModEffects.SATIATED_SHIELD,
+                new MobEffectInstance(ModEffects.SATIATED_SHIELD, 200));
+        float initialHealth = player.getHealth();
+
+        boolean damaged = player.hurtServer(helper.getLevel(), helper.getLevel().damageSources().generic(), 4.0F);
+
+        helper.assertFalse(damaged, "Satiated shield did not cancel Fabric's allow-damage callback");
+        helper.assertValueEqual(player.getHealth(), initialHealth,
+                "Satiated shield allowed ordinary damage to reduce health");
         helper.succeed();
     }
 

@@ -1,9 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.event.LivingDamageEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.tags.DamageTypeTags;
@@ -29,48 +27,35 @@ public final class SatiatedShieldEvent {
 
     public static void register() {
         ServerLivingEntityEvents.ALLOW_DAMAGE.register(SatiatedShieldEvent::onAllowDamage);
-        ModEvents.LIVING_ENTITY_HURT.register(SatiatedShieldEvent::onLivingEntityHurt);
     }
 
-    private static boolean onAllowDamage(LivingEntity entity, DamageSource damageSource, float amount) {
-        if (entity instanceof Player player) {
-            if (REMAINING_DAMAGE_BYPASS.contains(player.getUUID())) {
-                return true;
-            }
-            var livingDamageEvent = new LivingDamageEvent(entity, damageSource, amount);
-            ModEvents.LIVING_ENTITY_HURT.invoker().onLivingEntityHurt(livingDamageEvent);
-            return !livingDamageEvent.isCanceled();
+    private static boolean onAllowDamage(LivingEntity entity, DamageSource source, float damageAmount) {
+        if (!(entity instanceof Player player)
+                || REMAINING_DAMAGE_BYPASS.contains(player.getUUID())
+                || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            return true;
         }
-        return true;
-    }
 
-    private static void onLivingEntityHurt(LivingDamageEvent event) {
-        // 1 伤害扣 2 Exhaustion
-        int amount = Math.round(event.getAmount()) * DAMAGE_TO_EXHAUSTION_MULTIPLIER;
-        DamageSource source = event.getSource();
-        if (!(event.getEntity() instanceof Player player) || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            return;
-        }
         GeneralConfig config = GeneralConfig.get();
         if (!canUseSatiatedShield(player, config)) {
-            return;
+            return true;
         }
 
+        // 1 damage consumes 2 exhaustion.
+        int exhaustionAmount = Math.round(damageAmount) * DAMAGE_TO_EXHAUSTION_MULTIPLIER;
         // 部分特殊伤害，扣除的 Exhaustion 翻倍
         if (source.is(TagMod.SATIATED_SHIELD_WEAKNESS)) {
-            amount *= WEAKNESS_EXHAUSTION_MULTIPLIER;
+            exhaustionAmount *= WEAKNESS_EXHAUSTION_MULTIPLIER;
         }
         // 原版是 4 点 Exhaustion 对应 1 点 Food Level
-        float exhaustionLevel = Math.max(0, amount / EXHAUSTION_PER_FOOD_LEVEL);
+        float exhaustionLevel = Math.max(0, exhaustionAmount / EXHAUSTION_PER_FOOD_LEVEL);
         float playerFoodLevel = player.getFoodData().getFoodLevel();
         player.causeFoodExhaustion(exhaustionLevel);
 
-        if (config.satiatedShieldAbsorbExcessDamage) {
-            event.setCanceled(true);
-            return;
+        if (!config.satiatedShieldAbsorbExcessDamage) {
+            applyRemainingDamage(player, source, damageAmount, exhaustionLevel, playerFoodLevel);
         }
-
-        applyRemainingDamage(event, player, source, exhaustionLevel, playerFoodLevel);
+        return false;
     }
 
     private static boolean canUseSatiatedShield(Player player, GeneralConfig config) {
@@ -79,7 +64,7 @@ public final class SatiatedShieldEvent {
                 && player.hasEffect(ModEffects.SATIATED_SHIELD);
     }
 
-    private static void applyRemainingDamage(LivingDamageEvent event, Player player, DamageSource source,
+    private static void applyRemainingDamage(Player player, DamageSource source, float damageAmount,
                                              float exhaustionLevel, float playerFoodLevel) {
         // 判断是否超出了玩家当前的 Food Level
         // 原版是 4 点 Exhaustion 对应 1 点 Food Level
@@ -87,11 +72,9 @@ public final class SatiatedShieldEvent {
         if (consumedFoodLevel >= playerFoodLevel) {
             // 扣光了，施加额外伤害
             float extraDamage = getExtraDamage(source, consumedFoodLevel - playerFoodLevel);
-            float remainingDamage = Math.max(0, event.getAmount() - extraDamage);
-            event.setAmount(remainingDamage);
+            float remainingDamage = Math.max(0, damageAmount - extraDamage);
             applyBypassingShield(player, source, remainingDamage);
         }
-        event.setCanceled(true);
     }
 
     private static void applyBypassingShield(Player player, DamageSource source, float amount) {
