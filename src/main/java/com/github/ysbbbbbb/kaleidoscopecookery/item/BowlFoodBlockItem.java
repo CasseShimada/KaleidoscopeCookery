@@ -7,7 +7,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -26,15 +25,8 @@ import net.minecraft.world.item.consume_effects.ConsumeEffect;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.phys.Vec3;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public class BowlFoodBlockItem extends BlockItem {
@@ -55,13 +47,9 @@ public class BowlFoodBlockItem extends BlockItem {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
         if (level instanceof ServerLevel serverLevel && this.getBlock() instanceof FoodBiteBlock foodBiteBlock) {
-            LootParams.Builder builder = (new LootParams.Builder(serverLevel))
-                    .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(entity.blockPosition()))
-                    .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
-                    .withOptionalParameter(LootContextParams.THIS_ENTITY, entity)
-                    .withOptionalParameter(LootContextParams.BLOCK_ENTITY, null);
             BlockState state = foodBiteBlock.defaultBlockState().setValue(foodBiteBlock.getBites(), foodBiteBlock.getMaxBites());
-            List<ItemStack> drops = getDrops(state, builder);
+            List<ItemStack> drops = Block.getDrops(
+                    state, serverLevel, entity.blockPosition(), null, entity, ItemStack.EMPTY);
             drops.forEach(itemStack -> {
                 if (itemStack.isEmpty()) {
                     return;
@@ -75,18 +63,6 @@ public class BowlFoodBlockItem extends BlockItem {
             });
         }
         return super.finishUsingItem(stack, level, entity);
-    }
-
-    private List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        Optional<ResourceKey<LootTable>> resourceKey = state.getBlock().getLootTable();
-        if (resourceKey.isEmpty()) {
-            return Collections.emptyList();
-        } else {
-            LootParams lootParams = params.withParameter(LootContextParams.BLOCK_STATE, state).create(LootContextParamSets.BLOCK);
-            ServerLevel serverLevel = lootParams.getLevel();
-            LootTable lootTable = serverLevel.getServer().reloadableRegistries().getLootTable(resourceKey.get());
-            return lootTable.getRandomItems(lootParams);
-        }
     }
 
     @Override
