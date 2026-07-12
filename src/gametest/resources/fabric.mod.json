@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "kaleidoscope_cookery_gametest",
+  "version": "1.0.0",
+  "name": "Kaleidoscope Cookery Game Tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.github.ysbbbbbb.kaleidoscopecookery.gametest.KaleidoscopeCookeryGameTests"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "fabric-api": "*",
+    "kaleidoscope_cookery": "*"
+  }
+}

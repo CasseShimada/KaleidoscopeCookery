@@ -8,6 +8,7 @@ on:
     paths:
       - 'src/main/**'
       - 'src/client/**'
+      - 'src/gametest/**'
       - 'scripts/**'
       - 'build.gradle'
       - 'gradle.properties'
