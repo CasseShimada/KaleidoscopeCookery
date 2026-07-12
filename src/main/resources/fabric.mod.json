@@ -14,6 +14,16 @@
     "client": ["com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookeryClient"],
     "fabric-datagen": [
       "com.github.ysbbbbbb.kaleidoscopecookery.datagen.DataGenerators"
+    ],
+    "jei_mod_plugin": [
+      "com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.ModJeiPlugin"
+    ],
+    "rei_client": [
+      "com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.ModREIClientPlugin"
+    ],
+    "jade": [
+      "com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModPlugin",
+      "com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModClientPlugin"
     ]
   },
   "mixins": ["kaleidoscope_cookery.mixins.json"],
@@ -25,6 +35,8 @@
     "minecraft": "~${minecraft_version}"
   },
   "suggests": {
-    "jei": "*"
+    "jei": "*",
+    "jade": "*",
+    "roughlyenoughitems": "*"
   }
 }

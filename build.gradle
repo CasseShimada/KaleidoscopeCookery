@@ -29,17 +29,6 @@ fabricApi {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            // These legacy compat modules are not wired to optional dependencies or entrypoints yet.
-            // Keep them out of the common jar until each compat path is restored as a dedicated client integration.
-            exclude 'com/github/ysbbbbbb/kaleidoscopecookery/compat/jade/**'
-            exclude 'com/github/ysbbbbbb/kaleidoscopecookery/compat/rei/**'
-        }
-    }
-}
-
 repositories {
     maven { url = "https://maven.shedaniel.me" }
     exclusiveContent {
@@ -82,6 +71,11 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     clientCompileOnly "mezz.jei:jei-${project.minecraft_version}-common-api:${project.jei_version}"
     clientCompileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
+    compileOnly "maven.modrinth:jade:${project.jade_version}"
+    clientCompileOnly "maven.modrinth:rei:${project.rei_version}"
+    clientCompileOnly "maven.modrinth:architectury-api:${project.architectury_version}"
+    clientCompileOnly "maven.modrinth:cloth-config:${project.cloth_config_version}"
+    clientCompileOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
 }
 
 def modVersion = project.version

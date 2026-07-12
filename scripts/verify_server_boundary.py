@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
 CLIENT_SRC = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery"
 MIXINS = ROOT / "src/main/resources/kaleidoscope_cookery.mixins.json"
+FABRIC_MOD = ROOT / "src/main/resources/fabric.mod.json"
+BUILD_GRADLE = ROOT / "build.gradle"
 MOD_EVENTS = SRC / "init/ModEvents.java"
 
 LEGACY_CLIENT_LOCATIONS = (
@@ -21,6 +23,7 @@ LEGACY_CLIENT_LOCATIONS = (
     SRC / "api/client",
     SRC / "mixin/client",
     SRC / "compat/jei",
+    SRC / "compat/rei",
 )
 
 SERVER_EVENT_REGISTRATIONS = {
@@ -92,7 +95,6 @@ CLIENT_ONLY_PATHS = (
     "client/",
     "mixin/client/",
     "compat/jei/",
-    "compat/jade/",
     "compat/rei/",
     "api/client/",
 )
@@ -101,6 +103,10 @@ CLIENT_ONLY_PATTERNS = (
     re.compile(r"^\s*import\s+net\.minecraft\.client\.", re.MULTILINE),
     re.compile(r"^\s*import\s+com\.github\.ysbbbbbb\.kaleidoscopecookery\.client\.", re.MULTILINE),
     re.compile(r"^\s*import\s+com\.github\.ysbbbbbb\.kaleidoscopecookery\.api\.client\.", re.MULTILINE),
+    re.compile(r"^\s*import\s+me\.shedaniel\.rei\.api\.client\.", re.MULTILINE),
+    re.compile(r"^\s*import\s+snownee\.jade\.api\.IWailaClientRegistration\s*;", re.MULTILINE),
+    re.compile(r"^\s*import\s+snownee\.jade\.api\.ui\.", re.MULTILINE),
+    re.compile(r"^\s*import\s+snownee\.jade\.api\.view\.IClientExtensionProvider\s*;", re.MULTILINE),
     re.compile(r"\bEnvType\.CLIENT\b"),
     re.compile(r"@Environment\s*\(\s*EnvType\.CLIENT\s*\)"),
 )
@@ -132,6 +138,25 @@ def main() -> int:
         for pattern in CLIENT_ONLY_PATTERNS:
             if pattern.search(text):
                 errors.append(f"{path.relative_to(ROOT)} contains client-only reference: {pattern.pattern}")
+
+    entrypoints = json.loads(FABRIC_MOD.read_text(encoding="utf-8"))["entrypoints"]
+    expected_optional_entrypoints = {
+        "jei_mod_plugin": ["com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.ModJeiPlugin"],
+        "rei_client": ["com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.ModREIClientPlugin"],
+        "jade": [
+            "com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModPlugin",
+            "com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModClientPlugin",
+        ],
+    }
+    for key, expected in expected_optional_entrypoints.items():
+        if entrypoints.get(key) != expected:
+            errors.append(f"fabric.mod.json {key} entrypoints should be {expected}.")
+
+    build_text = BUILD_GRADLE.read_text(encoding="utf-8")
+    for compat in ("jade", "rei"):
+        excluded_path = f"compat/{compat}/**"
+        if excluded_path in build_text:
+            errors.append(f"build.gradle still excludes optional integration sources: {excluded_path}")
 
     mixin_data = json.loads(MIXINS.read_text(encoding="utf-8"))
     for mixin in mixin_data.get("mixins", []):

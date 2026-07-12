@@ -1,8 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.jade;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.*;
-import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.RecipeBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.KitchenwareRacksBlockEntity;
@@ -11,7 +9,6 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.SteamerBlockE
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.block.*;
 import net.minecraft.resources.Identifier;
-import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
 import snownee.jade.api.WailaPlugin;
@@ -39,23 +36,5 @@ public class ModPlugin implements IWailaPlugin {
         registration.registerItemStorage(PotComponentProvider.INSTANCE, PotBlockEntity.class);
         registration.registerItemStorage(StockpotComponentProvider.INSTANCE, StockpotBlockEntity.class);
         registration.registerItemStorage(SteamerComponentProvider.INSTANCE, SteamerBlockEntity.class);
-    }
-
-    @Override
-    public void registerClient(IWailaClientRegistration registration) {
-        registration.registerBlockComponent(ShawarmaSpitComponentProvider.INSTANCE, ShawarmaSpitBlock.class);
-        registration.registerBlockComponent(ChoppingBoardComponentProvider.INSTANCE, ChoppingBoardBlock.class);
-        registration.registerBlockComponent(EnamelBasinComponentProvider.INSTANCE, EnamelBasinBlock.class);
-        registration.registerBlockComponent(OilPotComponentProvider.INSTANCE, OilPotBlock.class);
-
-        registration.registerItemStorageClient(FruitBasketComponentProvider.INSTANCE);
-        registration.registerItemStorageClient(KitchenwareRackComponentProvider.INSTANCE);
-        registration.registerItemStorageClient(TableComponentProvider.INSTANCE);
-        registration.registerItemStorageClient(PotComponentProvider.INSTANCE);
-        registration.registerItemStorageClient(StockpotComponentProvider.INSTANCE);
-        registration.registerItemStorageClient(SteamerComponentProvider.INSTANCE);
-
-        registration.registerBlockComponent(MillstoneComponentProvider.INSTANCE, MillstoneBlock.class);
-        registration.registerBlockComponent(RecipeBlockComponentProvider.INSTANCE, RecipeBlock.class);
     }
 }

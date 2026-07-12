@@ -1,10 +1,13 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.compat.farmersdelight.FarmersDelightCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.ReiUtil;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import me.shedaniel.math.Point;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.gui.Renderer;
@@ -19,15 +22,12 @@ import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.crafting.RecipeAccess;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import com.mojang.serialization.MapCodec;
@@ -37,40 +37,42 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-public class ReiPotRecipeCategory implements DisplayCategory<ReiPotRecipeCategory.PotRecipeDisplay> {
-    public static final CategoryIdentifier<PotRecipeDisplay> ID = CategoryIdentifier.of(KaleidoscopeCookery.MOD_ID, "plugin/pot");
-    private static final Identifier BG = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/pot.png");
-    private static final MutableComponent TITLE = Component.translatable("block.kaleidoscope_cookery.pot");
+public class ReiStockpotRecipeCategory implements DisplayCategory<ReiStockpotRecipeCategory.StockpotRecipeDisplay> {
+    public static final CategoryIdentifier<StockpotRecipeDisplay> ID = CategoryIdentifier.of(KaleidoscopeCookery.MOD_ID, "plugin/stockpot");
+    private static final Identifier BG = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/stockpot.png");
+    private static final MutableComponent TITLE = Component.translatable("block.kaleidoscope_cookery.stockpot");
     public static final int WIDTH = 176;
     public static final int HEIGHT = 102;
-    private static final Comparator<RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe>> RECIPE_ORDER =
-            Comparator.comparing((RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe> holder) ->
-                            BuiltInRegistries.ITEM.getKey(holder.value().result().getItem()).toString())
-                    .thenComparingInt(holder -> holder.value().result().getCount())
+    private static final Comparator<RecipeHolder<StockpotRecipe>> RECIPE_ORDER =
+            Comparator.comparing((RecipeHolder<StockpotRecipe> holder) ->
+                            BuiltInRegistries.ITEM.getKey(holder.value().result().create().getItem()).toString())
+                    .thenComparingInt(holder -> holder.value().result().create().getCount())
                     .thenComparing(holder -> holder.id().identifier().toString());
 
     @Override
-    public CategoryIdentifier<PotRecipeDisplay> getCategoryIdentifier() {
+    public CategoryIdentifier<StockpotRecipeDisplay> getCategoryIdentifier() {
         return ID;
     }
 
     @Override
-    public List<Widget> setupDisplay(PotRecipeDisplay display, Rectangle bounds) {
+    public List<Widget> setupDisplay(StockpotRecipeDisplay display, Rectangle bounds) {
         List<Widget> widgets = new ArrayList<>();
         int startX = bounds.x;
         int startY = bounds.y;
-        Component stirFryCount = Component.translatable("jei.kaleidoscope_cookery.pot.stir_fry_count", display.stirFryCount);
 
         widgets.add(Widgets.createRecipeBase(bounds));
         widgets.add(Widgets.createTexturedWidget(BG, startX, startY, 0, 0, WIDTH, HEIGHT));
-        widgets.add(Widgets.withTranslate(Widgets.createDrawableWidget((guiGraphics, mouseX, mouseY, v) -> {
-            drawCenteredString(guiGraphics, stirFryCount, WIDTH / 2, 85);
-        }), startX, startY));
 
+        if (!display.soupBase.isEmpty()) {
+            widgets.add(Widgets.createSlot(new Point(startX + 72, startY + 61))
+                    .entries(display.soupBase)
+                    .disableBackground()
+                    .markInput());
+        }
         List<EntryIngredient> inputs = display.getInputEntries();
         for (int i = 0; i < inputs.size(); i++) {
             int xOffset = (i % 3) * 18 + 15;
-            int yOffset = (i / 3) * 18 + 24;
+            int yOffset = (i / 3) * 18 + 25;
             widgets.add(Widgets.createSlot(new Point(startX + xOffset, startY + yOffset))
                     .entries(inputs.get(i))
                     .disableBackground()
@@ -90,14 +92,8 @@ public class ReiPotRecipeCategory implements DisplayCategory<ReiPotRecipeCategor
         return widgets;
     }
 
-    private void drawCenteredString(GuiGraphics guiGraphics, Component text, int centerX, int y) {
-        Font font = Minecraft.getInstance().font;
-        FormattedCharSequence sequence = text.getVisualOrderText();
-        guiGraphics.drawString(font, sequence, centerX - font.width(sequence) / 2, y, 0x555555, false);
-    }
-
     @Override
-    public int getDisplayWidth(PotRecipeDisplay display) {
+    public int getDisplayWidth(StockpotRecipeDisplay display) {
         return WIDTH;
     }
 
@@ -113,15 +109,14 @@ public class ReiPotRecipeCategory implements DisplayCategory<ReiPotRecipeCategor
 
     @Override
     public Renderer getIcon() {
-        return EntryStacks.of(ModItems.POT);
+        return EntryStacks.of(ModItems.STOCKPOT);
     }
 
     public static void registerCategories(CategoryRegistry registry) {
-        registry.add(new ReiPotRecipeCategory());
-        registry.addWorkstations(ReiPotRecipeCategory.ID,
-                ReiUtil.ofItem(ModItems.POT),
-                ReiUtil.ofTag(TagMod.KITCHEN_SHOVEL),
-                ReiUtil.ofItem(ModItems.OIL)
+        registry.add(new ReiStockpotRecipeCategory());
+        registry.addWorkstations(ReiStockpotRecipeCategory.ID,
+                ReiUtil.ofItem(ModItems.STOCKPOT),
+                ReiUtil.ofItem(ModItems.STOCKPOT_LID)
         );
     }
 
@@ -131,33 +126,39 @@ public class ReiPotRecipeCategory implements DisplayCategory<ReiPotRecipeCategor
             return;
         }
         RecipeAccess recipeAccess = level.recipeAccess();
-        List<RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe>> list = new ArrayList<>();
+        List<RecipeHolder<StockpotRecipe>> list = new ArrayList<>();
         for (RecipeHolder<?> holder : recipeAccess.getSynchronizedRecipes().recipes()) {
-            if (holder.value().getType() != ModRecipes.POT_RECIPE) {
-                continue;
+            if (holder.value().getType() == ModRecipes.STOCKPOT_RECIPE) {
+                StockpotRecipe recipe = (StockpotRecipe) holder.value();
+                list.add(new RecipeHolder<>(holder.id(), recipe));
             }
-            list.add((RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe>) holder);
         }
+        FarmersDelightCompat.appendStockpotRecipes(level, list);
         list.sort(RECIPE_ORDER);
-        for (RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe> r : list) {
-            List<EntryIngredient> inputs = ReiUtil.ofIngredients(r.value().getIngredients());
-            List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().result());
-            EntryIngredient carrier = r.value().carrier()
-                    .map(ReiUtil::ofIngredient)
-                    .orElse(EntryIngredient.empty());
 
-            registry.add(new PotRecipeDisplay(r.id().identifier(), inputs, output, carrier, r.value().stirFryCount()));
-        }
+        list.forEach(r -> {
+            List<EntryIngredient> inputs = ReiUtil.ofIngredients(r.value().getIngredients());
+            List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().result().create());
+            EntryIngredient carrier = r.value().carrier().isEmpty() ? EntryIngredient.empty() : ReiUtil.ofIngredient(r.value().carrier());
+
+            ISoupBase soupBase = SoupBaseManager.getSoupBase(r.value().soupBase());
+            if (soupBase == null) {
+                throw new RuntimeException("No soup found for " + r.value().soupBase());
+            }
+            EntryIngredient soupBaseEntry = ReiUtil.ofItemStack(soupBase.getDisplayStack());
+
+            registry.add(new StockpotRecipeDisplay(r.id().identifier(), inputs, output, carrier, soupBaseEntry));
+        });
     }
 
-    public static class PotRecipeDisplay extends BasicDisplay {
+    public static class StockpotRecipeDisplay extends BasicDisplay {
         public final EntryIngredient carrier;
-        public final int stirFryCount;
+        public final EntryIngredient soupBase;
 
-        public PotRecipeDisplay(Identifier location, List<EntryIngredient> inputs, List<EntryIngredient> outputs, EntryIngredient carrier, int stirFryCount) {
+        public StockpotRecipeDisplay(Identifier location, List<EntryIngredient> inputs, List<EntryIngredient> outputs, EntryIngredient carrier, EntryIngredient soupBase) {
             super(inputs, outputs, Optional.of(location));
             this.carrier = carrier;
-            this.stirFryCount = stirFryCount;
+            this.soupBase = soupBase;
         }
 
         @Override
@@ -166,7 +167,7 @@ public class ReiPotRecipeCategory implements DisplayCategory<ReiPotRecipeCategor
         }
 
         @Override
-        public DisplaySerializer<? extends PotRecipeDisplay> getSerializer() {
+        public DisplaySerializer<? extends StockpotRecipeDisplay> getSerializer() {
             return DisplaySerializer.of(MapCodec.unit(this), StreamCodec.unit(this));
         }
     }
