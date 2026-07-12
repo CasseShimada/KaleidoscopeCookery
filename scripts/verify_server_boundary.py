@@ -61,6 +61,10 @@ LEGACY_INTERACTION_EVENT_PATHS = (
     SRC / "event/WetFieldHoeUseEvent.java",
 )
 
+UNWIRED_LEGACY_EVENT_PATHS = (
+    SRC / "api/event/StockpotMatchRecipeEvent.java",
+)
+
 INSTANT_SMELTING_EVENT = SRC / "event/server/effect/InstantSmeltingEffectEvent.java"
 LEGACY_INSTANT_SMELTING_MIXIN = SRC / "mixin/BlockMixin.java"
 HINDER_EFFECT_EVENT = SRC / "event/server/effect/HinderEffectEvent.java"
@@ -191,6 +195,10 @@ def main() -> int:
     for path in LEGACY_INTERACTION_EVENT_PATHS:
         if path.exists():
             errors.append(f"Legacy interaction event still exists: {path.relative_to(ROOT)}")
+
+    for path in UNWIRED_LEGACY_EVENT_PATHS:
+        if path.exists():
+            errors.append(f"Unwired legacy event still exists: {path.relative_to(ROOT)}")
 
     if INSTANT_SMELTING_EVENT.exists():
         instant_smelting_text = INSTANT_SMELTING_EVENT.read_text(encoding="utf-8")
@@ -518,6 +526,7 @@ def main() -> int:
     print(f"  migrated server events: {len(SERVER_EVENT_REGISTRATIONS)}")
     print(f"  migrated interaction events: {len(INTERACTION_EVENT_REGISTRATIONS)}")
     print(f"  legacy server event paths checked: {len(LEGACY_SERVER_EVENT_PATHS)}")
+    print(f"  unwired legacy event paths checked: {len(UNWIRED_LEGACY_EVENT_PATHS)}")
     print(f"  common mixins: {len(mixin_data.get('mixins', []))}")
     print(f"  client mixins: {len(client_mixin_data.get('client', []))}")
     return 0
