@@ -54,13 +54,6 @@ public final class ModEvents {
                 }
             });
 
-    public static final Event<ActionEventCallback.SickleHarvest> SICKLE_HARVEST =
-            EventFactory.createArrayBacked(ActionEventCallback.SickleHarvest.class, call -> event -> {
-                for (ActionEventCallback.SickleHarvest listener : call) {
-                    listener.onSickleHarvest(event);
-                }
-            });
-
     public static void init() {
         registerEffectEvents();
         registerServerLifecycleEvents();

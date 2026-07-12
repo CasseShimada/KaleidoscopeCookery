@@ -1,8 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.crop.RiceCropBlock;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -136,10 +135,10 @@ public class SickleItem extends CookeryTooltipItem {
     private boolean harvestBlock(BlockPos newPos, Level level, Player player, ItemStack stack, BlockState blockState) {
         Block block = blockState.getBlock();
 
-        SickleHarvestEvent event = new SickleHarvestEvent(player, stack, newPos, blockState);
-        ModEvents.SICKLE_HARVEST.invoker().onSickleHarvest(event);
-        if (event.isCanceled()) {
-            return event.isCostDurability();
+        SickleHarvestCallback.Result callbackResult =
+                SickleHarvestCallback.EVENT.invoker().harvest(player, stack, newPos, blockState);
+        if (callbackResult.handled()) {
+            return callbackResult.costsDurability();
         }
 
         // 成熟作物走原版破坏流程，以保留 Fabric 破坏事件、权限和工具掉落上下文。

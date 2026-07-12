@@ -63,6 +63,7 @@ LEGACY_INTERACTION_EVENT_PATHS = (
 
 UNWIRED_LEGACY_EVENT_PATHS = (
     SRC / "api/event/LivingDamageEvent.java",
+    SRC / "api/event/SickleHarvestEvent.java",
     SRC / "api/event/StockpotMatchRecipeEvent.java",
 )
 
@@ -79,6 +80,7 @@ FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
 OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
+SICKLE_HARVEST_CALLBACK = SRC / "api/event/SickleHarvestCallback.java"
 SICKLE_ITEM = SRC / "item/SickleItem.java"
 RICE_CROP_BLOCK = SRC / "block/crop/RiceCropBlock.java"
 BASE_CROP_BLOCK = SRC / "block/crop/BaseCropBlock.java"
@@ -363,17 +365,34 @@ def main() -> int:
     if SICKLE_NETHER_WART_EVENT.exists():
         sickle_nether_wart_text = SICKLE_NETHER_WART_EVENT.read_text(encoding="utf-8")
         for required_reference in (
-            "if (!serverPlayer.gameMode.destroyBlock(pos))",
+            "SickleHarvestCallback.EVENT.register(SickleHarvestNetherWartEvent::onSickleHarvest)",
+            "if (!player.gameMode.destroyBlock(pos))",
             "level.getBlockState(pos).isAir()",
             "Blocks.NETHER_WART.defaultBlockState()",
-            "event.setCostDurability(true)",
-            "event.setCanceled(true)",
+            "SickleHarvestCallback.Result.HARVESTED",
+            "SickleHarvestCallback.Result.SKIP",
         ):
             if required_reference not in sickle_nether_wart_text:
                 errors.append(f"Sickle nether wart event is missing {required_reference}.")
         for duplicate_side_effect in ("LevelEvent.PARTICLES_DESTROY_BLOCK",):
             if duplicate_side_effect in sickle_nether_wart_text:
                 errors.append(f"Sickle nether wart event retains duplicate side effect: {duplicate_side_effect}.")
+
+    if not SICKLE_HARVEST_CALLBACK.exists():
+        errors.append(f"Sickle harvest callback is missing: {SICKLE_HARVEST_CALLBACK.relative_to(ROOT)}")
+    else:
+        sickle_callback_text = SICKLE_HARVEST_CALLBACK.read_text(encoding="utf-8")
+        for required_reference in (
+            "Event<SickleHarvestCallback> EVENT = EventFactory.createArrayBacked(",
+            "Result.PASS",
+            "SKIP(true, false)",
+            "HARVESTED(true, true)",
+        ):
+            if required_reference not in sickle_callback_text:
+                errors.append(f"Sickle harvest callback is missing {required_reference}.")
+    for legacy_reference in ("ModEvents.SICKLE_HARVEST", "SickleHarvestEvent"):
+        if legacy_reference in mod_events:
+            errors.append(f"ModEvents still exposes legacy sickle event state: {legacy_reference}.")
 
     sickle_item_text = SICKLE_ITEM.read_text(encoding="utf-8")
     if re.search(
@@ -392,6 +411,9 @@ def main() -> int:
         "} finally {",
         "activeHarvestPos.remove()",
         "activeHarvestPos.set(previousHarvestPos)",
+        "SickleHarvestCallback.EVENT.invoker().harvest(player, stack, newPos, blockState)",
+        "callbackResult.handled()",
+        "callbackResult.costsDurability()",
     ):
         if required_reference not in sickle_item_text:
             errors.append(f"SickleItem scoped durability handling is missing {required_reference}.")

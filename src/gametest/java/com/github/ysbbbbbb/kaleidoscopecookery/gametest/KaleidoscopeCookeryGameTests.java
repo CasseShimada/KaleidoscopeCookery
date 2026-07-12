@@ -1,6 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.gametest;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
@@ -21,6 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 
 import java.util.List;
 
@@ -83,6 +85,22 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertFalse(damaged, "Satiated shield did not cancel Fabric's allow-damage callback");
         helper.assertValueEqual(player.getHealth(), initialHealth,
                 "Satiated shield allowed ordinary damage to reduce health");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void sickleCallbackUsesExplicitHarvestResults(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        SickleHarvestCallback.Result defaultResult = SickleHarvestCallback.EVENT.invoker().harvest(
+                player, ItemStack.EMPTY, BlockPos.ZERO, Blocks.WHEAT.defaultBlockState());
+        SickleHarvestCallback.Result netherWartResult = SickleHarvestCallback.EVENT.invoker().harvest(
+                player, ItemStack.EMPTY, BlockPos.ZERO, Blocks.NETHER_WART.defaultBlockState());
+
+        helper.assertValueEqual(defaultResult, SickleHarvestCallback.Result.PASS,
+                "Sickle callback intercepted an unrelated crop");
+        helper.assertValueEqual(netherWartResult, SickleHarvestCallback.Result.SKIP,
+                "Immature nether wart did not stop default sickle harvesting");
         helper.succeed();
     }
 

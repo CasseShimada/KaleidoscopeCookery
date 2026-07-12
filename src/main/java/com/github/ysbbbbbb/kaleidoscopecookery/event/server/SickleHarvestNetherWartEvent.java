@@ -1,8 +1,10 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.event.server;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestEvent;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherWartBlock;
@@ -18,40 +20,37 @@ public final class SickleHarvestNetherWartEvent {
     }
 
     public static void register() {
-        ModEvents.SICKLE_HARVEST.register(SickleHarvestNetherWartEvent::onSickleHarvest);
+        SickleHarvestCallback.EVENT.register(SickleHarvestNetherWartEvent::onSickleHarvest);
     }
 
-    private static void onSickleHarvest(SickleHarvestEvent event) {
-        BlockState harvestState = event.getHarvestState();
-        if (!harvestState.is(Blocks.NETHER_WART)) {
-            return;
+    private static SickleHarvestCallback.Result onSickleHarvest(
+            Player player, ItemStack ignoredSickle, BlockPos pos, BlockState state) {
+        if (!state.is(Blocks.NETHER_WART)) {
+            return SickleHarvestCallback.Result.PASS;
         }
 
-        if (isMatureNetherWart(harvestState)) {
-            harvestMatureNetherWart(event);
+        if (!isMatureNetherWart(state) || !(player instanceof ServerPlayer serverPlayer)) {
+            return SickleHarvestCallback.Result.SKIP;
         }
-        event.setCanceled(true);
+        return harvestMatureNetherWart(serverPlayer, pos)
+                ? SickleHarvestCallback.Result.HARVESTED
+                : SickleHarvestCallback.Result.SKIP;
     }
 
     private static boolean isMatureNetherWart(BlockState state) {
         return state.getValue(NetherWartBlock.AGE) >= MATURE_AGE;
     }
 
-    private static void harvestMatureNetherWart(SickleHarvestEvent event) {
-        var player = event.getPlayer();
-        var pos = event.getHarvestPos();
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-        if (!serverPlayer.gameMode.destroyBlock(pos)) {
-            return;
+    private static boolean harvestMatureNetherWart(ServerPlayer player, BlockPos pos) {
+        if (!player.gameMode.destroyBlock(pos)) {
+            return false;
         }
 
-        var level = serverPlayer.level();
+        var level = player.level();
         if (!level.getBlockState(pos).isAir()) {
-            return;
+            return false;
         }
         level.setBlock(pos, Blocks.NETHER_WART.defaultBlockState(), Block.UPDATE_ALL);
-        event.setCostDurability(true);
+        return true;
     }
 }
