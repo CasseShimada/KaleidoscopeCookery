@@ -10,7 +10,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public class LettuceCropBlock extends BaseCropBlock {
     public LettuceCropBlock(Properties properties) {
-        super(properties, () -> ModItems.LETTUCE, () -> ModItems.LETTUCE_SEED);
+        super(properties, () -> ModItems.LETTUCE_SEED, null);
     }
 
     @Override

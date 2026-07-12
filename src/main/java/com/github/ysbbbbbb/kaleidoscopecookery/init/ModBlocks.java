@@ -55,7 +55,8 @@ public class ModBlocks {
             blockProperties("cold_cut_ham_slices"), ModFoods.COLD_CUT_HAM_SLICES_BLOCK, 8, null);
 
     // Crop blocks
-    public static final Block TOMATO_CROP = new BaseCropBlock(blockProperties("tomato_crop"), () -> ModItems.TOMATO, () -> ModItems.TOMATO_SEED);
+    public static final Block TOMATO_CROP = new BaseCropBlock(
+            blockProperties("tomato_crop"), () -> ModItems.TOMATO_SEED, ModLootTables.HARVEST_TOMATO_CROP);
     public static final Block CHILI_CROP = new ChiliCropBlock(blockProperties("chili_crop"));
     public static final Block LETTUCE_CROP = new LettuceCropBlock(blockProperties("lettuce_crop"));
     public static final Block RICE_CROP = new RiceCropBlock(blockProperties("rice_crop"));

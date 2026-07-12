@@ -61,6 +61,11 @@ FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
 SICKLE_ITEM = SRC / "item/SickleItem.java"
 RICE_CROP_BLOCK = SRC / "block/crop/RiceCropBlock.java"
+BASE_CROP_BLOCK = SRC / "block/crop/BaseCropBlock.java"
+CHILI_CROP_BLOCK = SRC / "block/crop/ChiliCropBlock.java"
+MOD_LOOT_TABLES = SRC / "init/ModLootTables.java"
+LOOT_TABLE_GENERATOR = SRC / "datagen/LootTableGenerator.java"
+BLOCK_INTERACT_LOOT_TABLES = SRC / "datagen/lootable/BlockInteractLootTables.java"
 SICKLE_HARVEST_BLACKLIST = (
     ROOT / "src/main/resources/data/kaleidoscope_cookery/tags/block/sickle_harvest_blacklist.json"
 )
@@ -335,6 +340,55 @@ def main() -> int:
     first_replant_write_index = rice_crop_text.find("level.setBlock(basePos, getReplantedState")
     if last_replant_guard_index > first_replant_write_index:
         errors.append("RiceCropBlock writes replanted sections before validating all harvested positions.")
+
+    base_crop_text = BASE_CROP_BLOCK.read_text(encoding="utf-8")
+    for required_reference in (
+        "level instanceof ServerLevel serverLevel",
+        "dropFromBlockInteractLootTable(",
+        "level.getBlockEntity(pos)",
+        "this.onUseBreakCrop(state, serverLevel, pos, player)",
+        "state.setValue(AGE, ageAfterUse)",
+        "GameEvent.BLOCK_CHANGE",
+        "GameEvent.Context.of(player, harvestedState)",
+    ):
+        if required_reference not in base_crop_text:
+            errors.append(f"BaseCropBlock native interaction harvest is missing {required_reference}.")
+    loot_drop_index = base_crop_text.find("dropFromBlockInteractLootTable(")
+    reset_crop_index = base_crop_text.find("this.onUseBreakCrop(state, serverLevel, pos, player)")
+    if loot_drop_index > reset_crop_index:
+        errors.append("BaseCropBlock resets the crop before evaluating its interaction loot table.")
+    if "this.result" in base_crop_text:
+        errors.append("BaseCropBlock still retains the legacy manual harvest result supplier.")
+
+    chili_crop_text = CHILI_CROP_BLOCK.read_text(encoding="utf-8")
+    if "ModLootTables.HARVEST_CHILI_CROP" not in chili_crop_text:
+        errors.append("ChiliCropBlock does not use its block-interaction harvest loot table.")
+    for legacy_reference in ("nextInt", "Block.popResource", "useWithoutItem"):
+        if legacy_reference in chili_crop_text:
+            errors.append(f"ChiliCropBlock retains legacy harvest logic: {legacy_reference}.")
+
+    mod_loot_tables_text = MOD_LOOT_TABLES.read_text(encoding="utf-8")
+    for required_reference in (
+        'create("harvest/tomato_crop")',
+        'create("harvest/chili_crop")',
+        "Registries.LOOT_TABLE",
+    ):
+        if required_reference not in mod_loot_tables_text:
+            errors.append(f"ModLootTables is missing {required_reference}.")
+
+    loot_table_generator_text = LOOT_TABLE_GENERATOR.read_text(encoding="utf-8")
+    if "LootContextParamSets.BLOCK_INTERACT" not in loot_table_generator_text:
+        errors.append("LootTableGenerator does not register a BLOCK_INTERACT sub-provider.")
+
+    block_interact_loot_text = BLOCK_INTERACT_LOOT_TABLES.read_text(encoding="utf-8")
+    for required_reference in (
+        "ModLootTables.HARVEST_TOMATO_CROP",
+        "ModLootTables.HARVEST_CHILI_CROP",
+        "AlternativesEntry.alternatives(",
+        "LootItemRandomChanceCondition.randomChance(0.2F)",
+    ):
+        if required_reference not in block_interact_loot_text:
+            errors.append(f"Block interaction loot generation is missing {required_reference}.")
 
     vegetation_harvest = re.search(
         r"if\s*\(block\s+instanceof\s+VegetationBlock.*?serverPlayer\s*\)\s*\{(?P<body>.*?)\n\s*\}",
