@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -41,10 +42,16 @@ public final class WetFieldHoeUseEvent {
             return InteractionResult.PASS;
         }
 
-        if (!level.isClientSide()) {
-            tillWetField(level, pos, player, hand, stack);
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
-        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        if (!level.mayInteract(player, pos)
+                || !player.mayUseItemAt(pos, hitResult.getDirection(), stack)) {
+            return InteractionResult.FAIL;
+        }
+        return tillWetField(level, pos, player, hand, stack)
+                ? InteractionResult.CONSUME
+                : InteractionResult.FAIL;
     }
 
     private static boolean isWetFieldTarget(Level level, BlockPos pos) {
@@ -61,12 +68,18 @@ public final class WetFieldHoeUseEvent {
         return fluidState.is(FluidTags.WATER);
     }
 
-    private static void tillWetField(Level level, BlockPos pos, Player player, InteractionHand hand, ItemStack stack) {
-        level.setBlockAndUpdate(pos, Blocks.FARMLAND.defaultBlockState());
+    private static boolean tillWetField(Level level, BlockPos pos, Player player,
+                                        InteractionHand hand, ItemStack stack) {
+        BlockState farmland = Blocks.FARMLAND.defaultBlockState();
+        if (!level.setBlockAndUpdate(pos, farmland)) {
+            return false;
+        }
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, farmland));
         level.playSound(null, pos, SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
         if (!player.hasInfiniteMaterials()) {
             stack.hurtAndBreak(HOE_DURABILITY_COST, player, hand);
         }
         ModTrigger.EVENT.trigger(player, ModEventTriggerType.USE_HOE_ON_WATER_FIELD);
+        return true;
     }
 }

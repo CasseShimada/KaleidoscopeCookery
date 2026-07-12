@@ -212,6 +212,11 @@ def main() -> int:
             "UseBlockCallback.EVENT",
             "player.isSpectator()",
             "FluidTags.WATER",
+            "level.mayInteract(player, pos)",
+            "player.mayUseItemAt(pos, hitResult.getDirection(), stack)",
+            "InteractionResult.FAIL",
+            "if (!level.setBlockAndUpdate(pos, farmland))",
+            "GameEvent.BLOCK_CHANGE",
             "player.hasInfiniteMaterials()",
             "USE_HOE_ON_WATER_FIELD",
         ):
