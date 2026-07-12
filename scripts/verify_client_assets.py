@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable
 
+from resource_roots import iter_resource_files, resource_relative
+
 
 MOD_ID = "kaleidoscope_cookery"
 ROOT = Path(__file__).resolve().parents[1]
@@ -326,6 +328,31 @@ def validate_sounds() -> list[str]:
     return errors
 
 
+def collect_item_tag_translation_keys() -> set[str]:
+    keys: set[str] = set()
+    for path in iter_resource_files("data", pattern="*.json"):
+        relative = resource_relative(path)
+        parts = relative.parts
+        if len(parts) < 5 or parts[2:4] != ("tags", "item"):
+            continue
+
+        namespace = parts[1]
+        if namespace == "minecraft":
+            continue
+
+        tag_path = Path(*parts[4:]).with_suffix("").as_posix().replace("/", ".")
+        keys.add(f"tag.item.{namespace}.{tag_path}")
+    return keys
+
+
+def validate_item_tag_translations() -> list[str]:
+    lang_en = parse_json(ASSETS / "lang/en_us.json")
+    missing = collect_item_tag_translation_keys() - set(lang_en)
+    if missing:
+        return [f"Item tags missing en_us translations: {sorted(missing)}"]
+    return []
+
+
 def main() -> int:
     errors: list[str] = []
     errors.extend(validate_renderers())
@@ -334,6 +361,7 @@ def main() -> int:
     errors.extend(validate_equipment_assets())
     errors.extend(validate_particles())
     errors.extend(validate_sounds())
+    errors.extend(validate_item_tag_translations())
 
     if errors:
         print("Client asset verification failed:")
@@ -349,6 +377,7 @@ def main() -> int:
     particles = collect_string_calls(JAVA_ROOT / "init/ModParticles.java", "register")
     sounds = collect_string_calls(JAVA_ROOT / "init/ModSounds.java", "register")
     equipment_assets = collect_equipment_assets()
+    item_tag_translations = collect_item_tag_translation_keys()
 
     print("Client asset verification passed.")
     print(f"  entity renderers: {entity_count}")
@@ -358,6 +387,7 @@ def main() -> int:
     print(f"  equipment assets: {len(equipment_assets)}")
     print(f"  particles: {len(particles)}")
     print(f"  sound events: {len(sounds)}")
+    print(f"  translated item tags: {len(item_tag_translations)}")
     return 0
 
 
