@@ -23,7 +23,6 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -143,28 +142,50 @@ public class SickleItem extends Item {
             return event.isCostDurability();
         }
 
-        // 如果是作物，那么检查是否成熟
-        if (block instanceof CropBlock cropBlock) {
-            // 水稻特判
-            if (block instanceof RiceCropBlock) {
-                int position = blockState.getValue(RiceCropBlock.LOCATION);
-                newPos = newPos.below(position);
-                blockState = level.getBlockState(newPos);
+        // 成熟作物走原版破坏流程，以保留 Fabric 破坏事件、权限和工具掉落上下文。
+        if (block instanceof CropBlock cropBlock && player instanceof ServerPlayer serverPlayer) {
+            RiceCropBlock riceCropBlock = block instanceof RiceCropBlock rice ? rice : null;
+            if (riceCropBlock != null) {
+                newPos = newPos.below(blockState.getValue(RiceCropBlock.LOCATION));
+                activeHarvestPos.set(newPos);
             }
-            if (cropBlock.isMaxAge(blockState)) {
-                // 成熟则收割
-                cropBlock.playerDestroy(level, player, newPos, blockState, null, ItemStack.EMPTY);
+            if (!level.mayInteract(player, newPos)) {
+                return false;
+            }
+
+            blockState = level.getBlockState(newPos);
+            if (!blockState.is(block) || !cropBlock.isMaxAge(blockState)) {
+                return false;
+            }
+
+            if (riceCropBlock != null) {
+                if (blockState.getValue(RiceCropBlock.LOCATION) != RiceCropBlock.DOWN) {
+                    return false;
+                }
+                BlockState middleRiceState = level.getBlockState(newPos.above(RiceCropBlock.MIDDLE));
+                BlockState upperRiceState = level.getBlockState(newPos.above(RiceCropBlock.UP));
+                if (!serverPlayer.gameMode.destroyBlock(newPos)
+                        || level.getBlockState(newPos).equals(blockState)) {
+                    return false;
+                }
+                riceCropBlock.replantAfterHarvestIfUnchanged(level, newPos, blockState, middleRiceState, upperRiceState);
+                return true;
+            }
+
+            if (!serverPlayer.gameMode.destroyBlock(newPos)
+                    || level.getBlockState(newPos).equals(blockState)) {
+                return false;
+            }
+            BlockState replacementState = blockState.getFluidState().createLegacyBlock();
+            if (level.getBlockState(newPos).equals(replacementState)) {
                 BlockState stateForAge = cropBlock.getStateForAge(0);
-                // 同步水属性状态
                 BooleanProperty waterlogged = BlockStateProperties.WATERLOGGED;
                 if (stateForAge.hasProperty(waterlogged)) {
                     stateForAge = stateForAge.setValue(waterlogged, blockState.getValue(waterlogged));
                 }
                 level.setBlock(newPos, stateForAge, Block.UPDATE_ALL);
-                level.levelEvent(null, LevelEvent.PARTICLES_DESTROY_BLOCK, newPos, Block.getId(blockState));
-                return true;
             }
-            return false;
+            return true;
         }
 
         // 如果是植被，直接破坏

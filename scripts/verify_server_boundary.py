@@ -60,6 +60,7 @@ CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeed
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
 SICKLE_ITEM = SRC / "item/SickleItem.java"
+RICE_CROP_BLOCK = SRC / "block/crop/RiceCropBlock.java"
 SICKLE_HARVEST_BLACKLIST = (
     ROOT / "src/main/resources/data/kaleidoscope_cookery/tags/block/sickle_harvest_blacklist.json"
 )
@@ -287,6 +288,48 @@ def main() -> int:
     ):
         if required_reference not in sickle_item_text:
             errors.append(f"SickleItem durability handling is missing {required_reference}.")
+
+    crop_harvest_start = sickle_item_text.find("if (block instanceof CropBlock")
+    crop_harvest_end = sickle_item_text.find("// 如果是植被", crop_harvest_start)
+    if crop_harvest_start < 0 or crop_harvest_end < 0:
+        errors.append("SickleItem crop harvest branch is missing.")
+    else:
+        crop_harvest_body = sickle_item_text[crop_harvest_start:crop_harvest_end]
+        for required_reference in (
+            "activeHarvestPos.set(newPos)",
+            "serverPlayer.gameMode.destroyBlock(newPos)",
+            "blockState.getFluidState().createLegacyBlock()",
+            "riceCropBlock.replantAfterHarvestIfUnchanged",
+        ):
+            if required_reference not in crop_harvest_body:
+                errors.append(f"SickleItem crop harvest is missing {required_reference}.")
+        for legacy_reference in (
+            "playerDestroy",
+            "LevelEvent.PARTICLES_DESTROY_BLOCK",
+        ):
+            if legacy_reference in crop_harvest_body:
+                errors.append(f"SickleItem crop harvest retains legacy side effect: {legacy_reference}.")
+        harvest_marker_index = crop_harvest_body.find("activeHarvestPos.set(newPos)")
+        destroy_block_index = crop_harvest_body.find("serverPlayer.gameMode.destroyBlock(newPos)")
+        if harvest_marker_index > destroy_block_index:
+            errors.append("SickleItem normalizes the rice durability marker after destroying the crop.")
+
+    rice_crop_text = RICE_CROP_BLOCK.read_text(encoding="utf-8")
+    for required_reference in (
+        "replantAfterHarvestIfUnchanged",
+        "bottomState.getFluidState().createLegacyBlock()",
+        "middleState.getFluidState().createLegacyBlock()",
+        "upperState.getFluidState().createLegacyBlock()",
+        "getReplantedState(DOWN, bottomState)",
+        "getReplantedState(MIDDLE, middleState)",
+        "getReplantedState(UP, upperState)",
+    ):
+        if required_reference not in rice_crop_text:
+            errors.append(f"RiceCropBlock harvest replanting is missing {required_reference}.")
+    last_replant_guard_index = rice_crop_text.find("upperState.getFluidState().createLegacyBlock()")
+    first_replant_write_index = rice_crop_text.find("level.setBlock(basePos, getReplantedState")
+    if last_replant_guard_index > first_replant_write_index:
+        errors.append("RiceCropBlock writes replanted sections before validating all harvested positions.")
 
     vegetation_harvest = re.search(
         r"if\s*\(block\s+instanceof\s+VegetationBlock.*?serverPlayer\s*\)\s*\{(?P<body>.*?)\n\s*\}",

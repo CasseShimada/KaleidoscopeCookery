@@ -126,6 +126,32 @@ public class RiceCropBlock extends BaseCropBlock implements SimpleWaterloggedBlo
         level.setBlock(pos.above(UP), this.getStateForAge(0).setValue(LOCATION, UP), Block.UPDATE_ALL);
     }
 
+    public void replantAfterHarvestIfUnchanged(Level level, BlockPos basePos, BlockState bottomState,
+                                               BlockState middleState, BlockState upperState) {
+        if (!isSection(bottomState, DOWN) || !isSection(middleState, MIDDLE) || !isSection(upperState, UP)) {
+            return;
+        }
+        if (!level.getBlockState(basePos).equals(bottomState.getFluidState().createLegacyBlock())
+                || !level.getBlockState(basePos.above(MIDDLE)).equals(middleState.getFluidState().createLegacyBlock())
+                || !level.getBlockState(basePos.above(UP)).equals(upperState.getFluidState().createLegacyBlock())) {
+            return;
+        }
+
+        level.setBlock(basePos, getReplantedState(DOWN, bottomState), Block.UPDATE_ALL);
+        level.setBlock(basePos.above(MIDDLE), getReplantedState(MIDDLE, middleState), Block.UPDATE_ALL);
+        level.setBlock(basePos.above(UP), getReplantedState(UP, upperState), Block.UPDATE_ALL);
+    }
+
+    private boolean isSection(BlockState state, int location) {
+        return state.is(this) && state.getValue(LOCATION) == location;
+    }
+
+    private BlockState getReplantedState(int location, BlockState previousState) {
+        return this.getStateForAge(0)
+                .setValue(LOCATION, location)
+                .setValue(WATERLOGGED, previousState.getValue(WATERLOGGED));
+    }
+
     @Override
     public boolean canSurvive(BlockState state, LevelReader levelReader, BlockPos pos) {
         if (levelReader.getRawBrightness(pos, 0) < 8 && !levelReader.canSeeSky(pos)) {
