@@ -3,7 +3,6 @@ package com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IShawarmaSpit;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ShawarmaSpitBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
-import com.google.common.collect.Lists;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -43,6 +42,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, EntityBlock {
@@ -80,36 +80,38 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
         return CODEC;
     }
 
-    @Nullable
-    protected static <E extends BlockEntity, A extends BlockEntity> BlockEntityTicker<A> createTickerHelper(
-            BlockEntityType<A> serverType, BlockEntityType<E> clientType, BlockEntityTicker<? super E> ticker) {
-        return clientType == serverType ? (BlockEntityTicker<A>) ticker : null;
-    }
-
     @Override
     public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (player.isShiftKeyDown()) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        BlockEntity blockEntity = level.getBlockEntity(pos);
+        BlockPos storagePos = getStoragePos(pos, state);
+        BlockEntity blockEntity = level.getBlockEntity(storagePos);
         if (blockEntity instanceof IShawarmaSpit shawarmaSpit) {
             ItemStack heldItem = player.getItemInHand(hand);
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             if (shawarmaSpit.onPutCookingItem(level, heldItem)) {
-                return InteractionResult.SUCCESS;
+                return InteractionResult.CONSUME;
             } else if (shawarmaSpit.onTakeCookedItem(level, player)) {
-                return InteractionResult.SUCCESS;
+                return InteractionResult.CONSUME;
             }
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
+    @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, ModBlocks.SHAWARMA_SPIT_BE, (levelIn, blockPos, blockState, spit) -> {
+        if (level.isClientSide() || blockEntityType != ModBlocks.SHAWARMA_SPIT_BE) {
+            return null;
+        }
+        return (levelIn, blockPos, blockState, blockEntity) -> {
             if (blockState.getValue(POWERED)) {
-                spit.tick();
+                ((ShawarmaSpitBlockEntity) blockEntity).tick();
             }
-        });
+        };
     }
 
     @Override
@@ -147,21 +149,29 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
 
     @Override
     public @NotNull BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide() && player.isCreative()) {
+        if (!level.isClientSide()) {
             if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
                 BlockPos below = pos.below();
                 BlockState belowState = level.getBlockState(below);
                 if (belowState.is(state.getBlock()) && belowState.getValue(HALF) == DoubleBlockHalf.LOWER) {
-                    dropCookItems(level, below);
-                    BlockState airBlockState = belowState.getFluidState().is(Fluids.WATER) ? Blocks.WATER.defaultBlockState() : Blocks.AIR.defaultBlockState();
-                    level.setBlock(below, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
-                    level.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, below, Block.getId(belowState));
+                    if (player.isCreative()) {
+                        dropCookItems(level, below);
+                        BlockState airBlockState = belowState.getFluidState().is(Fluids.WATER) ? Blocks.WATER.defaultBlockState() : Blocks.AIR.defaultBlockState();
+                        level.setBlock(below, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
+                        level.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, below, Block.getId(belowState));
+                    } else {
+                        level.destroyBlock(below, true, player);
+                    }
                 }
-            } else {
+            } else if (player.isCreative()) {
                 dropCookItems(level, pos);
             }
         }
         return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    private static BlockPos getStoragePos(BlockPos pos, BlockState state) {
+        return state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;
     }
 
     private void dropCookItems(Level level, BlockPos pos) {
@@ -194,6 +204,9 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (level.isClientSide()) {
+            return;
+        }
         FluidState fluidState = level.getFluidState(pos);
         BlockState blockState = state.setValue(HALF, DoubleBlockHalf.UPPER)
                 .setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
@@ -219,9 +232,9 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
     public @NotNull List<ItemStack> getDrops(BlockState state, LootParams.Builder lootParamsBuilder) {
         List<ItemStack> drops;
         if (state.getValue(HALF) == DoubleBlockHalf.LOWER) {
-            drops = super.getDrops(state, lootParamsBuilder);
+            drops = new ArrayList<>(super.getDrops(state, lootParamsBuilder));
         } else {
-            drops = Lists.newArrayList();
+            drops = new ArrayList<>();
         }
         BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof ShawarmaSpitBlockEntity shawarmaSpit) {

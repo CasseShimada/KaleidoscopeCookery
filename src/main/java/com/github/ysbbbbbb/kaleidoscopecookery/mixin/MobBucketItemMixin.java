@@ -18,21 +18,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MobBucketItemMixin {
     @Inject(method = "checkExtraContent", at = @At("RETURN"))
     private void onCheckExtraContent(LivingEntity entity, Level level, ItemStack containerStack, BlockPos pos, CallbackInfo ci) {
-        if (level.isClientSide()) {
+        if (level.isClientSide() || !(entity instanceof Player player)) {
             return;
         }
-        if (!(entity instanceof Player player)) {
-            return;
+
+        if (hasRiceCropNear(level, pos)) {
+            ModTrigger.EVENT.trigger(player, ModEventTriggerType.PLACE_FISH_IN_RICE_FIELD);
         }
-        // 搜索周围 3x3x1 范围，看有没有水稻
+    }
+
+    private static boolean hasRiceCropNear(Level level, BlockPos pos) {
         BlockPos.MutableBlockPos mutable = pos.mutable();
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
                 if (level.getBlockState(mutable.offset(x, 0, z)).is(ModBlocks.RICE_CROP)) {
-                    ModTrigger.EVENT.trigger(player, ModEventTriggerType.PLACE_FISH_IN_RICE_FIELD);
-                    return;
+                    return true;
                 }
             }
         }
+        return false;
     }
 }

@@ -11,6 +11,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -19,6 +21,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagLoader;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeAccess;
@@ -34,11 +37,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class RecipeJsonLoader {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final String RECIPES_PATH = "recipes/";
+    private static final String RECIPES_PATH = "recipe/";
     private static final String JSON_EXT = ".json";
 
 
@@ -49,7 +53,13 @@ public final class RecipeJsonLoader {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
         if (level == null) {
-            return List.of();
+            RegistryAccess.Frozen registryAccess = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+            HolderLookup.Provider provider = loadTagAwareProvider(minecraft.getResourceManager(), registryAccess);
+            List<RecipeHolder<T>> fromResources = loadFromResources(minecraft.getResourceManager(), provider, serializer);
+            if (!fromResources.isEmpty()) {
+                return fromResources;
+            }
+            return loadFromModContainer(KaleidoscopeCookery.MOD_ID, provider, serializer);
         }
         IntegratedServer server = minecraft.getSingleplayerServer();
         if (server != null) {
@@ -68,39 +78,98 @@ public final class RecipeJsonLoader {
                 }
             }
         }
-        List<RecipeHolder<T>> fromMod = loadFromModContainer(KaleidoscopeCookery.MOD_ID, level.registryAccess(), serializer, type);
+        List<RecipeHolder<T>> fromMod = loadFromModContainer(KaleidoscopeCookery.MOD_ID, level.registryAccess(), serializer);
         if (!fromMod.isEmpty()) {
             return fromMod;
         }
-        List<RecipeHolder<T>> fromResources = loadFromResources(minecraft.getResourceManager(), level.registryAccess(), serializer, type);
+        List<RecipeHolder<T>> fromResources = loadFromResources(minecraft.getResourceManager(), level.registryAccess(), serializer);
         return fromResources;
     }
 
+    public static <T extends Recipe<?>> List<RecipeHolder<T>> getRecipes(RecipeSerializer<T> serializer) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel level = minecraft.level;
+        if (level == null) {
+            RegistryAccess.Frozen registryAccess = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+            HolderLookup.Provider provider = loadTagAwareProvider(minecraft.getResourceManager(), registryAccess);
+            List<RecipeHolder<T>> fromResources = loadFromResources(minecraft.getResourceManager(), provider, serializer);
+            if (!fromResources.isEmpty()) {
+                return fromResources;
+            }
+            return loadFromModContainer(KaleidoscopeCookery.MOD_ID, provider, serializer);
+        }
+        IntegratedServer server = minecraft.getSingleplayerServer();
+        if (server != null) {
+            return collectBySerializer(server.getRecipeManager(), serializer);
+        }
+        RecipeAccess access = level.recipeAccess();
+        if (access != null) {
+            List<RecipeHolder<T>> fromAccess = collectBySerializer(access, serializer);
+            if (!fromAccess.isEmpty()) {
+                return fromAccess;
+            }
+            if (access instanceof RecipeManager recipeManager) {
+                List<RecipeHolder<T>> fromManager = collectBySerializer(recipeManager, serializer);
+                if (!fromManager.isEmpty()) {
+                    return fromManager;
+                }
+            }
+        }
+        List<RecipeHolder<T>> fromMod = loadFromModContainer(KaleidoscopeCookery.MOD_ID, level.registryAccess(), serializer);
+        if (!fromMod.isEmpty()) {
+            return fromMod;
+        }
+        return loadFromResources(minecraft.getResourceManager(), level.registryAccess(), serializer);
+    }
+
     private static <T extends Recipe<?>> List<RecipeHolder<T>> collectFromManager(RecipeManager manager, RecipeType<T> type) {
+        return collectMatchingRecipes(manager.getRecipes(), type);
+    }
+
+    private static <T extends Recipe<?>> List<RecipeHolder<T>> collectFromAccess(RecipeAccess access, RecipeType<T> type) {
+        return collectMatchingRecipes(access.getSynchronizedRecipes().recipes(), type);
+    }
+
+    private static <T extends Recipe<?>> List<RecipeHolder<T>> collectBySerializer(RecipeManager manager, RecipeSerializer<T> serializer) {
+        return collectMatchingRecipes(manager.getRecipes(), serializer);
+    }
+
+    private static <T extends Recipe<?>> List<RecipeHolder<T>> collectBySerializer(RecipeAccess access, RecipeSerializer<T> serializer) {
+        return collectMatchingRecipes(access.getSynchronizedRecipes().recipes(), serializer);
+    }
+
+    private static <T extends Recipe<?>> List<RecipeHolder<T>> collectMatchingRecipes(Iterable<RecipeHolder<?>> holders, RecipeType<T> type) {
         List<RecipeHolder<T>> results = new ArrayList<>();
-        for (RecipeHolder<?> holder : manager.getRecipes()) {
+        for (RecipeHolder<?> holder : holders) {
             if (holder.value().getType() == type) {
-                results.add((RecipeHolder<T>) holder);
+                results.add(castRecipeHolder(holder));
             }
         }
         return results;
     }
 
-    private static <T extends Recipe<?>> List<RecipeHolder<T>> collectFromAccess(RecipeAccess access, RecipeType<T> type) {
+    private static <T extends Recipe<?>> List<RecipeHolder<T>> collectMatchingRecipes(
+            Iterable<RecipeHolder<?>> holders,
+            RecipeSerializer<T> serializer
+    ) {
         List<RecipeHolder<T>> results = new ArrayList<>();
-        for (RecipeHolder<?> holder : access.getSynchronizedRecipes().recipes()) {
-            if (holder.value().getType() == type) {
-                results.add((RecipeHolder<T>) holder);
+        for (RecipeHolder<?> holder : holders) {
+            if (holder.value().getSerializer() == serializer) {
+                results.add(castRecipeHolder(holder));
             }
         }
         return results;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Recipe<?>> RecipeHolder<T> castRecipeHolder(RecipeHolder<?> holder) {
+        return (RecipeHolder<T>) holder;
     }
 
     private static <T extends Recipe<?>> List<RecipeHolder<T>> loadFromModContainer(
             String modId,
-            RegistryAccess registryAccess,
-            RecipeSerializer<T> serializer,
-            RecipeType<T> type
+            HolderLookup.Provider lookupProvider,
+            RecipeSerializer<T> serializer
     ) {
         var container = FabricLoader.getInstance().getModContainer(modId);
         if (container.isEmpty()) {
@@ -114,7 +183,7 @@ public final class RecipeJsonLoader {
         if (root == null) {
             return List.of();
         }
-        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, registryAccess);
+        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, lookupProvider);
         List<RecipeHolder<T>> results = new ArrayList<>();
         try (Stream<Path> stream = Files.walk(root)) {
             stream.filter(path -> path.toString().endsWith(JSON_EXT)).forEach(path -> {
@@ -132,9 +201,7 @@ public final class RecipeJsonLoader {
                 if (!serializerId.equals(typeId)) {
                     return;
                 }
-                DataResult<T> parsed = serializer.codec().codec().parse(ops, json);
-                parsed.resultOrPartial(message -> LOGGER.warn("Failed to parse recipe {}: {}", recipeId, message))
-                        .ifPresent(recipe -> results.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, recipeId), recipe)));
+                parseRecipe(serializer, ops, recipeId, json).ifPresent(results::add);
             });
         } catch (Exception e) {
             LOGGER.warn("Failed to load recipes from mod container {}", modId, e);
@@ -144,17 +211,16 @@ public final class RecipeJsonLoader {
 
     private static <T extends Recipe<?>> List<RecipeHolder<T>> loadFromResources(
             ResourceManager resourceManager,
-            RegistryAccess registryAccess,
-            RecipeSerializer<T> serializer,
-            RecipeType<T> type
+            HolderLookup.Provider lookupProvider,
+            RecipeSerializer<T> serializer
     ) {
         Identifier serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(serializer);
         if (serializerId == null) {
             return List.of();
         }
-        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, registryAccess);
+        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, lookupProvider);
         List<RecipeHolder<T>> results = new ArrayList<>();
-        Map<Identifier, Resource> resources = resourceManager.listResources("recipes", id -> id.getPath().endsWith(JSON_EXT));
+        Map<Identifier, Resource> resources = resourceManager.listResources("recipe", id -> id.getPath().endsWith(JSON_EXT));
         for (Map.Entry<Identifier, Resource> entry : resources.entrySet()) {
             Identifier resourceId = entry.getKey();
             Identifier recipeId = toRecipeId(resourceId);
@@ -169,11 +235,34 @@ public final class RecipeJsonLoader {
             if (!serializerId.equals(typeId)) {
                 continue;
             }
-            DataResult<T> parsed = serializer.codec().codec().parse(ops, json);
-            parsed.resultOrPartial(message -> LOGGER.warn("Failed to parse recipe {}: {}", recipeId, message))
-                    .ifPresent(recipe -> results.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, recipeId), recipe)));
+            parseRecipe(serializer, ops, recipeId, json).ifPresent(results::add);
         }
         return results;
+    }
+
+    private static <T extends Recipe<?>> Optional<RecipeHolder<T>> parseRecipe(
+            RecipeSerializer<T> serializer,
+            RegistryOps<JsonElement> ops,
+            Identifier recipeId,
+            JsonObject json
+    ) {
+        DataResult<T> parsed = serializer.codec().codec().parse(ops, json);
+        return parsed.resultOrPartial(message -> LOGGER.warn("Failed to parse recipe {}: {}", recipeId, message))
+                .map(recipe -> new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, recipeId), recipe));
+    }
+
+    private static HolderLookup.Provider loadTagAwareProvider(ResourceManager resourceManager, RegistryAccess.Frozen registryAccess) {
+        try {
+            List<Registry.PendingTags<?>> pendingTags = TagLoader.loadTagsForExistingRegistries(resourceManager, registryAccess);
+            if (pendingTags.isEmpty()) {
+                return registryAccess;
+            }
+            List<HolderLookup.RegistryLookup<?>> lookups = TagLoader.buildUpdatedLookups(registryAccess, pendingTags);
+            return HolderLookup.Provider.create(lookups.stream());
+        } catch (Exception e) {
+            LOGGER.warn("Failed to prepare tag-aware recipe lookup for JEI fallback", e);
+            return registryAccess;
+        }
     }
 
     private static Identifier getTypeId(JsonObject json) {

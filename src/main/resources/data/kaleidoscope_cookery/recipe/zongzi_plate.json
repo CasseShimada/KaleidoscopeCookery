@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "kaleidoscope_cookery:zongzi",
+    "kaleidoscope_cookery:zongzi",
+    "kaleidoscope_cookery:zongzi",
+    "kaleidoscope_cookery:zongzi",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:zongzi_plate"
+  }
+}

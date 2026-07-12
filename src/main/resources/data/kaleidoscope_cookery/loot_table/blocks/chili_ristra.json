@@ -2,7 +2,6 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "condition": "minecraft:survives_explosion"
@@ -25,7 +24,6 @@
               ],
               "functions": [
                 {
-                  "add": false,
                   "count": 3.0,
                   "function": "minecraft:set_count"
                 }
@@ -36,7 +34,6 @@
               "type": "minecraft:item",
               "functions": [
                 {
-                  "add": false,
                   "count": 6.0,
                   "function": "minecraft:set_count"
                 }

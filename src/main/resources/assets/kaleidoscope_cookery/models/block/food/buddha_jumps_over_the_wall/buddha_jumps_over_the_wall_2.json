@@ -5,7 +5,7 @@
 	"render_type": "minecraft:cutout",
 	"textures": {
 		"0": "kaleidoscope_cookery:block/buddha_jumps_over_the_wall",
-		"particle": "block/flower_pot"
+		"particle": "minecraft:block/flower_pot"
 	},
 	"elements": [
 		{

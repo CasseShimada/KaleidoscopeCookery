@@ -14,20 +14,20 @@ public class PotRecipeProvider extends ModRecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput consumer) {
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.COOKED_EGGS, TagCommon.COOKED_EGGS,
                         TagCommon.CROPS_TOMATO, TagCommon.CROPS_TOMATO)
                 .setBowlCarrier()
                 .setResult(ModItems.SCRAMBLE_EGG_WITH_TOMATOES)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.COOKED_EGGS, TagCommon.CROPS_TOMATO, TagCommon.CROPS_TOMATO)
                 .setCarrier(ModItems.COOKED_RICE)
                 .setResult(ModItems.SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.COOKED_EGGS, TagCommon.COOKED_EGGS,
                         TagCommon.COOKED_EGGS, TagCommon.COOKED_EGGS,
                         TagCommon.CROPS_TOMATO, TagCommon.CROPS_TOMATO,
@@ -36,7 +36,7 @@ public class PotRecipeProvider extends ModRecipeProvider {
                 .setResult(ModItems.SCRAMBLE_EGG_WITH_TOMATOES, 2)
                 .save(consumer, "scramble_egg_with_tomatoes_2");
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.COOKED_EGGS, TagCommon.COOKED_EGGS, TagCommon.COOKED_EGGS,
                         TagCommon.CROPS_TOMATO, TagCommon.CROPS_TOMATO, TagCommon.CROPS_TOMATO,
                         TagCommon.CROPS_TOMATO)
@@ -44,34 +44,34 @@ public class PotRecipeProvider extends ModRecipeProvider {
                 .setResult(ModItems.SCRAMBLE_EGG_WITH_TOMATOES_RICE_BOWL, 2)
                 .save(consumer, "scramble_egg_with_tomatoes_rice_bowl_2");
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(ModItems.RAW_COW_OFFAL, ModItems.RAW_COW_OFFAL, ModItems.RAW_COW_OFFAL,
                         TagCommon.CROPS_CHILI_PEPPER, TagCommon.CROPS_LETTUCE, TagCommon.CROPS_LETTUCE)
                 .setBowlCarrier()
                 .setResult(ModItems.STIR_FRIED_BEEF_OFFAL)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(ModItems.RAW_COW_OFFAL, ModItems.RAW_COW_OFFAL)
                 .addInput(TagCommon.CROPS_CHILI_PEPPER, TagCommon.CROPS_LETTUCE, TagCommon.CROPS_LETTUCE)
                 .setCarrier(ModItems.COOKED_RICE)
                 .setResult(ModItems.STIR_FRIED_BEEF_OFFAL_RICE_BOWL)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.RAW_BEEF, TagCommon.RAW_BEEF,
                         TagCommon.CROPS_CHILI_PEPPER, TagCommon.CROPS_CHILI_PEPPER)
                 .setBowlCarrier()
                 .setResult(ModItems.BRAISED_BEEF)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.RAW_BEEF, TagCommon.CROPS_CHILI_PEPPER, TagCommon.CROPS_CHILI_PEPPER)
                 .setCarrier(ModItems.COOKED_RICE)
                 .setResult(ModItems.BRAISED_BEEF_RICE_BOWL)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.RAW_BEEF, TagCommon.RAW_BEEF, TagCommon.RAW_BEEF, TagCommon.RAW_BEEF,
                         TagCommon.CROPS_CHILI_PEPPER, TagCommon.CROPS_CHILI_PEPPER,
                         TagCommon.CROPS_CHILI_PEPPER, TagCommon.CROPS_CHILI_PEPPER)
@@ -79,7 +79,7 @@ public class PotRecipeProvider extends ModRecipeProvider {
                 .setResult(ModItems.BRAISED_BEEF, 2)
                 .save(consumer, "braised_beef_2");
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.RAW_BEEF, TagCommon.RAW_BEEF, TagCommon.RAW_BEEF,
                         TagCommon.CROPS_CHILI_PEPPER, TagCommon.CROPS_CHILI_PEPPER,
                         TagCommon.CROPS_CHILI_PEPPER, TagCommon.CROPS_CHILI_PEPPER)
@@ -87,69 +87,69 @@ public class PotRecipeProvider extends ModRecipeProvider {
                 .setResult(ModItems.BRAISED_BEEF_RICE_BOWL, 2)
                 .save(consumer, "braised_beef_rice_bowl_2");
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(ModItems.GREEN_CHILI, ModItems.GREEN_CHILI)
                 .addInput(TagCommon.RAW_PORK, TagCommon.RAW_PORK, TagCommon.RAW_PORK)
                 .setBowlCarrier()
                 .setResult(ModItems.STIR_FRIED_PORK_WITH_PEPPERS)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(ModItems.GREEN_CHILI, ModItems.GREEN_CHILI)
                 .addInput(TagCommon.RAW_PORK, TagCommon.RAW_PORK)
                 .setCarrier(ModItems.COOKED_RICE)
                 .setResult(ModItems.STIR_FRIED_PORK_WITH_PEPPERS_RICE_BOWL)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(Items.SUGAR, Items.SUGAR, Items.SUGAR)
                 .addInput(TagCommon.RAW_PORK, TagCommon.RAW_PORK)
                 .setBowlCarrier()
                 .setResult(ModItems.SWEET_AND_SOUR_PORK)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(Items.SUGAR, Items.SUGAR)
                 .addInput(TagCommon.RAW_PORK, TagCommon.RAW_PORK)
                 .setCarrier(ModItems.COOKED_RICE)
                 .setResult(ModItems.SWEET_AND_SOUR_PORK_RICE_BOWL)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.CROPS_LETTUCE, TagCommon.CROPS_LETTUCE, TagCommon.CROPS_TOMATO)
                 .addInput(Items.CARROT, Items.POTATO)
                 .setBowlCarrier()
                 .setResult(ModItems.COUNTRY_STYLE_MIXED_VEGETABLES)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.MUSHROOMS, TagCommon.MUSHROOMS, TagCommon.RAW_PORK,
                         TagCommon.RAW_PORK, TagCommon.RAW_PORK, TagCommon.CROPS_CHILI_PEPPER)
                 .setBowlCarrier()
                 .setResult(ModItems.FISH_FLAVORED_SHREDDED_PORK)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(TagCommon.MUSHROOMS, TagCommon.MUSHROOMS, TagCommon.RAW_PORK,
                         TagCommon.RAW_PORK, TagCommon.CROPS_CHILI_PEPPER)
                 .setCarrier(ModItems.COOKED_RICE)
                 .setResult(ModItems.FISH_FLAVORED_SHREDDED_PORK_RICE_BOWL)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(Items.EGG, Items.EGG, TagCommon.COOKED_RICE)
                 .setBowlCarrier()
                 .setResult(ModItems.EGG_FRIED_RICE)
                 .save(consumer);
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(Items.EGG, Items.EGG, Items.EGG, Items.EGG,
                         TagCommon.COOKED_RICE, TagCommon.COOKED_RICE)
                 .setBowlCarrier()
                 .setResult(ModItems.EGG_FRIED_RICE, 2)
                 .save(consumer, "egg_fried_rice_2");
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(Items.EGG, Items.EGG, Items.EGG,
                         Items.EGG, Items.EGG, Items.EGG,
                         TagCommon.COOKED_RICE, TagCommon.COOKED_RICE, TagCommon.COOKED_RICE)
@@ -157,7 +157,7 @@ public class PotRecipeProvider extends ModRecipeProvider {
                 .setResult(ModItems.EGG_FRIED_RICE, 3)
                 .save(consumer, "egg_fried_rice_3");
 
-        PotRecipeBuilder.builder()
+        potRecipeBuilder()
                 .addInput(Items.EGG, Items.EGG, TagCommon.CROPS_LETTUCE,
                         TagCommon.CROPS_LETTUCE, TagCommon.COOKED_RICE)
                 .addInput(Items.CARROT).setBowlCarrier()

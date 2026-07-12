@@ -32,6 +32,7 @@ public class ModRecipeGenerator extends RecipeProvider.Runner {
                         new DecorationRecipeProvider(registries, consumer),
                         new FoodBiteRecipeProvider(registries, consumer),
                         new PotRecipeProvider(registries, consumer),
+                        new RiceBowlRecipeProvider(registries, consumer),
                         new ShapedRecipeProvider(registries, consumer),
                         new ShapelessRecipeProvider(registries, consumer),
                         new SimpleCookingRecipeProvider(registries, consumer),

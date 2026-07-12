@@ -1,13 +1,14 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.datagen.recipe;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.datagen.builder.ChoppingBoardBuilder;
+import com.github.ysbbbbbb.kaleidoscopecookery.datagen.builder.PotRecipeBuilder;
+import com.github.ysbbbbbb.kaleidoscopecookery.datagen.builder.StockpotRecipeBuilder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.Identifier;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.item.ItemStackTemplate;
 
@@ -25,6 +26,18 @@ public abstract class ModRecipeProvider extends RecipeProvider {
 
     protected abstract void buildRecipes(RecipeOutput output);
 
+    protected PotRecipeBuilder potRecipeBuilder() {
+        return PotRecipeBuilder.builder(this::tag);
+    }
+
+    protected StockpotRecipeBuilder stockpotRecipeBuilder() {
+        return StockpotRecipeBuilder.builder(this::tag);
+    }
+
+    protected ChoppingBoardBuilder choppingBoardBuilder() {
+        return ChoppingBoardBuilder.builder(this::tag);
+    }
+
     public Identifier modLoc(String path) {
         return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
     }
@@ -39,9 +52,4 @@ public abstract class ModRecipeProvider extends RecipeProvider {
         return items;
     }
 
-    public TagKey<Item>[] getItemsWithCount(TagKey<Item> itemLike, int count) {
-        TagKey<Item>[] items = (TagKey<Item>[]) new TagKey<?>[count];
-        Arrays.fill(items, itemLike);
-        return items;
-    }
 }

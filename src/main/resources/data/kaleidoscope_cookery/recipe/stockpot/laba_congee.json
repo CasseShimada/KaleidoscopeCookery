@@ -1,0 +1,20 @@
+{
+  "type": "kaleidoscope_cookery:stockpot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:seeds",
+    "#c:seeds",
+    "#c:seeds",
+    "#c:seeds",
+    "#c:seeds",
+    "#c:seeds",
+    "minecraft:sugar",
+    "minecraft:sugar",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "count": 1,
+    "id": "kaleidoscope_cookery:laba_congee"
+  },
+  "time": 300
+}

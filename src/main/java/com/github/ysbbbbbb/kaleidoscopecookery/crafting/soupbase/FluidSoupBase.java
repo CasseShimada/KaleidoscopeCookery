@@ -1,8 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.client.render.ISoupBaseRender;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.FluidSoupBaseRender;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import net.minecraft.resources.Identifier;
@@ -27,7 +25,7 @@ public class FluidSoupBase implements ISoupBase {
         this.name = name;
         this.bucketItem = bucketItem;
         if (bucketItem instanceof BucketItem bucket) {
-            this.fluid = bucket.content;
+            this.fluid = bucket.getContent();
         } else {
             throw new IllegalArgumentException("Item must be a bucket item!");
         }
@@ -85,10 +83,5 @@ public class FluidSoupBase implements ISoupBase {
 
     public Fluid getFluid() {
         return fluid;
-    }
-
-    @Override
-    public ISoupBaseRender getRender() {
-        return new FluidSoupBaseRender(this.fluid);
     }
 }

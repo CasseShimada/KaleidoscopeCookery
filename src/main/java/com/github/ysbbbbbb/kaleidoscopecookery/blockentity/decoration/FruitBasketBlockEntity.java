@@ -2,6 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -57,7 +58,7 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
                 long extracted = storage.extract(itemVariant, stack.getCount(), tx);
                 if (extracted > 0) {
                     tx.commit();
-                    player.getInventory().placeItemBackInInventory(itemVariant.toStack((int) extracted));
+                    ItemUtils.giveItemToPlayer(player, itemVariant.toStack((int) extracted));
                     if (this.level != null) {
                         this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS);
                     }
@@ -88,7 +89,7 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
         this.items.clearContent();
         int maxSize = Math.min(items.size(), this.items.getContainerSize());
         for (int i = 0; i < maxSize; i++) {
-            this.items.setItem(i, items.get(i));
+            this.items.setItem(i, items.get(i).copy());
         }
         this.refresh();
     }

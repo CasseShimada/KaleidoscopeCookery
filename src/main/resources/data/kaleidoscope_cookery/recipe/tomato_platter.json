@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "kaleidoscope_cookery:tomato",
+    "kaleidoscope_cookery:tomato",
+    "kaleidoscope_cookery:tomato",
+    "kaleidoscope_cookery:tomato",
+    "kaleidoscope_cookery:tomato",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:tomato_platter"
+  }
+}

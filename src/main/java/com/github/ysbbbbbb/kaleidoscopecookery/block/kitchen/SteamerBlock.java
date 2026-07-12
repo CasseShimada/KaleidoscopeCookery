@@ -4,6 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTr
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.ISteamer;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.SteamerBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.SteamerItem;
@@ -48,6 +49,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWaterloggedBlock {
@@ -77,17 +79,13 @@ public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWat
                 .setValue(WATERLOGGED, false));
     }
 
-    @Nullable
-    protected static <E extends BlockEntity, A extends BlockEntity> BlockEntityTicker<A> createTickerHelper(
-            BlockEntityType<A> serverType, BlockEntityType<E> clientType, BlockEntityTicker<? super E> ticker) {
-        return clientType == serverType ? (BlockEntityTicker<A>) ticker : null;
-    }
-
     @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, ModBlocks.STEAMER_BE,
-                (levelIn, blockPos, blockState, steamer) -> steamer.tick(levelIn));
+        if (level.isClientSide() || blockEntityType != ModBlocks.STEAMER_BE) {
+            return null;
+        }
+        return (levelIn, blockPos, blockState, blockEntity) -> ((SteamerBlockEntity) blockEntity).tick(levelIn);
     }
 
     @Override
@@ -143,18 +141,24 @@ public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWat
     @Override
     public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         ItemStack itemInHand = player.getItemInHand(hand);
-        // 空手 Shift 右击盖盖子、去掉盖子
-        // 需要检查上方是否有方块，如果有方块则不能盖盖子
-        Boolean hasLid = state.getValue(HAS_LID);
-        if (itemInHand.isEmpty() && player.isSecondaryUseActive() && (hasLid || !level.getBlockState(pos.above()).is(this))) {
-            level.setBlock(pos, state.setValue(HAS_LID, !hasLid), Block.UPDATE_ALL);
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        if (itemInHand.isEmpty()) {
+            return this.useWithoutItem(state, level, pos, player, hitResult);
         }
 
-        // 手持蒸笼，右击可以摞上去
-        if (itemInHand.is(this.asItem())) {
-            if (state.getValue(HALF) && itemInHand.getItem() instanceof SteamerItem steamerItem) {
-                InteractionResult place = steamerItem.place(new BlockPlaceContext(player, hand, itemInHand, hitResult));
+        // 手持蒸笼，右击可以沿着整叠往上摞。
+        if (itemInHand.getItem() instanceof SteamerItem steamerItem) {
+            BlockPos placePos = hitResult.getBlockPos();
+            BlockState placeState = state;
+            while (placeState.is(this) && !placeState.getValue(HAS_LID) && !placeState.getValue(HALF)) {
+                placePos = placePos.above();
+                placeState = level.getBlockState(placePos);
+            }
+
+            ItemStack toUse = player.hasInfiniteMaterials() ? itemInHand.copy() : itemInHand;
+            BlockHitResult placeHit = hitResult.withDirection(Direction.UP).withPosition(placePos);
+            BlockPlaceContext placeContext = new BlockPlaceContext(player, hand, toUse, placeHit);
+            if (placeState.canBeReplaced() || placeState.is(this) && placeState.getValue(HALF) && !placeState.getValue(HAS_LID)) {
+                InteractionResult place = steamerItem.place(placeContext);
                 if (place.consumesAction()) {
                     return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
                 }
@@ -163,18 +167,50 @@ public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWat
         }
 
         // 其他情况交给 BlockEntity 处理
-        if (level.getBlockEntity(pos) instanceof ISteamer steamer) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof ISteamer steamer) {
+            if (level.isClientSide()) {
+                return blockEntity instanceof SteamerBlockEntity steamerBlockEntity
+                        && steamerBlockEntity.canPlaceFood(level, itemInHand)
+                        ? InteractionResult.SUCCESS
+                        : InteractionResult.TRY_WITH_EMPTY_HAND;
+            }
             // 先尝试放入物品
             if (steamer.placeFood(level, player, itemInHand)) {
-                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
-            }
-            // 再尝试取出物品（空手才能取出，避免与放入行为冲突）
-            if (itemInHand.isEmpty() && steamer.takeFood(level, player, hand)) {
-                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+                return InteractionResult.CONSUME;
             }
         }
 
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    @Override
+    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        boolean hasLid = state.getValue(HAS_LID);
+        if (player.isSecondaryUseActive() && (hasLid || !level.getBlockState(pos.above()).is(this))) {
+            if (!level.isClientSide()) {
+                level.setBlock(pos, state.setValue(HAS_LID, !hasLid), Block.UPDATE_ALL);
+            }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof ISteamer steamer)) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide()) {
+            return canInteractWithOpenLayer(state, level, pos) ? InteractionResult.SUCCESS : InteractionResult.TRY_WITH_EMPTY_HAND;
+        }
+        return steamer.takeFood(level, player, InteractionHand.MAIN_HAND)
+                ? InteractionResult.CONSUME
+                : InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    private static boolean canInteractWithOpenLayer(BlockState state, Level level, BlockPos pos) {
+        if (state.getValue(HAS_LID)) {
+            return false;
+        }
+        BlockPos above = pos.above();
+        return !level.getBlockState(above).isFaceSturdy(level, above, Direction.DOWN);
     }
 
     @Override
@@ -269,10 +305,18 @@ public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWat
 
     @Override
     public @NotNull List<ItemStack> getDrops(BlockState state, LootParams.Builder lootParamsBuilder) {
-        BlockEntity parameter = lootParamsBuilder.getParameter(LootContextParams.BLOCK_ENTITY);
+        BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof SteamerBlockEntity steamer && steamer.getLevel() != null) {
             return steamer.dropAsItem(steamer.getLevel());
         }
-        return super.getDrops(state, lootParamsBuilder);
+
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, lootParamsBuilder));
+        if (drops.isEmpty()) {
+            drops.add(ModItems.STEAMER.getDefaultInstance());
+            if (!state.getValue(HALF)) {
+                drops.add(ModItems.STEAMER.getDefaultInstance());
+            }
+        }
+        return drops;
     }
 }

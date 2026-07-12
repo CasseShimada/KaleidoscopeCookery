@@ -41,6 +41,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.github.ysbbbbbb.kaleidoscopecookery.util.CarpetColor.getCarpetByColor;
@@ -98,24 +99,31 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
         // 玩家手为空，桌子有物品：取出桌子物品
         if (handEmpty && !tableItem.isEmpty()) {
-            level.playSound(player, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, player.getSoundSource(), 1.0F, 1.0F);
-            BlockDrop.popResource(level, pos, 0.75, tableItem.copy());
-            tableItems.set(tableIndex, ItemStack.EMPTY);
-            table.refresh();
-            return InteractionResult.SUCCESS;
+            if (!level.isClientSide()) {
+                level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, player.getSoundSource(), 1.0F, 1.0F);
+                ItemUtils.getItemToLivingEntity(player, tableItem.copy(), player.getInventory().getSelectedSlot());
+                tableItems.set(tableIndex, ItemStack.EMPTY);
+                table.refresh();
+            }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
 
         // 玩家手有物品，并且可以放入物品时
         if (!handEmpty && tableIndex < (tableItems.size() - 1)) {
-            ItemStack split = itemInHand.split(1);
-            if (tableItem.isEmpty()) {
-                tableItems.set(tableIndex, split);
-            } else {
-                tableItems.set(tableIndex + 1, split);
+            if (!level.isClientSide()) {
+                ItemStack split = itemInHand.copyWithCount(1);
+                if (!player.hasInfiniteMaterials()) {
+                    itemInHand.shrink(1);
+                }
+                if (tableItem.isEmpty()) {
+                    tableItems.set(tableIndex, split);
+                } else {
+                    tableItems.set(tableIndex + 1, split);
+                }
+                table.refresh();
+                level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
             }
-            table.refresh();
-            level.playSound(player, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
-            return InteractionResult.SUCCESS;
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
 
         // 桌子已满时，拦截后续物品交互，避免物品直接放到桌面上方
@@ -136,18 +144,26 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
         // 第一种情况，桌子上没有地毯
         if (!hasCarpet) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true));
             if (level.getBlockEntity(pos) instanceof TableBlockEntity tableBlockEntity) {
                 level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
                 tableBlockEntity.setColor(dyeColor);
                 tableBlockEntity.refresh();
-                itemInHand.shrink(1);
-                return InteractionResult.SUCCESS;
+                if (!player.hasInfiniteMaterials()) {
+                    itemInHand.shrink(1);
+                }
+                return InteractionResult.CONSUME;
             }
         }
 
         // 第二种情况：有地毯，但是颜色不一致
         if (hasCarpet && level.getBlockEntity(pos) instanceof TableBlockEntity tableBlockEntity && tableBlockEntity.getColor() != dyeColor) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             // 掉落原地毯
             DyeColor originalColor = tableBlockEntity.getColor();
             ItemStack carpetItem = getCarpetByColor(originalColor).getDefaultInstance();
@@ -157,8 +173,10 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             tableBlockEntity.setColor(dyeColor);
             tableBlockEntity.refresh();
             level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true));
-            itemInHand.shrink(1);
-            return InteractionResult.SUCCESS;
+            if (!player.hasInfiniteMaterials()) {
+                itemInHand.shrink(1);
+            }
+            return InteractionResult.CONSUME;
         }
 
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -166,7 +184,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder lootParamsBuilder) {
-        List<ItemStack> drops = super.getDrops(state, lootParamsBuilder);
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, lootParamsBuilder));
         BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof TableBlockEntity tableBlockEntity) {
             if (state.getValue(HAS_CARPET)) {

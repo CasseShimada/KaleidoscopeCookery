@@ -2,15 +2,15 @@
   "type": "kaleidoscope_cookery:pot",
   "carrier": "minecraft:bowl",
   "ingredients": [
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:foods/cooked_rice",
-    "#c:foods/cooked_rice",
-    "#c:foods/cooked_rice"
+    "minecraft:egg",
+    "minecraft:egg",
+    "minecraft:egg",
+    "minecraft:egg",
+    "minecraft:egg",
+    "minecraft:egg",
+    "#c:cooked_rice",
+    "#c:cooked_rice",
+    "#c:cooked_rice"
   ],
   "result": {
     "count": 3,

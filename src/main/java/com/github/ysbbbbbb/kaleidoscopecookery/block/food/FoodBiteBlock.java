@@ -34,13 +34,33 @@ import org.jetbrains.annotations.Nullable;
 
 public class FoodBiteBlock extends FoodBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    protected static final IntegerProperty BITES_1 = IntegerProperty.create("bites", 0, 1);
+    protected static final IntegerProperty BITES_2 = IntegerProperty.create("bites", 0, 2);
+    protected static final IntegerProperty BITES_3 = IntegerProperty.create("bites", 0, 3);
+    protected static final IntegerProperty BITES_4 = IntegerProperty.create("bites", 0, 4);
+    protected static final IntegerProperty BITES_5 = IntegerProperty.create("bites", 0, 5);
+    protected static final IntegerProperty BITES_6 = IntegerProperty.create("bites", 0, 6);
+    protected static final IntegerProperty BITES_8 = IntegerProperty.create("bites", 0, 8);
+
     private final FoodProperties foodProperties;
     @Nullable
     private final Consumable consumable;
-    private final IntegerProperty bites;
     private final int maxBites;
     private FoodBiteAnimateTicks.AnimateTick animateTick = null;
     private VoxelShape aabb = FoodBlock.AABB;
+
+    public static FoodBiteBlock create(BlockBehaviour.Properties properties, FoodProperties foodProperties, int maxBites,
+                                       @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+        return switch (maxBites) {
+            case 1 -> new OneBiteFoodBlock(properties, foodProperties, animateTick);
+            case 2 -> new TwoBiteFoodBlock(properties, foodProperties, animateTick);
+            case 3 -> new ThreeBiteFoodBlock(properties, foodProperties, animateTick);
+            case 4 -> new FourBiteFoodBlock(properties, foodProperties, animateTick);
+            case 5 -> new FiveBiteFoodBlock(properties, foodProperties, animateTick);
+            case 6 -> new SixBiteFoodBlock(properties, foodProperties, animateTick);
+            default -> throw new IllegalArgumentException("Unsupported food bite count: " + maxBites);
+        };
+    }
 
     public FoodBiteBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties, int maxBites,
                          FoodBiteAnimateTicks.AnimateTick animateTick) {
@@ -48,12 +68,11 @@ public class FoodBiteBlock extends FoodBlock {
         this.maxBites = maxBites;
         this.foodProperties = foodProperties;
         this.consumable = ModFoods.getConsumable(foodProperties);
-        this.bites = IntegerProperty.create("bites", 0, maxBites);
-        // 重置一遍 BlockState，因为在父类 FoodBlock 中已经创建了一个默认的 BlockStateDefinition
-        StateDefinition.Builder<Block, BlockState> builder = new StateDefinition.Builder<>(this);
-        this.createBitesBlockStateDefinition(builder);
-        this.stateDefinition = builder.create(Block::defaultBlockState, BlockState::new);
-        this.registerDefaultState(this.stateDefinition.any().setValue(bites, 0).setValue(FACING, Direction.SOUTH));
+        if (maxBites != this.getMaxBitesFromProperty()) {
+            throw new IllegalArgumentException("Food bite count " + maxBites
+                    + " does not match property range " + this.getMaxBitesFromProperty());
+        }
+        this.registerDefaultState(this.defaultBlockState().setValue(this.getBites(), 0).setValue(FACING, Direction.SOUTH));
         this.animateTick = animateTick;
     }
 
@@ -62,7 +81,7 @@ public class FoodBiteBlock extends FoodBlock {
     }
 
     public IntegerProperty getBites() {
-        return bites;
+        return BITES_3;
     }
 
     public int getMaxBites() {
@@ -83,15 +102,17 @@ public class FoodBiteBlock extends FoodBlock {
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        int bites = state.getValue(this.bites);
-        if (bites >= getMaxBites()) {
-            level.destroyBlock(pos, true, player);
-            return InteractionResult.SUCCESS;
+        if (!player.canEat(foodProperties.canAlwaysEat())) {
+            return InteractionResult.PASS;
         }
         if (level.isClientSide()) {
-            if (eat(level, pos, state, player).consumesAction()) {
-                return InteractionResult.SUCCESS;
-            }
+            return InteractionResult.SUCCESS;
+        }
+        IntegerProperty bitesProperty = this.getBites();
+        int bites = state.getValue(bitesProperty);
+        if (bites >= getMaxBites()) {
+            level.destroyBlock(pos, true, player);
+            return InteractionResult.CONSUME;
         }
         return eat(level, pos, state, player);
     }
@@ -101,7 +122,7 @@ public class FoodBiteBlock extends FoodBlock {
             return InteractionResult.PASS;
         }
         player.getFoodData().eat(foodProperties);
-        if (!level.isClientSide() && consumable != null) {
+        if (consumable != null) {
             for (ConsumeEffect effect : consumable.onConsumeEffects()) {
                 if (effect instanceof ApplyStatusEffectsConsumeEffect apply
                         && apply.probability() > 0.0F
@@ -114,21 +135,18 @@ public class FoodBiteBlock extends FoodBlock {
         }
         level.playSound(null, pos, SoundEvents.GENERIC_EAT.value(), SoundSource.PLAYERS,
                 0.5F, level.getRandom().nextFloat() * 0.1F + 0.9F);
-        int bites = state.getValue(this.bites);
+        IntegerProperty bitesProperty = this.getBites();
+        int bites = state.getValue(bitesProperty);
         level.gameEvent(player, GameEvent.EAT, pos);
         if (bites < getMaxBites()) {
-            level.setBlock(pos, state.setValue(this.bites, bites + 1), Block.UPDATE_ALL);
+            level.setBlock(pos, state.setValue(bitesProperty, bites + 1), Block.UPDATE_ALL);
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.CONSUME;
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
-    }
-
-    protected void createBitesBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(bites, FACING);
+        builder.add(this.getBites(), FACING);
     }
 
     @Override
@@ -138,8 +156,8 @@ public class FoodBiteBlock extends FoodBlock {
 
     @Override
     public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        int value = state.getValue(bites);
-        return (3 - value) * 5;
+        int value = state.getValue(this.getBites());
+        return Math.max(0, (getMaxBites() - value) * 15 / getMaxBites());
     }
 
     @Override
@@ -166,5 +184,84 @@ public class FoodBiteBlock extends FoodBlock {
     @Override
     public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    private int getMaxBitesFromProperty() {
+        return this.getBites().getPossibleValues().stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElseThrow();
+    }
+
+    private static final class OneBiteFoodBlock extends FoodBiteBlock {
+        private OneBiteFoodBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                 @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 1, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_1;
+        }
+    }
+
+    private static final class TwoBiteFoodBlock extends FoodBiteBlock {
+        private TwoBiteFoodBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                 @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 2, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_2;
+        }
+    }
+
+    private static final class ThreeBiteFoodBlock extends FoodBiteBlock {
+        private ThreeBiteFoodBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                   @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 3, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_3;
+        }
+    }
+
+    private static final class FourBiteFoodBlock extends FoodBiteBlock {
+        private FourBiteFoodBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                  @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 4, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_4;
+        }
+    }
+
+    private static final class FiveBiteFoodBlock extends FoodBiteBlock {
+        private FiveBiteFoodBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                  @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 5, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_5;
+        }
+    }
+
+    private static final class SixBiteFoodBlock extends FoodBiteBlock {
+        private SixBiteFoodBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                 @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 6, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_6;
+        }
     }
 }

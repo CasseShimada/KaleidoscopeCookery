@@ -3,15 +3,14 @@ package com.github.ysbbbbbb.kaleidoscopecookery.event;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.RecipeItemEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
+import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.FruitBasketItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.TransmutationLunchBagItem;
-import com.github.ysbbbbbb.kaleidoscopecookery.util.neo.IItemHandler;
-import com.github.ysbbbbbb.kaleidoscopecookery.util.neo.ItemStackHandler;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 public final class SpecialRecipeItemEvent {
-
     private SpecialRecipeItemEvent() {
     }
 
@@ -21,66 +20,68 @@ public final class SpecialRecipeItemEvent {
     }
 
     private static void registerCheckItemEvent() {
-        ModEvents.CHECK_SPECIAL_ITEM.register(event -> {
-            ItemStack stack = event.getStack();
-
-            // 果篮和饭袋，懒得写 cap 了
-            if (stack.is(ModItems.FRUIT_BASKET)) {
-                ItemStackHandler items = FruitBasketItem.getItems(stack);
-                addItems(event, items);
-                FruitBasketItem.saveItems(stack, items);
-                return;
-            }
-            if (stack.is(ModItems.TRANSMUTATION_LUNCH_BAG)) {
-                ItemStackHandler items = TransmutationLunchBagItem.getItems(stack);
-                addItems(event, items);
-                TransmutationLunchBagItem.setItems(stack, items);
-                return;
-            }
-        });
-
+        ModEvents.CHECK_SPECIAL_ITEM.register(SpecialRecipeItemEvent::onCheckSpecialItem);
     }
-
 
     private static void registerDeductItemEvent() {
-        ModEvents.DEDUCT_SPECIAL_ITEM.register(event -> {
-            ItemStack stack = event.getStack();
-
-            // 果篮和饭袋，懒得写 cap 了
-            if (stack.is(ModItems.FRUIT_BASKET)) {
-                ItemStackHandler items = FruitBasketItem.getItems(stack);
-                deductItems(event, items);
-                FruitBasketItem.saveItems(stack, items);
-                return;
-            }
-            if (stack.is(ModItems.TRANSMUTATION_LUNCH_BAG)) {
-                ItemStackHandler items = TransmutationLunchBagItem.getItems(stack);
-                deductItems(event, items);
-                TransmutationLunchBagItem.setItems(stack, items);
-                return;
-            }
-        });
+        ModEvents.DEDUCT_SPECIAL_ITEM.register(SpecialRecipeItemEvent::onDeductSpecialItem);
     }
 
-    private static void addItems(RecipeItemEvent.CheckItem event, ItemStackHandler items) {
-        for (int i = 0; i < items.getSlots(); i++) {
-            ItemStack slotStack = items.getStackInSlot(i);
+    private static void onCheckSpecialItem(RecipeItemEvent.CheckItem event) {
+        ItemStackContainer items = getSpecialContainerItems(event.getStack());
+        if (items != null) {
+            addItems(event, items);
+        }
+    }
+
+    private static void onDeductSpecialItem(RecipeItemEvent.DeductItem event) {
+        ItemStack stack = event.getStack();
+        ItemStackContainer items = getSpecialContainerItems(stack);
+        if (items == null) {
+            return;
+        }
+        deductItems(event, items);
+        saveSpecialContainerItems(stack, items);
+    }
+
+    @Nullable
+    private static ItemStackContainer getSpecialContainerItems(ItemStack stack) {
+        if (stack.is(ModItems.FRUIT_BASKET)) {
+            return FruitBasketItem.getItems(stack);
+        }
+        if (stack.is(ModItems.TRANSMUTATION_LUNCH_BAG)) {
+            return TransmutationLunchBagItem.getItems(stack);
+        }
+        return null;
+    }
+
+    private static void saveSpecialContainerItems(ItemStack stack, ItemStackContainer items) {
+        if (stack.is(ModItems.FRUIT_BASKET)) {
+            FruitBasketItem.saveItems(stack, items);
+        } else if (stack.is(ModItems.TRANSMUTATION_LUNCH_BAG)) {
+            TransmutationLunchBagItem.setItems(stack, items);
+        }
+    }
+
+    private static void addItems(RecipeItemEvent.CheckItem event, ItemStackContainer items) {
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack slotStack = items.get(i);
             if (!slotStack.isEmpty()) {
                 event.addItem(slotStack.getItem(), slotStack.getCount());
             }
         }
     }
 
-    private static void deductItems(RecipeItemEvent.DeductItem event, ItemStackHandler items) {
+    private static void deductItems(RecipeItemEvent.DeductItem event, ItemStackContainer items) {
         Item needItem = event.getNeedItem();
-        for (int i = 0; i < items.getSlots(); i++) {
+        for (int i = 0; i < items.size(); i++) {
             int needCount = event.getNeedCount();
             if (needCount <= 0) {
                 return;
             }
-            ItemStack slotStack = items.getStackInSlot(i);
+            ItemStack slotStack = items.get(i);
             if (slotStack.is(needItem)) {
-                ItemStack extractItem = items.extractItem(i, needCount, false);
+                ItemStack extractItem = items.extractItem(i, needCount);
                 event.deduct(extractItem.getCount());
             }
         }

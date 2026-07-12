@@ -5,7 +5,7 @@
 	"render_type": "minecraft:cutout",
 	"textures": {
 		"0": "kaleidoscope_cookery:block/brown_mushroom_pot_soup",
-		"particle": "block/flower_pot"
+		"particle": "minecraft:block/flower_pot"
 	},
 	"elements": [
 		{

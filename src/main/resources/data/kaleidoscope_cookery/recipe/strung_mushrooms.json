@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "M": "minecraft:brown_mushroom"
   },
@@ -10,8 +9,6 @@
     "MM"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:strung_mushrooms"
-  },
-  "show_notification": true
+  }
 }

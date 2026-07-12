@@ -4,9 +4,6 @@
     "kaleidoscope_cookery:raw_meatball"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:cooked_meatball"
-  },
-  "stir_fry_count": 3,
-  "time": 200
+  }
 }

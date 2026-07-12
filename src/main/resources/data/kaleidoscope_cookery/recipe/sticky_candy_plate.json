@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "kaleidoscope_cookery:sticky_candy",
+    "kaleidoscope_cookery:sticky_candy",
+    "kaleidoscope_cookery:sticky_candy",
+    "kaleidoscope_cookery:sticky_candy",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:sticky_candy_plate"
+  }
+}

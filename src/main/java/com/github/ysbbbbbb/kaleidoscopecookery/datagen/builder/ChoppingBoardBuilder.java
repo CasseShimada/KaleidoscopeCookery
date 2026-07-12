@@ -3,8 +3,6 @@ package com.github.ysbbbbbb.kaleidoscopecookery.datagen.builder;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.ChoppingBoardRecipe;
 import net.minecraft.advancements.triggers.Criterion;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -18,19 +16,29 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.Nullable;
-import java.util.stream.StreamSupport;
+
 import java.util.Objects;
+import java.util.function.Function;
 
 public class ChoppingBoardBuilder implements RecipeBuilder {
     private static final String NAME = "chopping_board";
 
+    private final Function<TagKey<Item>, Ingredient> tagIngredientFactory;
     private @Nullable Ingredient ingredient;
-    private ItemStack result = ItemStack.EMPTY;
+    private @Nullable ItemStackTemplate result;
     private int cutCount = 3;
     private Identifier modelId;
 
     public static ChoppingBoardBuilder builder() {
-        return new ChoppingBoardBuilder();
+        return new ChoppingBoardBuilder(ChoppingBoardBuilder::unsupportedTagIngredient);
+    }
+
+    public static ChoppingBoardBuilder builder(Function<TagKey<Item>, Ingredient> tagIngredientFactory) {
+        return new ChoppingBoardBuilder(tagIngredientFactory);
+    }
+
+    private ChoppingBoardBuilder(Function<TagKey<Item>, Ingredient> tagIngredientFactory) {
+        this.tagIngredientFactory = Objects.requireNonNull(tagIngredientFactory, "Tag ingredient factory not set");
     }
 
     public ChoppingBoardBuilder setIngredient(ItemLike itemLike) {
@@ -39,22 +47,22 @@ public class ChoppingBoardBuilder implements RecipeBuilder {
     }
 
     public ChoppingBoardBuilder setIngredient(TagKey<Item> itemLike) {
-        this.ingredient = ingredientFromTag(itemLike);
+        this.ingredient = this.tagIngredientFactory.apply(itemLike);
         return this;
     }
 
     public ChoppingBoardBuilder setResult(ItemStack stack) {
-        this.result = stack;
+        this.result = ItemStackTemplate.fromNonEmptyStack(stack);
         return this;
     }
 
     public ChoppingBoardBuilder setResult(ItemLike itemLike) {
-        this.result = new ItemStack(itemLike);
+        this.result = RecipeStackHelper.template(itemLike);
         return this;
     }
 
     public ChoppingBoardBuilder setResult(ItemLike itemLike, int count) {
-        this.result = new ItemStack(itemLike, count);
+        this.result = RecipeStackHelper.template(itemLike, count);
         return this;
     }
 
@@ -79,31 +87,40 @@ public class ChoppingBoardBuilder implements RecipeBuilder {
     }
 
     public Item getResult() {
-        return this.result.getItem();
+        return result().item().value();
     }
 
     @Override
     public ResourceKey<Recipe<?>> defaultId() {
-        String path = RecipeBuilder.getDefaultRecipeId(new ItemStackTemplate(this.getResult())).identifier().getPath();
-        Identifier filePath = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, NAME + "/" + path);
-        return ResourceKey.create(Registries.RECIPE, filePath);
+        String path = RecipeBuilder.getDefaultRecipeId(result()).identifier().getPath();
+        return recipeKey(path);
     }
 
     @Override
     public void save(RecipeOutput output, String recipeId) {
-        Identifier filePath = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, NAME + "/" + recipeId);
-        this.save(output, ResourceKey.create(Registries.RECIPE, filePath));
+        this.save(output, recipeKey(recipeId));
     }
 
     @Override
     public void save(RecipeOutput recipeOutput, ResourceKey<Recipe<?>> id) {
         Ingredient ingredientValue = Objects.requireNonNull(this.ingredient, "Ingredient not set");
-        ChoppingBoardRecipe recipe = new ChoppingBoardRecipe(ingredientValue, this.result, this.cutCount, this.modelId);
+        ChoppingBoardRecipe recipe = new ChoppingBoardRecipe(ingredientValue, result(), this.cutCount, this.modelId);
         recipeOutput.accept(id, recipe, null);
     }
 
-    private static Ingredient ingredientFromTag(TagKey<Item> tagKey) {
-        return Ingredient.of(StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(tagKey).spliterator(), false)
-                .map(Holder::value));
+    private ItemStackTemplate result() {
+        return Objects.requireNonNull(this.result, "Result not set");
+    }
+
+    private static ResourceKey<Recipe<?>> recipeKey(String path) {
+        return ResourceKey.create(Registries.RECIPE, recipeId(path));
+    }
+
+    private static Identifier recipeId(String path) {
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, NAME + "/" + path);
+    }
+
+    private static Ingredient unsupportedTagIngredient(TagKey<Item> tagKey) {
+        throw new IllegalStateException("Tag ingredient " + tagKey.location() + " requires a recipe provider-backed builder");
     }
 }

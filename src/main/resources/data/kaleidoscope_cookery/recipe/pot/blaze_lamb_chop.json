@@ -7,10 +7,11 @@
     "#c:raw_mutton",
     "minecraft:blaze_rod",
     "minecraft:blaze_rod",
-    "minecraft:blaze_rod"
+    "minecraft:blaze_rod",
+    "minecraft:blaze_rod",
+    "minecraft:magma_block"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:blaze_lamb_chop"
   }
 }

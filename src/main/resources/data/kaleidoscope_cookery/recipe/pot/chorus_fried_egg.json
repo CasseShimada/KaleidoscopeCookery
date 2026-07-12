@@ -5,9 +5,9 @@
     "minecraft:chorus_fruit",
     "minecraft:chorus_fruit",
     "minecraft:chorus_fruit",
-    "#c:foods/cooked_eggs",
-    "#c:foods/cooked_eggs",
-    "#c:foods/cooked_eggs"
+    "#c:cooked_eggs",
+    "#c:cooked_eggs",
+    "#c:cooked_eggs"
   ],
   "result": {
     "count": 3,

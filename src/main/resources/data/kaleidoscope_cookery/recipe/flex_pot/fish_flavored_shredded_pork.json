@@ -1,0 +1,14 @@
+{
+  "type": "kaleidoscope_cookery:flex_pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:raw_pork",
+    "#c:crops/chilipepper",
+    "#c:mushroom"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:fish_flavored_shredded_pork"
+  },
+  "stir_fry_count": 3,
+  "time": 200
+}

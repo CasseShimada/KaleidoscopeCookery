@@ -5,7 +5,7 @@
 	"render_type": "minecraft:cutout",
 	"textures": {
 		"1": "kaleidoscope_cookery:block/warped_fungus_pot_soup",
-		"particle": "block/flower_pot"
+		"particle": "minecraft:block/flower_pot"
 	},
 	"elements": [
 		{

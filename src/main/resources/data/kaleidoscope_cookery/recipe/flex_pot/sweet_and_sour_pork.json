@@ -1,0 +1,13 @@
+{
+  "type": "kaleidoscope_cookery:flex_pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:raw_pork",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:sweet_and_sour_pork"
+  },
+  "stir_fry_count": 3,
+  "time": 200
+}

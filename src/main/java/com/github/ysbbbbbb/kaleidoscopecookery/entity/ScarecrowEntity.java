@@ -4,6 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTriggerType;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -136,7 +137,7 @@ public class ScarecrowEntity extends LivingEntity {
         ItemStack headItem = this.getItemBySlot(EquipmentSlot.HEAD);
         if (itemInHand.isEmpty() && !headItem.isEmpty()) {
             this.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-            player.getInventory().placeItemBackInInventory(headItem);
+            ItemUtils.giveItemToPlayer(player, headItem, player.getInventory().getSelectedSlot());
             return InteractionResult.SUCCESS;
         }
 
@@ -144,7 +145,7 @@ public class ScarecrowEntity extends LivingEntity {
             return InteractionResult.PASS;
         }
 
-        if (player.getAbilities().instabuild && headItem.isEmpty()) {
+        if (player.hasInfiniteMaterials() && headItem.isEmpty()) {
             this.setItemSlot(EquipmentSlot.HEAD, itemInHand.copyWithCount(1));
             this.level().playSound(null, this.blockPosition(), SoundEvents.ITEM_FRAME_ADD_ITEM, this.getSoundSource());
             ModTrigger.EVENT.trigger(player, ModEventTriggerType.PLACE_HEAD_ON_SCARECROW);
@@ -173,12 +174,12 @@ public class ScarecrowEntity extends LivingEntity {
             ItemStack offhand = this.getItemInHand(InteractionHand.OFF_HAND);
             if (!mainhand.isEmpty()) {
                 this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-                player.getInventory().placeItemBackInInventory(mainhand);
+                ItemUtils.giveItemToPlayer(player, mainhand, player.getInventory().getSelectedSlot());
                 return InteractionResult.SUCCESS;
             }
             if (!offhand.isEmpty()) {
                 this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-                player.getInventory().placeItemBackInInventory(offhand);
+                ItemUtils.giveItemToPlayer(player, offhand, player.getInventory().getSelectedSlot());
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.PASS;
@@ -200,7 +201,7 @@ public class ScarecrowEntity extends LivingEntity {
 
     private boolean swapHand(InteractionHand hand, Player player, ItemStack itemInHand) {
         ItemStack scarecrowStack = this.getItemInHand(hand);
-        if (player.getAbilities().instabuild && scarecrowStack.isEmpty() && !itemInHand.isEmpty()) {
+        if (player.hasInfiniteMaterials() && scarecrowStack.isEmpty() && !itemInHand.isEmpty()) {
             this.setItemInHand(hand, itemInHand.copyWithCount(1));
             return true;
         }
@@ -437,7 +438,7 @@ public class ScarecrowEntity extends LivingEntity {
     }
 
     private boolean setEntityOnShoulder(ShoulderRidingEntity entity) {
-        String id = entity.getEncodeId();
+        String id = getSerializableEntityId(entity);
         if (id == null) {
             return false;
         }
@@ -450,6 +451,16 @@ public class ScarecrowEntity extends LivingEntity {
             return true;
         }
         return false;
+    }
+
+    @Nullable
+    private static String getSerializableEntityId(Entity entity) {
+        if (!entity.getType().canSerialize()) {
+            return null;
+        }
+        return entity.typeHolder().unwrapKey()
+                .map(key -> key.identifier().toString())
+                .orElse(null);
     }
 
     private boolean canEntityOnShoulder() {

@@ -2,7 +2,6 @@ package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
@@ -10,7 +9,7 @@ import net.minecraft.world.level.block.Block;
 
 import java.util.function.Consumer;
 
-public class WithTooltipsBlockItem extends BlockItem {
+public class WithTooltipsBlockItem extends CookeryTooltipBlockItem {
     private final String[] keys;
 
     public WithTooltipsBlockItem(Block block, Properties properties, String... names) {
@@ -21,8 +20,12 @@ public class WithTooltipsBlockItem extends BlockItem {
         }
     }
 
+    protected String key() {
+        return this.keys.length == 0 ? "" : this.keys[0];
+    }
+
     @Override
-        public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         for (String key : keys) {
             tooltip.accept(Component.translatable(key).withStyle(ChatFormatting.GRAY));
         }

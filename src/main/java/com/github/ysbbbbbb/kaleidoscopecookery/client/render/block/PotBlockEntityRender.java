@@ -1,7 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.client.render.block;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacer;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacerReloadListener;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -20,7 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.List;
-import java.util.Map;
 
 public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity, PotBlockEntityRender.RenderState> {
     private final ItemModelResolver itemModelResolver;
@@ -66,7 +64,6 @@ public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity,
         state.isBurnt = pot.getStatus() == PotBlockEntity.BURNT;
         state.burntLevel = Mth.clamp(pot.getCurrentTick() / 25, 0, 16);
 
-        Map<net.minecraft.resources.Identifier, net.minecraft.resources.Identifier> modelOverrides = ItemRenderReplacerReloadListener.INSTANCE.pot();
         if (state.showInputs || state.hasCarrier) {
             List<ItemStack> items = pot.getInputs();
             state.renderCount = Math.min(items.size(), state.items.length);
@@ -75,7 +72,8 @@ public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity,
                 state.items[i] = item;
                 state.itemStates[i].clear();
                 if (!item.isEmpty()) {
-                    ItemRenderReplacer.updateRenderState(itemModelResolver, state.itemStates[i], item, ItemDisplayContext.FIXED, pot.getLevel(), 0, modelOverrides);
+                    ItemRenderReplacerReloadListener.updatePotRenderState(itemModelResolver, state.itemStates[i], item,
+                            ItemDisplayContext.FIXED, pot.getLevel(), 0);
                 }
             }
         } else {
@@ -84,7 +82,8 @@ public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity,
             state.items[0] = result;
             state.itemStates[0].clear();
             if (!result.isEmpty()) {
-                ItemRenderReplacer.updateRenderState(itemModelResolver, state.itemStates[0], result, ItemDisplayContext.FIXED, pot.getLevel(), 0, modelOverrides);
+                ItemRenderReplacerReloadListener.updatePotRenderState(itemModelResolver, state.itemStates[0], result,
+                        ItemDisplayContext.FIXED, pot.getLevel(), 0);
             }
         }
     }

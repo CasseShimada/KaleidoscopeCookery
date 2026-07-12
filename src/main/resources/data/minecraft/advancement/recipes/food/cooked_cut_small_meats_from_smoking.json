@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "kaleidoscope_cookery:raw_cut_small_meats"
-            ]
+            "items": "kaleidoscope_cookery:raw_cut_small_meats"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_raw_cut_small_meats",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_raw_cut_small_meats"
     ]
   ],
   "rewards": {
     "recipes": [
       "minecraft:cooked_cut_small_meats_from_smoking"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

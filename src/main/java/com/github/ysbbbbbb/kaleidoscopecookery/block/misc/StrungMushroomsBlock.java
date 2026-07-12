@@ -1,5 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.block.misc;
 
+import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -58,17 +59,16 @@ public class StrungMushroomsBlock extends Block {
         if (!stack.isEmpty() && !stack.is(Items.BROWN_MUSHROOM)) {
             return InteractionResult.PASS;
         }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
         if (state.getValue(SHEARED)) {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         } else {
             level.setBlock(pos, state.setValue(SHEARED, true), Block.UPDATE_ALL);
         }
         ItemStack mushrooms = new ItemStack(Items.BROWN_MUSHROOM, 3);
-        if (stack.isEmpty()) {
-            player.setItemInHand(InteractionHand.MAIN_HAND, mushrooms);
-        } else {
-            player.getInventory().placeItemBackInInventory(mushrooms);
-        }
+        ItemUtils.giveItemToPlayer(player, mushrooms, player.getInventory().getSelectedSlot());
         level.playSound(null, pos,
                 SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
                 SoundSource.BLOCKS, 1.0F,
@@ -81,7 +81,7 @@ public class StrungMushroomsBlock extends Block {
                     0.25, 0.25, 0.25,
                     0.05);
         }
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        return InteractionResult.CONSUME;
     }
 
     @Override

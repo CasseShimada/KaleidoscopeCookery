@@ -1,0 +1,7 @@
+{
+  "type": "kaleidoscope_cookery:rice_bowl",
+  "ingredient": "kaleidoscope_cookery:sweet_and_sour_pork",
+  "result": {
+    "id": "kaleidoscope_cookery:sweet_and_sour_pork_rice_bowl"
+  }
+}

@@ -9,6 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeAccess;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -51,11 +52,17 @@ public final class FarmersDelightCompat {
             return null;
         }
         RecipeManager recipeManager = level.recipeAccess();
-        Optional<RecipeHolder<?>> match = recipeManager.getRecipeFor((RecipeType) cookingType, cookingInput, level);
+        Optional<RecipeHolder<?>> match = getRecipeFor(recipeManager, cookingType, cookingInput, level);
         if (match.isEmpty()) {
             return null;
         }
         return CookingPotCompat.tryTransform(match.get(), level);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static Optional<RecipeHolder<?>> getRecipeFor(RecipeManager recipeManager, RecipeType<?> recipeType,
+                                                          RecipeInput input, ServerLevel level) {
+        return (Optional) recipeManager.getRecipeFor((RecipeType) recipeType, input, level);
     }
 
     public static void appendStockpotRecipes(Level level, List<RecipeHolder<StockpotRecipe>> output) {
@@ -66,11 +73,11 @@ public final class FarmersDelightCompat {
         if (cookingType == null) {
             return;
         }
-        RecipeManager recipeManager = getRecipeManager(level);
-        if (recipeManager == null) {
+        Iterable<RecipeHolder<?>> recipes = getRecipes(level);
+        if (recipes == null) {
             return;
         }
-        for (RecipeHolder<?> holder : recipeManager.getRecipes()) {
+        for (RecipeHolder<?> holder : recipes) {
             if (holder.value().getType() != cookingType) {
                 continue;
             }
@@ -98,17 +105,15 @@ public final class FarmersDelightCompat {
     }
 
     @Nullable
-    private static RecipeManager getRecipeManager(Level level) {
+    private static Iterable<RecipeHolder<?>> getRecipes(Level level) {
         if (level instanceof ServerLevel serverLevel) {
-            return serverLevel.recipeAccess();
+            return serverLevel.recipeAccess().getRecipes();
         }
-        if (level == null) {
-            return null;
+        RecipeAccess access = level.recipeAccess();
+        if (access instanceof RecipeManager recipeManager) {
+            return recipeManager.getRecipes();
         }
-        if (level.recipeAccess() instanceof RecipeManager recipeManager) {
-            return recipeManager;
-        }
-        return null;
+        return access.getSynchronizedRecipes().recipes();
     }
 
     @Nullable

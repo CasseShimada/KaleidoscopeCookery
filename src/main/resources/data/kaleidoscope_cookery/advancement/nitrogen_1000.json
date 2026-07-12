@@ -13,7 +13,7 @@
             "condition": "minecraft:entity_properties",
             "entity": "this",
             "predicate": {
-              "location": {
+              "minecraft:location": {
                 "position": {
                   "y": {
                     "max": 1200.0
@@ -41,7 +41,6 @@
     },
     "frame": "goal",
     "icon": {
-      "count": 1,
       "id": "minecraft:feather"
     },
     "title": {

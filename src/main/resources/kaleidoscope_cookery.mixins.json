@@ -9,9 +9,9 @@
     "ItemEntityMixin",
     "LivingEntityMixin",
     "MobBucketItemMixin",
+    "PistonStructureResolverMixin",
     "PowderSnowBlockMixin",
-    "ProjectileMixin",
-    "VillagerMixin"
+    "ProjectileMixin"
   ],
   "client": [
     "client.HumanoidModelMixin"

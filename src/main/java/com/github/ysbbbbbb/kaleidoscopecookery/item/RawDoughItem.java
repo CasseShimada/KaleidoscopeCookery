@@ -1,16 +1,12 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTriggerType;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSounds;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -23,27 +19,14 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-public class RawDoughItem extends Item {
-    public static final Identifier PULL_PROPERTY = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "pull");
+public class RawDoughItem extends CookeryTooltipItem {
     private static final int MIN_USE_DURATION = 30;
 
     public RawDoughItem(Properties properties) {
         super(properties);
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static float getTexture(ItemStack stack, @Nullable Level level, @Nullable LivingEntity entity, int seed) {
-        if (entity == null) {
-            return 0;
-        }
-        if (entity.getUseItem() != stack) {
-            return 0;
-        }
-        return entity.getTicksUsingItem() / 10F;
     }
 
     @Override
@@ -67,13 +50,16 @@ public class RawDoughItem extends Item {
     public boolean releaseUsing(ItemStack stack, Level worldIn, LivingEntity entityLiving, int timeLeft) {
         int time = stack.getUseDuration(entityLiving) - timeLeft;
         if (time >= MIN_USE_DURATION) {
-            int count = stack.getCount();
-            ItemStack noodles = new ItemStack(ModItems.RAW_NOODLES, count);
-            stack.setCount(0);
-            ItemUtils.getItemToLivingEntity(entityLiving, noodles);
             if (worldIn.isClientSide()) {
                 entityLiving.playSound(ModSounds.ITEM_DOUGH_TRANSFORM, 1.0F, 1.0F);
+                return true;
             }
+            int count = entityLiving.hasInfiniteMaterials() ? 1 : stack.getCount();
+            ItemStack noodles = new ItemStack(ModItems.RAW_NOODLES, count);
+            if (!entityLiving.hasInfiniteMaterials()) {
+                stack.setCount(0);
+            }
+            ItemUtils.getItemToLivingEntity(entityLiving, noodles);
             if (entityLiving instanceof ServerPlayer serverPlayer) {
                 ModTrigger.EVENT.trigger(serverPlayer, ModEventTriggerType.PULL_THE_DOUGH);
             }
@@ -83,7 +69,7 @@ public class RawDoughItem extends Item {
     }
 
     @Override
-        public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.raw_dough").withStyle(ChatFormatting.GRAY));
     }
 }

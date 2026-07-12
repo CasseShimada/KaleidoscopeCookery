@@ -5,7 +5,6 @@
   "experience": 0.35,
   "ingredient": "kaleidoscope_cookery:raw_donkey_meat",
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:cooked_donkey_meat"
   }
 }

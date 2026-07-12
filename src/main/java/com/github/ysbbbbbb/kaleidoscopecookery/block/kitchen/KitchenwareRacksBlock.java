@@ -35,6 +35,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class KitchenwareRacksBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock, EntityBlock {
@@ -84,8 +85,16 @@ public class KitchenwareRacksBlock extends HorizontalDirectionalBlock implements
         Vec3 location = hitResult.getLocation().subtract(Vec3.atCenterOf(pos)).yRot(yRotRad);
         boolean isLeftClick = location.x > 0;
 
-        if (level.getBlockEntity(pos) instanceof IKitchenwareRacks racks && racks.onClick(player, mainHandItem, isLeftClick)) {
-            return InteractionResult.SUCCESS;
+        if (level.getBlockEntity(pos) instanceof IKitchenwareRacks racks) {
+            ItemStack rackStack = isLeftClick ? racks.getItemLeft() : racks.getItemRight();
+            boolean canTake = mainHandItem.isEmpty() && !rackStack.isEmpty();
+            boolean canPut = mainHandItem.isDamageableItem() && rackStack.isEmpty();
+            if (canTake || canPut) {
+                if (!level.isClientSide() && !racks.onClick(player, mainHandItem, isLeftClick)) {
+                    return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+                }
+                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+            }
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
@@ -127,14 +136,14 @@ public class KitchenwareRacksBlock extends HorizontalDirectionalBlock implements
 
     @Override
     public @NotNull List<ItemStack> getDrops(BlockState state, LootParams.Builder lootParamsBuilder) {
-        List<ItemStack> drops = super.getDrops(state, lootParamsBuilder);
-        BlockEntity parameter = lootParamsBuilder.getParameter(LootContextParams.BLOCK_ENTITY);
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, lootParamsBuilder));
+        BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof KitchenwareRacksBlockEntity racks) {
             if (!racks.getItemLeft().isEmpty()) {
-                drops.add(racks.getItemLeft());
+                drops.add(racks.getItemLeft().copy());
             }
             if (!racks.getItemRight().isEmpty()) {
-                drops.add(racks.getItemRight());
+                drops.add(racks.getItemRight().copy());
             }
         }
         return drops;

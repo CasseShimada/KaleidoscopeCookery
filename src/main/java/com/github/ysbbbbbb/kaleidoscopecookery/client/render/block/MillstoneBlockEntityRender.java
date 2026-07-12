@@ -4,7 +4,6 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.model.MillstoneModel;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacer;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacerReloadListener;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -73,7 +72,8 @@ public class MillstoneBlockEntityRender implements BlockEntityRenderer<Millstone
         state.renderCount = Math.min(renderItem.getCount(), MillstoneBlockEntity.MAX_INPUT_COUNT);
         state.itemState.clear();
         if (!renderItem.isEmpty()) {
-            ItemRenderReplacer.updateRenderState(itemModelResolver, state.itemState, renderItem, ItemDisplayContext.FIXED, millstone.getLevel(), 0, ItemRenderReplacerReloadListener.INSTANCE.millstone());
+            ItemRenderReplacerReloadListener.updateMillstoneRenderState(itemModelResolver, state.itemState, renderItem,
+                    ItemDisplayContext.FIXED, millstone.getLevel(), 0);
         }
         state.randomSeed = millstone.hashCode();
     }

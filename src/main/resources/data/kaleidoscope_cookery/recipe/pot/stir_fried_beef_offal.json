@@ -6,12 +6,10 @@
     "kaleidoscope_cookery:raw_cow_offal",
     "kaleidoscope_cookery:raw_cow_offal",
     "#c:crops/chilipepper",
-    "#c:crops/chilipepper",
     "#c:crops/lettuce",
     "#c:crops/lettuce"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:stir_fried_beef_offal"
   }
 }

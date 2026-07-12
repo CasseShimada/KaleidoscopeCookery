@@ -1,16 +1,6 @@
 {
   "type": "kaleidoscope_cookery:pot",
-  "ingredients": [
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs",
-    "#c:eggs"
-  ],
+  "ingredients": [],
   "result": {
     "count": 9,
     "id": "kaleidoscope_cookery:fried_egg"

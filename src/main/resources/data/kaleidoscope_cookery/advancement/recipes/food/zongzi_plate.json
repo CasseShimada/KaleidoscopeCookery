@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "kaleidoscope_cookery:zongzi_plate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_zongzi": {
+      "conditions": {
+        "items": [
+          {
+            "items": "kaleidoscope_cookery:zongzi"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_zongzi"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "kaleidoscope_cookery:zongzi_plate"
+    ]
+  }
+}

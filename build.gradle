@@ -15,13 +15,17 @@ loom {
 }
 
 fabricApi {
-    configureDataGeneration()
+    configureDataGeneration {
+        outputDirectory.set(layout.buildDirectory.file("generated/datagen"))
+        addToResources.set(false)
+    }
 }
 
 sourceSets {
     main {
         java {
-            exclude 'com/github/ysbbbbbb/kaleidoscopecookery/compat/jei/**'
+            // These legacy compat modules are not wired to optional dependencies or entrypoints yet.
+            // Keep them out of the common jar until each compat path is restored as a dedicated client integration.
             exclude 'com/github/ysbbbbbb/kaleidoscopecookery/compat/jade/**'
             exclude 'com/github/ysbbbbbb/kaleidoscopecookery/compat/rei/**'
         }
@@ -68,23 +72,28 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    compileOnly "mezz.jei:jei-${project.minecraft_version}-common-api:${project.jei_version}"
+    compileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
 }
 
 def modVersion = project.version
 def minecraftVersion = project.minecraft_version
 def loaderVersion = project.loader_version
+def fabricVersion = project.fabric_version
 
 processResources {
     inputs.property "version", modVersion
     inputs.property "minecraft_version", minecraftVersion
     inputs.property "loader_version", loaderVersion
+    inputs.property "fabric_version", fabricVersion
     filteringCharset = "UTF-8"
 
     filesMatching("fabric.mod.json") {
         expand(
                 "version": modVersion,
                 "minecraft_version": minecraftVersion,
-                "loader_version": loaderVersion
+                "loader_version": loaderVersion,
+                "fabric_version": fabricVersion
         )
     }
 }

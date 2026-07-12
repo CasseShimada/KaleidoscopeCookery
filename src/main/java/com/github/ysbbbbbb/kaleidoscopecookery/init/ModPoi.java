@@ -6,17 +6,24 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.block.Block;
 
-public class ModPoi {
+public final class ModPoi {
     public static final PoiType STOVE = registerPoiType("stove", ModBlocks.STOVE);
     public static final PoiType POT = registerPoiType("pot", ModBlocks.POT);
     public static final PoiType STOCKPOT = registerPoiType("stockpot", ModBlocks.STOCKPOT);
     public static final PoiType CHOPPING_BOARD = registerPoiType("chopping_board", ModBlocks.CHOPPING_BOARD);
 
+    private ModPoi() {
+    }
+
     private static PoiType registerPoiType(String name, Block block) {
-        return PoiHelper.register(Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, name), 1, 1, block);
+        return PoiHelper.register(id(name), 1, 1, block);
     }
 
     public static void registerPoiTypes() {
         // 确保类被加载
+    }
+
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
     }
 }

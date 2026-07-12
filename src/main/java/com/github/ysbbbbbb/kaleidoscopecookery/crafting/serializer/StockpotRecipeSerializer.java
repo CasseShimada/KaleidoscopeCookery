@@ -2,9 +2,9 @@ package com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotVisuals;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.StreamCodecUtil;
-import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -21,19 +21,22 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+
 public final class StockpotRecipeSerializer {
     public static final int DEFAULT_TIME = 300;
-    public static final int DEFAULT_COOKING_BUBBLE_COLOR = 0xFFECC3;
-    public static final int DEFAULT_FINISHED_BUBBLE_COLOR = 0xF4AA8B;
+    public static final int DEFAULT_COOKING_BUBBLE_COLOR = StockpotVisuals.DEFAULT_COOKING_BUBBLE_COLOR;
+    public static final int DEFAULT_FINISHED_BUBBLE_COLOR = StockpotVisuals.DEFAULT_FINISHED_BUBBLE_COLOR;
     public static final Ingredient DEFAULT_CARRIER = Ingredient.of(Items.BOWL);
     public static final Identifier DEFAULT_SOUP_BASE = ModSoupBases.WATER;
     public static final Identifier EMPTY_ID = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stockpot/empty");
-    public static final Identifier DEFAULT_COOKING_TEXTURE = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stockpot/default_cooking");
-    public static final Identifier DEFAULT_FINISHED_TEXTURE = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stockpot/default_finished");
+    public static final Identifier DEFAULT_COOKING_TEXTURE = StockpotVisuals.DEFAULT_COOKING_TEXTURE;
+    public static final Identifier DEFAULT_FINISHED_TEXTURE = StockpotVisuals.DEFAULT_FINISHED_TEXTURE;
+    private static final ItemStackTemplate EMPTY_RESULT = new ItemStackTemplate(Items.SUSPICIOUS_STEW);
 
     public static RecipeHolder<StockpotRecipe> getEmptyRecipe() {
-        StockpotRecipe stockpotRecipe = new StockpotRecipe(Lists.newArrayList(), DEFAULT_SOUP_BASE,
-                new ItemStackTemplate(Items.AIR), DEFAULT_TIME, DEFAULT_CARRIER,
+        StockpotRecipe stockpotRecipe = new StockpotRecipe(new ArrayList<>(), DEFAULT_SOUP_BASE,
+                EMPTY_RESULT, DEFAULT_TIME, DEFAULT_CARRIER,
                 DEFAULT_COOKING_TEXTURE, DEFAULT_FINISHED_TEXTURE,
                 DEFAULT_COOKING_BUBBLE_COLOR,
                 DEFAULT_FINISHED_BUBBLE_COLOR);
@@ -42,10 +45,7 @@ public final class StockpotRecipeSerializer {
     }
 
     public static final MapCodec<StockpotRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Ingredient.CODEC.listOf().fieldOf("ingredients").xmap(
-                    list -> list,
-                    list -> list.stream().filter(i -> !i.isEmpty()).toList()
-            ).forGetter(StockpotRecipe::getIngredients),
+            Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(StockpotRecipe::getIngredients),
             Identifier.CODEC.optionalFieldOf("soup_base", DEFAULT_SOUP_BASE).forGetter(StockpotRecipe::soupBase),
             ItemStackTemplate.CODEC.fieldOf("result").forGetter(StockpotRecipe::result),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(StockpotRecipe::time),

@@ -3,9 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.datagen.builder;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.StockpotRecipeSerializer;
-import com.google.common.collect.Lists;
 import net.minecraft.advancements.triggers.Criterion;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeBuilder;
@@ -21,14 +19,16 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.StreamSupport;
+import java.util.function.Function;
 
 public class StockpotRecipeBuilder implements RecipeBuilder {
     private static final String NAME = "stockpot";
-    private final List<Ingredient> ingredients = Lists.newArrayList();
-    private ItemStack result = ItemStack.EMPTY;
+    private final Function<TagKey<Item>, Ingredient> tagIngredientFactory;
+    private final List<Ingredient> ingredients = new ArrayList<>();
+    private @Nullable ItemStackTemplate result;
     private int time = StockpotRecipeSerializer.DEFAULT_TIME;
     private Ingredient carrier = StockpotRecipeSerializer.DEFAULT_CARRIER;
     private Identifier soupBase = StockpotRecipeSerializer.DEFAULT_SOUP_BASE;
@@ -38,7 +38,15 @@ public class StockpotRecipeBuilder implements RecipeBuilder {
     private int finishedBubbleColor = StockpotRecipeSerializer.DEFAULT_FINISHED_BUBBLE_COLOR;
 
     public static StockpotRecipeBuilder builder() {
-        return new StockpotRecipeBuilder();
+        return new StockpotRecipeBuilder(StockpotRecipeBuilder::unsupportedTagIngredient);
+    }
+
+    public static StockpotRecipeBuilder builder(Function<TagKey<Item>, Ingredient> tagIngredientFactory) {
+        return new StockpotRecipeBuilder(tagIngredientFactory);
+    }
+
+    private StockpotRecipeBuilder(Function<TagKey<Item>, Ingredient> tagIngredientFactory) {
+        this.tagIngredientFactory = Objects.requireNonNull(tagIngredientFactory, "Tag ingredient factory not set");
     }
 
     public StockpotRecipeBuilder addInput(Object... ingredients) {
@@ -47,9 +55,8 @@ public class StockpotRecipeBuilder implements RecipeBuilder {
                 this.ingredients.add(Ingredient.of(itemLike));
             } else if (ingredient instanceof ItemStack stack) {
                 this.ingredients.add(Ingredient.of(stack.getItem()));
-            } else if (ingredient instanceof TagKey<?> tagKey && tagKey.registry().equals(Registries.ITEM)) {
-                TagKey<Item> itemTagKey = (TagKey<Item>) tagKey;
-                this.ingredients.add(ingredientFromTag(itemTagKey));
+            } else if (ingredient instanceof TagKey<?> tagKey) {
+                tagKey.cast(Registries.ITEM).ifPresent(itemTagKey -> this.ingredients.add(this.tagIngredientFactory.apply(itemTagKey)));
             } else if (ingredient instanceof Ingredient ingredientObj) {
                 this.ingredients.add(ingredientObj);
             }
@@ -68,21 +75,22 @@ public class StockpotRecipeBuilder implements RecipeBuilder {
     }
 
     public StockpotRecipeBuilder setResult(Item result) {
-        this.result = new ItemStack(result, 3);
+        this.result = RecipeStackHelper.template(result, 3);
         return this;
     }
 
     public StockpotRecipeBuilder setResult(Item result, int count) {
-        return this.setResult(new ItemStack(result, count));
+        this.result = RecipeStackHelper.template(result, count);
+        return this;
     }
 
     public StockpotRecipeBuilder setResult(Identifier result) {
-        this.result = new ItemStack(Objects.requireNonNull(BuiltInRegistries.ITEM.getValue(result)));
+        this.result = RecipeStackHelper.template(requiredResultItem(result));
         return this;
     }
 
     public StockpotRecipeBuilder setResult(ItemStack result) {
-        this.result = result;
+        this.result = ItemStackTemplate.fromNonEmptyStack(result);
         return this;
     }
 
@@ -128,30 +136,44 @@ public class StockpotRecipeBuilder implements RecipeBuilder {
     }
 
     public Item getResult() {
-        return this.result.getItem();
+        return result().item().value();
     }
 
     @Override
     public ResourceKey<Recipe<?>> defaultId() {
-        String path = RecipeBuilder.getDefaultRecipeId(new ItemStackTemplate(this.getResult())).identifier().getPath();
-        Identifier filePath = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, NAME + "/" + path);
-        return ResourceKey.create(Registries.RECIPE, filePath);
+        String path = RecipeBuilder.getDefaultRecipeId(result()).identifier().getPath();
+        return recipeKey(path);
     }
 
     @Override
     public void save(RecipeOutput output, String recipeId) {
-        Identifier filePath = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, NAME + "/" + recipeId);
-        this.save(output, ResourceKey.create(Registries.RECIPE, filePath));
+        this.save(output, recipeKey(recipeId));
     }
 
     @Override
     public void save(RecipeOutput recipeOutput, ResourceKey<Recipe<?>> id) {
-        recipeOutput.accept(id, new StockpotRecipe(this.ingredients, this.soupBase, this.result, this.time, this.carrier,
+        recipeOutput.accept(id, new StockpotRecipe(this.ingredients, this.soupBase, result(), this.time, this.carrier,
                 this.cookingTexture, this.finishedTexture, this.cookingBubbleColor, this.finishedBubbleColor), null);
     }
 
-    private static Ingredient ingredientFromTag(TagKey<Item> tagKey) {
-        return Ingredient.of(StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(tagKey).spliterator(), false)
-                .map(Holder::value));
+    private ItemStackTemplate result() {
+        return Objects.requireNonNull(this.result, "Result not set");
+    }
+
+    private static ResourceKey<Recipe<?>> recipeKey(String path) {
+        return ResourceKey.create(Registries.RECIPE, recipeId(path));
+    }
+
+    private static Identifier recipeId(String path) {
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, NAME + "/" + path);
+    }
+
+    private static Item requiredResultItem(Identifier id) {
+        return BuiltInRegistries.ITEM.getOptional(id)
+                .orElseThrow(() -> new IllegalStateException("Missing registered stockpot recipe result item: " + id));
+    }
+
+    private static Ingredient unsupportedTagIngredient(TagKey<Item> tagKey) {
+        throw new IllegalStateException("Tag ingredient " + tagKey.location() + " requires a recipe provider-backed builder");
     }
 }

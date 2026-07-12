@@ -1,0 +1,94 @@
+{
+  "variants": {
+    "facing=east,variant=0,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 90
+    },
+    "facing=east,variant=0,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 90
+    },
+    "facing=east,variant=1,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 90
+    },
+    "facing=east,variant=1,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 90
+    },
+    "facing=east,variant=2,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 90
+    },
+    "facing=east,variant=2,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 90
+    },
+    "facing=north,variant=0,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot"
+    },
+    "facing=north,variant=0,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot"
+    },
+    "facing=north,variant=1,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot"
+    },
+    "facing=north,variant=1,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot"
+    },
+    "facing=north,variant=2,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot"
+    },
+    "facing=north,variant=2,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot"
+    },
+    "facing=south,variant=0,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 180
+    },
+    "facing=south,variant=0,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 180
+    },
+    "facing=south,variant=1,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 180
+    },
+    "facing=south,variant=1,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 180
+    },
+    "facing=south,variant=2,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 180
+    },
+    "facing=south,variant=2,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 180
+    },
+    "facing=west,variant=0,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 270
+    },
+    "facing=west,variant=0,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 270
+    },
+    "facing=west,variant=1,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 270
+    },
+    "facing=west,variant=1,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 270
+    },
+    "facing=west,variant=2,waterlogged=false": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 270
+    },
+    "facing=west,variant=2,waterlogged=true": {
+      "model": "kaleidoscope_cookery:block/teapot",
+      "y": 270
+    }
+  }
+}

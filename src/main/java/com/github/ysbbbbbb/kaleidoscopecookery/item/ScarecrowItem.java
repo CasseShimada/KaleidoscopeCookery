@@ -15,7 +15,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.PostSpawnProcessor;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-public class ScarecrowItem extends Item {
+public class ScarecrowItem extends CookeryTooltipItem {
     public ScarecrowItem(Properties properties) {
         super(properties);
     }
@@ -60,14 +59,16 @@ public class ScarecrowItem extends Item {
                 scarecrow.gameEvent(GameEvent.ENTITY_PLACE, context.getPlayer());
                 ModTrigger.EVENT.trigger(context.getPlayer(), ModEventTriggerType.PLACE_SCARECROW);
             }
-            stack.shrink(1);
+            if (!level.isClientSide() && (context.getPlayer() == null || !context.getPlayer().hasInfiniteMaterials())) {
+                stack.shrink(1);
+            }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
         return InteractionResult.FAIL;
     }
 
     @Override
-        public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.scarecrow").withStyle(ChatFormatting.GRAY));
     }
 }

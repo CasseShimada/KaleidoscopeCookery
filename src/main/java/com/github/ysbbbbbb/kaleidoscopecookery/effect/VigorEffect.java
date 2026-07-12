@@ -4,7 +4,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerLevel;
 
-public class VigorEffect extends BaseEffect {
+public class VigorEffect extends CookeryEffect {
     public VigorEffect(int color) {
         super(color);
     }

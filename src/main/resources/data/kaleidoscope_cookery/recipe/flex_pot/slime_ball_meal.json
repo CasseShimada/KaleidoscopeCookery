@@ -1,0 +1,12 @@
+{
+  "type": "kaleidoscope_cookery:flex_pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "minecraft:slime_ball"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:slime_ball_meal"
+  },
+  "stir_fry_count": 3,
+  "time": 200
+}

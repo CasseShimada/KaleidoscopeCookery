@@ -1,24 +1,19 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTriggerType;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.tooltip.ItemContainerTooltip;
-import com.github.ysbbbbbb.kaleidoscopecookery.util.neo.ItemStackHandler;
+import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
-import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
@@ -43,49 +38,36 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class TransmutationLunchBagItem extends Item {
-    public static final Identifier HAS_ITEMS_PROPERTY = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "has_items");
-    public static final int NO_ITEMS = 0;
-    public static final int HAS_ITEMS = 1;
-
+public class TransmutationLunchBagItem extends CookeryTooltipItem {
     private static final int MAX_SIZE = 16;
-    private static final String TAG_ITEMS = "Items";
 
     public TransmutationLunchBagItem(Properties properties) {
         super(properties.stacksTo(1));
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static float getTexture(ItemStack stack, @Nullable Level level, @Nullable LivingEntity entity, int seed) {
-        if (!hasItems(stack)) {
-            return NO_ITEMS;
-        }
-        return HAS_ITEMS;
     }
 
     public static boolean hasItems(ItemStack bag) {
         return bag.has(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS);
     }
 
-    public static ItemStackHandler getItems(ItemStack bag) {
+    public static ItemStackContainer getItems(ItemStack bag) {
         ItemContainer container = bag.get(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS);
         if (container != null) {
-            return container.items();
+            return container.toContainer();
         }
-        return new ItemStackHandler(MAX_SIZE);
+        return new ItemStackContainer(MAX_SIZE);
     }
 
-    public static void setItems(ItemStack bag, ItemStackHandler items) {
+    public static void setItems(ItemStack bag, ItemStackContainer items) {
         // 先判断是否全空
         boolean allEmpty = true;
-        for (int i = 0; i < items.getSlots(); i++) {
-            if (!items.getStackInSlot(i).isEmpty()) {
+        for (int i = 0; i < items.size(); i++) {
+            if (!items.get(i).isEmpty()) {
                 allEmpty = false;
                 break;
             }
@@ -99,7 +81,8 @@ public class TransmutationLunchBagItem extends Item {
 
     @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
-        BlockEntity blockEntity = context.getLevel().getBlockEntity(context.getClickedPos());
+        Level level = context.getLevel();
+        BlockEntity blockEntity = level.getBlockEntity(context.getClickedPos());
         if (!(blockEntity instanceof FruitBasketBlockEntity fruitBasket)) {
             return super.useOn(context);
         }
@@ -108,13 +91,16 @@ public class TransmutationLunchBagItem extends Item {
             return super.useOn(context);
         }
         ItemStack bag = context.getItemInHand();
-        ItemStackHandler bagItems = TransmutationLunchBagItem.getItems(bag);
-        ItemStackHandler fruitBasketItems = new ItemStackHandler(fruitBasket.getItems());
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        ItemStackContainer bagItems = TransmutationLunchBagItem.getItems(bag);
+        ItemStackContainer fruitBasketItems = ItemStackContainer.wrap(fruitBasket.getItems());
 
         // 先检查果篮是否为空
         boolean basketEmpty = true;
-        for (int i = 0; i < fruitBasketItems.getSlots(); i++) {
-            if (!fruitBasketItems.getStackInSlot(i).isEmpty()) {
+        for (int i = 0; i < fruitBasketItems.size(); i++) {
+            if (!fruitBasketItems.get(i).isEmpty()) {
                 basketEmpty = false;
                 break;
             }
@@ -122,49 +108,55 @@ public class TransmutationLunchBagItem extends Item {
 
         // 果篮空了，那么尝试放入物品
         if (hasItems(bag) && basketEmpty) {
-            for (int i = 0; i < bagItems.getSlots(); i++) {
-                ItemStack stack = bagItems.getStackInSlot(i);
+            for (int i = 0; i < bagItems.size(); i++) {
+                ItemStack stack = bagItems.get(i);
                 if (!stack.isEmpty() && stack.getItem().canFitInsideContainerItems()) {
-                    ItemStack remaining = ItemUtils.insertItemStacked(fruitBasketItems, stack, false);
-                    bagItems.extractItem(i, stack.getCount() - remaining.getCount(), false);
+                    ItemStack remaining = ItemUtils.insertItemStacked(fruitBasketItems, stack);
+                    bagItems.extractItem(i, stack.getCount() - remaining.getCount());
                 }
             }
             TransmutationLunchBagItem.setItems(bag, bagItems);
             fruitBasket.refresh();
             playRemoveOneSound(player);
-            return context.getLevel().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
 
         // 果篮不为空，尝试取出物品
-        for (int i = 0; i < fruitBasketItems.getSlots(); i++) {
-            ItemStack stack = fruitBasketItems.getStackInSlot(i);
+        for (int i = 0; i < fruitBasketItems.size(); i++) {
+            ItemStack stack = fruitBasketItems.get(i);
             if (!stack.isEmpty() && canAdd(stack)) {
-                ItemStack remaining = ItemUtils.insertItemStacked(bagItems, stack, false);
-                fruitBasketItems.extractItem(i, stack.getCount() - remaining.getCount(), false);
+                ItemStack remaining = ItemUtils.insertItemStacked(bagItems, stack);
+                fruitBasketItems.extractItem(i, stack.getCount() - remaining.getCount());
             }
         }
         TransmutationLunchBagItem.setItems(bag, bagItems);
         fruitBasket.refresh();
         playDropContentsSound(player);
-        return context.getLevel().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     @Override
     public @NotNull InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack itemInHand = player.getItemInHand(hand);
         // 潜行右键使用，取出物品
-        if (player.isSecondaryUseActive() && dropContents(itemInHand, player)) {
-            this.playDropContentsSound(player);
-            player.awardStat(Stats.ITEM_USED.get(this));
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        if (player.isSecondaryUseActive() && hasItems(itemInHand)) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
+            if (dropContents(itemInHand, player)) {
+                this.playDropContentsSound(player);
+                player.awardStat(Stats.ITEM_USED.get(this));
+                return InteractionResult.CONSUME;
+            }
+            return InteractionResult.FAIL;
         }
 
         // 非潜行状态，并且里面有物品
         if (!player.isSecondaryUseActive() && hasItems(itemInHand)) {
             boolean hasFood = false;
-            ItemStackHandler items = getItems(itemInHand);
-            for (int i = 0; i < items.getSlots(); i++) {
-                ItemStack stackInSlot = items.getStackInSlot(i);
+            ItemStackContainer items = getItems(itemInHand);
+            for (int i = 0; i < items.size(); i++) {
+                ItemStack stackInSlot = items.get(i);
                 if (!stackInSlot.isEmpty()) {
                     hasFood = true;
                     break;
@@ -184,12 +176,16 @@ public class TransmutationLunchBagItem extends Item {
         if (!hasItems(bag)) {
             return bag;
         }
+        if (level.isClientSide()) {
+            return bag;
+        }
         ItemStack food = ItemStack.EMPTY;
-        List<ApplyStatusEffectsConsumeEffect> effects = Lists.newArrayList();
+        List<ApplyStatusEffectsConsumeEffect> effects = new ArrayList<>();
+        boolean consumeContents = !entity.hasInfiniteMaterials();
 
-        ItemStackHandler items = getItems(bag);
-        for (int i = 0; i < items.getSlots(); i++) {
-            ItemStack stackInSlot = items.getStackInSlot(i);
+        ItemStackContainer items = getItems(bag);
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack stackInSlot = items.get(i);
             if (stackInSlot.isEmpty()) {
                 continue;
             }
@@ -208,7 +204,7 @@ public class TransmutationLunchBagItem extends Item {
                         }
                     }
                 } else {
-                    food = items.extractItem(i, 1, false);
+                    food = consumeContents ? items.extractItem(i, 1) : stackInSlot.copyWithCount(1);
                 }
                 continue;
             }
@@ -220,7 +216,7 @@ public class TransmutationLunchBagItem extends Item {
                 if (!food.isEmpty()) {
                     potionContents.customEffects().forEach(e -> effects.add(new ApplyStatusEffectsConsumeEffect(e, 1F)));
                 } else {
-                    food = items.extractItem(i, 1, false);
+                    food = consumeContents ? items.extractItem(i, 1) : stackInSlot.copyWithCount(1);
                 }
             }
         }
@@ -231,13 +227,12 @@ public class TransmutationLunchBagItem extends Item {
             Item containerItem = ItemUtils.getContainerItem(food);
 
             // 返还容器
-            if (!returnStack.isEmpty()) {
-                // 排除创造模式玩家
-                if (!(entity instanceof Player player) || !player.getAbilities().instabuild) {
+            if (!entity.hasInfiniteMaterials()) {
+                if (!returnStack.isEmpty()) {
                     ItemUtils.getItemToLivingEntity(entity, returnStack);
+                } else if (containerItem != Items.AIR) {
+                    ItemUtils.getItemToLivingEntity(entity, containerItem.getDefaultInstance());
                 }
-            } else if (containerItem != Items.AIR) {
-                ItemUtils.getItemToLivingEntity(entity, containerItem.getDefaultInstance());
             }
 
             // 处理效果
@@ -256,7 +251,9 @@ public class TransmutationLunchBagItem extends Item {
             }
 
             // 更新饭袋数据
-            setItems(bag, items);
+            if (consumeContents) {
+                setItems(bag, items);
+            }
             return bag;
         }
 
@@ -332,9 +329,9 @@ public class TransmutationLunchBagItem extends Item {
         if (!hasItems(bag)) {
             return Optional.empty();
         }
-        ItemStackHandler items = getItems(bag);
-        for (int i = 0; i < items.getSlots(); i++) {
-            ItemStack extractItem = items.extractItem(i, items.getSlotLimit(i), false);
+        ItemStackContainer items = getItems(bag);
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack extractItem = items.extractItem(i, items.get(i).getCount());
             if (!extractItem.isEmpty()) {
                 setItems(bag, items);
                 return Optional.of(extractItem);
@@ -349,8 +346,8 @@ public class TransmutationLunchBagItem extends Item {
         }
         int totalCount = food.getCount();
 
-        ItemStackHandler items = getItems(bag);
-        ItemStack remaining = ItemUtils.insertItemStacked(items, food, false);
+        ItemStackContainer items = getItems(bag);
+        ItemStack remaining = ItemUtils.insertItemStacked(items, food);
 
         int addCount = totalCount - (remaining.isEmpty() ? 0 : remaining.getCount());
         if (addCount > 0) {
@@ -365,9 +362,9 @@ public class TransmutationLunchBagItem extends Item {
             return false;
         }
         boolean result = false;
-        ItemStackHandler items = getItems(bag);
-        for (int i = 0; i < items.getSlots(); i++) {
-            ItemStack stack = items.getStackInSlot(i);
+        ItemStackContainer items = getItems(bag);
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack stack = items.get(i);
             if (stack.isEmpty()) {
                 continue;
             }
@@ -375,7 +372,7 @@ public class TransmutationLunchBagItem extends Item {
             result = true;
         }
         if (result) {
-            items = new ItemStackHandler(MAX_SIZE);
+            items = new ItemStackContainer(MAX_SIZE);
             setItems(bag, items);
         }
         return result;
@@ -398,47 +395,64 @@ public class TransmutationLunchBagItem extends Item {
         if (!hasItems(stack)) {
             return Optional.empty();
         }
-        ItemStackHandler items = getItems(stack);
-        return Optional.of(new ItemContainerTooltip(items.getStacks()));
+        ItemStackContainer items = getItems(stack);
+        return Optional.of(new ItemContainerTooltip(items.copyStacks()));
     }
 
     @Override
-        public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.transmutation_lunch_bag").withStyle(ChatFormatting.GRAY));
     }
 
-    public record ItemContainer(ItemStackHandler items) {
-        public static ItemContainer of(ItemStackHandler items) {
-            ItemStackHandler copy = new ItemStackHandler(MAX_SIZE);
-            for (int i = 0; i < Math.min(items.getSlots(), copy.getSlots()); i++) {
-                copy.setStackInSlot(i, items.getStackInSlot(i).copy());
+    public record ItemContainer(ItemStackContainer items) {
+        public ItemContainer {
+            items = copyItems(items);
+        }
+
+        public static ItemContainer of(ItemStackContainer items) {
+            return new ItemContainer(items);
+        }
+
+        public ItemStackContainer toContainer() {
+            return copyItems(this.items);
+        }
+
+        @Override
+        public ItemStackContainer items() {
+            return toContainer();
+        }
+
+        private static ItemStackContainer copyItems(ItemStackContainer items) {
+            return ItemStackContainer.copyOf(items, MAX_SIZE);
+        }
+
+        private static ItemContainer fromList(List<ItemStack> list) {
+            ItemStackContainer handler = new ItemStackContainer(MAX_SIZE);
+            for (int i = 0; i < Math.min(list.size(), handler.size()); i++) {
+                handler.set(i, list.get(i));
             }
-            return new ItemContainer(copy);
+            return new ItemContainer(handler);
+        }
+
+        private List<ItemStack> itemsForCodec() {
+            ItemStackContainer handler = this.items();
+            List<ItemStack> output = new ArrayList<>();
+            for (int i = 0; i < handler.size(); i++) {
+                output.add(handler.get(i));
+            }
+            return output;
         }
 
         public static final Codec<ItemContainer> CODEC = ItemStack.OPTIONAL_CODEC.listOf().xmap(
-                list -> {
-                    ItemStackHandler handler = new ItemStackHandler(MAX_SIZE);
-                    for (int i = 0; i < Math.min(list.size(), handler.getSlots()); i++) {
-                        handler.setStackInSlot(i, list.get(i));
-                    }
-                    return new ItemContainer(handler);
-                },
-                container -> {
-                    ItemStackHandler handler = container.items();
-                    List<ItemStack> output = Lists.newArrayList();
-                    for (int i = 0; i < handler.getSlots(); i++) {
-                        output.add(handler.getStackInSlot(i));
-                    }
-                    return output;
-                }
+                ItemContainer::fromList,
+                ItemContainer::itemsForCodec
         );
 
         public static final StreamCodec<RegistryFriendlyByteBuf, ItemContainer> STREAM_CODEC = new StreamCodec<>() {
             @Override
             public @NotNull ItemContainer decode(RegistryFriendlyByteBuf buffer) {
                 CompoundTag compoundTag = buffer.readNbt();
-                ItemStackHandler handler = new ItemStackHandler(MAX_SIZE);
+                ItemStackContainer handler = new ItemStackContainer(MAX_SIZE);
                 if (compoundTag != null) {
                     handler.deserializeNBT(buffer.registryAccess(), compoundTag);
                 }

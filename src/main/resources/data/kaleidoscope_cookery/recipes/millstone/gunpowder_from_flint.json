@@ -1,8 +1,0 @@
-{
-  "type": "kaleidoscope_cookery:millstone",
-  "ingredient": "minecraft:flint",
-  "result": {
-    "count": 1,
-    "id": "minecraft:gunpowder"
-  }
-}

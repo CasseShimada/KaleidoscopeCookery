@@ -49,6 +49,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class StockpotBlock extends HorizontalDirectionalBlock implements EntityBlock, SimpleWaterloggedBlock {
@@ -76,12 +77,6 @@ public class StockpotBlock extends HorizontalDirectionalBlock implements EntityB
                 .setValue(HAS_LID, false)
                 .setValue(HAS_BASE, false)
                 .setValue(HAS_CHAINS, false));
-    }
-
-    @Nullable
-    protected static <E extends BlockEntity, A extends BlockEntity> BlockEntityTicker<A> createTickerHelper(
-            BlockEntityType<A> serverType, BlockEntityType<E> clientType, BlockEntityTicker<? super E> ticker) {
-        return clientType == serverType ? (BlockEntityTicker<A>) ticker : null;
     }
 
     @Override
@@ -129,29 +124,39 @@ public class StockpotBlock extends HorizontalDirectionalBlock implements EntityB
         }
         // 先检查盖子
         ItemStack mainHandItem = player.getMainHandItem();
-        if (stockpot.onLitClick(level, player, mainHandItem)) {
+        boolean canLitClick = stockpot.hasLid() || mainHandItem.is(ModItems.STOCKPOT_LID);
+        boolean canAddSoupBase = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_SOUP_BASE && !mainHandItem.isEmpty();
+        boolean canRemoveSoupBase = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_INGREDIENT && !mainHandItem.isEmpty();
+        boolean canAddIngredient = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_INGREDIENT && !mainHandItem.isEmpty();
+        boolean canRemoveIngredient = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_INGREDIENT && mainHandItem.isEmpty();
+        boolean canTakeProduct = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.FINISHED;
+        if (level.isClientSide() && (canLitClick || canAddSoupBase || canRemoveSoupBase
+                || canAddIngredient || canRemoveIngredient || canTakeProduct)) {
             return InteractionResult.SUCCESS;
+        }
+        if (stockpot.onLitClick(level, player, mainHandItem)) {
+            return InteractionResult.CONSUME;
         }
         // 加入汤底
         if (stockpot.addSoupBase(level, player, mainHandItem)) {
             ModTrigger.EVENT.trigger(player, ModEventTriggerType.PUT_SOUP_BASE_IN_STOCKPOT);
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         // 取出汤底
         if (stockpot.removeSoupBase(level, player, mainHandItem)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         // 加入原料
         if (!mainHandItem.isEmpty() && stockpot.addIngredient(level, player, mainHandItem)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         // 取出原料
         if (mainHandItem.isEmpty() && stockpot.removeIngredient(level, player)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         // 取出成品
         if (stockpot.takeOutProduct(level, player, mainHandItem)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
@@ -165,12 +170,13 @@ public class StockpotBlock extends HorizontalDirectionalBlock implements EntityB
     @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide()) {
-            return createTickerHelper(blockEntityType, ModBlocks.STOCKPOT_BE,
-                    (lvl, blockPos, blockState, pot) -> pot.clientTick());
+        if (blockEntityType != ModBlocks.STOCKPOT_BE) {
+            return null;
         }
-        return createTickerHelper(blockEntityType, ModBlocks.STOCKPOT_BE,
-                (lvl, blockPos, blockState, pot) -> pot.tick(lvl));
+        if (level.isClientSide()) {
+            return (lvl, blockPos, blockState, blockEntity) -> ((StockpotBlockEntity) blockEntity).clientTick();
+        }
+        return (lvl, blockPos, blockState, blockEntity) -> ((StockpotBlockEntity) blockEntity).tick(lvl);
     }
 
     @Override
@@ -218,20 +224,19 @@ public class StockpotBlock extends HorizontalDirectionalBlock implements EntityB
 
     @Override
     public @NotNull List<ItemStack> getDrops(BlockState state, LootParams.Builder lootParamsBuilder) {
-        List<ItemStack> drops = super.getDrops(state, lootParamsBuilder);
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, lootParamsBuilder));
+        BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (state.getValue(HAS_LID)) {
-            BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
             if (parameter instanceof StockpotBlockEntity stockpot && !stockpot.getLidItem().isEmpty()) {
                 drops.add(stockpot.getLidItem().copy());
             } else {
                 drops.add(new ItemStack(ModItems.STOCKPOT_LID));
             }
         }
-        BlockEntity parameter = lootParamsBuilder.getParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof StockpotBlockEntity stockpotBlock && stockpotBlock.getStatus() == StockpotBlockEntity.PUT_INGREDIENT) {
             stockpotBlock.getInputs().forEach(stack -> {
                 if (!stack.isEmpty()) {
-                    drops.add(stack);
+                    drops.add(stack.copy());
                 }
             });
         }

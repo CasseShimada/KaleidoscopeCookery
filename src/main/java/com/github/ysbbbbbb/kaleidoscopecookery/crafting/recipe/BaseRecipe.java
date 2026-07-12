@@ -33,6 +33,10 @@ public interface BaseRecipe<C extends RecipeInput> extends Recipe<C> {
         return stackedContents.canCraft(ingredients, null);
     }
 
+    default @NotNull ItemStack getResult() {
+        return result().create();
+    }
+
     @Override
     default @NotNull ItemStack assemble(C container) {
         return result().create();

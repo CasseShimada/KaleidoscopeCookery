@@ -1,31 +1,28 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase;
 
-
-import com.github.ysbbbbbb.kaleidoscopecookery.api.client.render.ISoupBaseRender;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.MobSoupBaseRender;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.MobBucketItem;
 
+import java.util.Objects;
+
 public class MobSoupBase extends FluidSoupBase {
     private final EntityType<?> type;
 
-    public MobSoupBase(Identifier name, Item bucket, int bubbleColor) {
+    public MobSoupBase(Identifier name, Item bucket, int bubbleColor, EntityType<?> type) {
         super(name, bucket, bubbleColor);
-        if (bucket instanceof MobBucketItem mobBucketItem) {
-            this.type = mobBucketItem.type;
-        } else {
+        if (!(bucket instanceof MobBucketItem)) {
             throw new IllegalArgumentException("Mob bucket item must have a valid entity type!");
         }
+        this.type = Objects.requireNonNull(type, "type");
     }
 
-    public MobSoupBase(Identifier name, Item bucket) {
-        this(name, bucket, 0x3F76E4);
+    public MobSoupBase(Identifier name, Item bucket, EntityType<?> type) {
+        this(name, bucket, 0x3F76E4, type);
     }
 
-    @Override
-    public ISoupBaseRender getRender() {
-        return new MobSoupBaseRender(this.fluid, this.type);
+    public EntityType<?> getEntityType() {
+        return this.type;
     }
 }

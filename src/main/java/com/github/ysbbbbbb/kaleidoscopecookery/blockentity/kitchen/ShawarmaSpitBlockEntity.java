@@ -95,8 +95,10 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
         this.cookTime = 0;
         this.refresh();
 
-        if (!mainHandItem.is(TagMod.KITCHEN_KNIFE) && this.getBlockState().getValue(ShawarmaSpitBlock.POWERED)) {
-            entity.hurt(level.damageSources().inFire(), 1);
+        if (!mainHandItem.is(TagMod.KITCHEN_KNIFE)
+            && this.getBlockState().getValue(ShawarmaSpitBlock.POWERED)
+            && level instanceof ServerLevel serverLevel) {
+            entity.hurtServer(serverLevel, level.damageSources().inFire(), 1.0F);
         }
         ItemUtils.getItemToLivingEntity(entity, copy);
         if (level instanceof ServerLevel) {

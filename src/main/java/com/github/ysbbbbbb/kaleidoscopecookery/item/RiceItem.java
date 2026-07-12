@@ -8,13 +8,13 @@ import net.minecraft.world.item.component.TooltipDisplay;
 
 import java.util.function.Consumer;
 
-public class RiceItem extends ItemNameBlockItem {
+public class RiceItem extends CookeryTooltipNameBlockItem {
     public RiceItem(Properties properties) {
         super(ModBlocks.RICE_CROP, properties);
     }
 
     // 留空不显示
     @Override
-        public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
     }
 }

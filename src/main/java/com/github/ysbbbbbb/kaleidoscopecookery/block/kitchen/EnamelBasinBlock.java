@@ -79,27 +79,33 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
     @Override
     public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (hand != InteractionHand.MAIN_HAND) {
-            super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         ItemStack mainHandItem = player.getMainHandItem();
         // 先判断棍子敲
         if (mainHandItem.is(Items.STICK)) {
-            float pitch = 0.6F + (float) Math.random() * 0.2F;
-            level.playSound(player, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 2, pitch);
-            return InteractionResult.SUCCESS;
+            if (!level.isClientSide()) {
+                float pitch = 0.6F + level.getRandom().nextFloat() * 0.2F;
+                level.playSound(null, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 2, pitch);
+            }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
         // 再判断开盖
         boolean hasLid = state.getValue(HAS_LID);
         if (hasLid) {
-            level.playSound(player, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
-            level.setBlockAndUpdate(pos, state.setValue(HAS_LID, false));
-            return InteractionResult.SUCCESS;
+            if (!level.isClientSide()) {
+                level.playSound(null, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
+                level.setBlockAndUpdate(pos, state.setValue(HAS_LID, false));
+            }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
         // 没有盖子，并且是空手，那么盖上盖子
         if (mainHandItem.isEmpty()) {
-            level.playSound(player, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, 0.4f);
-            level.setBlockAndUpdate(pos, state.setValue(HAS_LID, true));
-            return InteractionResult.SUCCESS;
+            if (!level.isClientSide()) {
+                level.playSound(null, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, 0.4f);
+                level.setBlockAndUpdate(pos, state.setValue(HAS_LID, true));
+            }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
         // 手持油脂时，消耗油脂添加进去
         if (mainHandItem.is(ModItems.OIL)) {
@@ -111,10 +117,14 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             // 尝试直接放满
             int needCount = MAX_OIL_COUNT - value;
             int consumeCount = Math.min(needCount, mainHandItem.getCount());
-            level.playSound(player, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
-            mainHandItem.shrink(consumeCount);
-            level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value + consumeCount));
-            return InteractionResult.SUCCESS;
+            if (!level.isClientSide()) {
+                level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
+                if (!player.hasInfiniteMaterials()) {
+                    mainHandItem.shrink(consumeCount);
+                }
+                level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value + consumeCount));
+            }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
         // 当用铲子右击时
         if (mainHandItem.is(ModItems.KITCHEN_SHOVEL)) {
@@ -134,23 +144,29 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             if (value >= MAX_OIL_COUNT) {
                 return InteractionResult.FAIL;
             }
-            level.playSound(player, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
-            KitchenShovelItem.setHasOil(mainHandItem, false);
-            level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value + 1));
-            return InteractionResult.SUCCESS;
+            if (!level.isClientSide()) {
+                level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
+                KitchenShovelItem.setHasOil(mainHandItem, false);
+                level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value + 1));
+            }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
 
         // 没有油时，取出或者破坏
         if (value == 0) {
-            level.destroyBlock(pos, true, player);
-            return InteractionResult.SUCCESS;
+            if (!level.isClientSide()) {
+                level.destroyBlock(pos, true, player);
+            }
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
 
         // 取油
-        level.playSound(player, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 1.2F);
-        KitchenShovelItem.setHasOil(mainHandItem, true);
-        level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value - 1));
-        return InteractionResult.SUCCESS;
+        if (!level.isClientSide()) {
+            level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 1.2F);
+            KitchenShovelItem.setHasOil(mainHandItem, true);
+            level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value - 1));
+        }
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
 
     @Override

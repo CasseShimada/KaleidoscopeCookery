@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 final class CookingPotCompat {
@@ -46,8 +47,10 @@ final class CookingPotCompat {
     @Nullable
     private static StockpotRecipe transformRecipe(Object cookingPotRecipe, RegistryAccess registryAccess) {
         try {
-            Method getIngredients = cookingPotRecipe.getClass().getMethod("getIngredients");
-            List<Ingredient> ingredients = (List<Ingredient>) getIngredients.invoke(cookingPotRecipe);
+            List<Ingredient> ingredients = getIngredients(cookingPotRecipe);
+            if (ingredients == null) {
+                return null;
+            }
 
             ItemStack result = getResultItem(cookingPotRecipe, registryAccess);
             int cookTime = getCookTime(cookingPotRecipe);
@@ -70,6 +73,23 @@ final class CookingPotCompat {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    @Nullable
+    private static List<Ingredient> getIngredients(Object cookingPotRecipe) throws Exception {
+        Method getIngredients = cookingPotRecipe.getClass().getMethod("getIngredients");
+        Object value = getIngredients.invoke(cookingPotRecipe);
+        if (!(value instanceof List<?> rawIngredients)) {
+            return null;
+        }
+        List<Ingredient> ingredients = new ArrayList<>(rawIngredients.size());
+        for (Object ingredient : rawIngredients) {
+            if (!(ingredient instanceof Ingredient typedIngredient)) {
+                return null;
+            }
+            ingredients.add(typedIngredient);
+        }
+        return ingredients;
     }
 
     private static ItemStack getResultItem(Object cookingPotRecipe, RegistryAccess registryAccess) throws Exception {

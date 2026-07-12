@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -55,6 +56,11 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
                 .setValue(getBites(), 0)
                 .setValue(FACING, Direction.SOUTH)
                 .setValue(PART, NinePart.CENTER));
+    }
+
+    @Override
+    public IntegerProperty getBites() {
+        return BITES_8;
     }
 
     private static BlockPos getCenterPos(BlockPos pos, BlockState state) {
@@ -94,7 +100,7 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
         int bites = centerState.getValue(getBites());
         if (bites >= getMaxBites()) {
             handleRemove(level, centerPos, centerState, player);
-            return InteractionResult.SUCCESS;
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
 
         return super.useWithoutItem(centerState, level, centerPos, player, hit);
@@ -149,11 +155,6 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, PART);
-    }
-
-    @Override
-    protected void createBitesBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(getBites(), FACING, PART);
     }
 
@@ -184,6 +185,16 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
             case DOWN -> DOWN;
             case RIGHT_DOWN -> RIGHT_DOWN;
         };
+    }
+
+    @Override
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
+        BlockPos centerPos = getCenterPos(pos, state);
+        BlockState centerState = level.getBlockState(centerPos);
+        if (!centerState.is(this)) {
+            return 0;
+        }
+        return super.getAnalogOutputSignal(centerState, level, centerPos, direction);
     }
 
     @Override

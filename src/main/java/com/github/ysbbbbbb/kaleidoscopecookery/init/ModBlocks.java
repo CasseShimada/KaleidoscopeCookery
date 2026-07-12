@@ -8,7 +8,10 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.crop.RiceCropBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.ChairBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.CookStoolBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.FruitBasketBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.StackableFoodBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.EmptyCupBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.TeacupBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.*;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.ChiliRistraBlock;
@@ -16,6 +19,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.OilBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.RecipeBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrawBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.TrashCanBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.ChairBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
@@ -23,6 +27,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.RecipeBloc
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.food.FoodBiteThreeByThreeBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.*;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc.TrashCanBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,8 +38,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.phys.shapes.Shapes;
 
-public class ModBlocks {
+public final class ModBlocks {
     // Kitchen blocks
     public static final Block STOVE = new StoveBlock(blockProperties("stove"));
     public static final Block POT = new PotBlock(blockProperties("pot"));
@@ -49,10 +56,19 @@ public class ModBlocks {
     public static final Block SHAWARMA_SPIT = new ShawarmaSpitBlock(blockProperties("shawarma_spit"));
     public static final Block MILLSTONE = new MillstoneBlock(blockProperties("millstone"));
     public static final Block STEAMER = new SteamerBlock(blockProperties("steamer"));
+    public static final Block TEAPOT = new TeapotBlock(blockProperties("teapot"));
+    public static final Block EMPTY_CUP = new EmptyCupBlock(blockProperties("empty_cup"));
+    public static final Block TRASH_CAN = new TrashCanBlock(blockProperties("trash_can"));
     public static final Block RECIPE_BLOCK = new RecipeBlock(blockProperties("recipe_block"));
     public static final Block OIL_POT = new OilPotBlock(blockProperties("oil_pot"));
     public static final Block COLD_CUT_HAM_SLICES = new FoodBiteThreeByThreeBlock(
             blockProperties("cold_cut_ham_slices"), ModFoods.COLD_CUT_HAM_SLICES_BLOCK, 8, null);
+    public static final Block BAMBOO_TUBE_RICE_BLOCK = new StackableFoodBlock(
+            blockProperties("bamboo_tube_rice"), 4, () -> ModItems.BAMBOO_TUBE_RICE,
+            Block.box(4, 0, 4, 12, 10, 12),
+            Shapes.or(Block.box(7, 0, 1, 15, 10, 9), Block.box(1, 0, 7, 9, 10, 15)),
+            Shapes.or(Block.box(0, 0, 6, 16, 10, 15), Block.box(4, 0, 0, 12, 10, 15)),
+            Block.box(0, 0, 0, 16, 10, 16));
 
     // Crop blocks
     public static final Block TOMATO_CROP = new BaseCropBlock(
@@ -108,6 +124,8 @@ public class ModBlocks {
     public static final BlockEntityType<KitchenwareRacksBlockEntity> KITCHENWARE_RACKS_BE = FabricBlockEntityTypeBuilder.create(KitchenwareRacksBlockEntity::new, KITCHENWARE_RACKS).build();
     public static final BlockEntityType<ShawarmaSpitBlockEntity> SHAWARMA_SPIT_BE = FabricBlockEntityTypeBuilder.create(ShawarmaSpitBlockEntity::new, SHAWARMA_SPIT).build();
     public static final BlockEntityType<SteamerBlockEntity> STEAMER_BE = FabricBlockEntityTypeBuilder.create(SteamerBlockEntity::new, STEAMER).build();
+    public static final BlockEntityType<TeapotBlockEntity> TEAPOT_BE = FabricBlockEntityTypeBuilder.create(TeapotBlockEntity::new, TEAPOT).build();
+    public static final BlockEntityType<TrashCanBlockEntity> TRASH_CAN_BE = FabricBlockEntityTypeBuilder.create(TrashCanBlockEntity::new, TRASH_CAN).build();
     public static final BlockEntityType<MillstoneBlockEntity> MILLSTONE_BE = FabricBlockEntityTypeBuilder.create(MillstoneBlockEntity::new, MILLSTONE).build();
     public static final BlockEntityType<RecipeBlockEntity> RECIPE_BLOCK_BE = FabricBlockEntityTypeBuilder.create(RecipeBlockEntity::new, RECIPE_BLOCK).build();
     public static final BlockEntityType<OilPotBlockEntity> OIL_POT_BE = FabricBlockEntityTypeBuilder.create(OilPotBlockEntity::new, OIL_POT).build();
@@ -126,6 +144,9 @@ public class ModBlocks {
             TABLE_JUNGLE, TABLE_MANGROVE, TABLE_WARPED
     ).build();
 
+    private ModBlocks() {
+    }
+
     private static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
     }
@@ -138,84 +159,111 @@ public class ModBlocks {
         return BlockBehaviour.Properties.of().setId(blockKey(path));
     }
 
+    private static void registerBlock(String path, Block block) {
+        registerBlock(id(path), block);
+    }
+
+    private static void registerBlock(Identifier id, Block block) {
+        Registry.register(BuiltInRegistries.BLOCK, id, block);
+    }
+
+    private static void registerBlockEntity(String path, BlockEntityType<?> blockEntityType) {
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id(path), blockEntityType);
+    }
+
     public static void registerBlocks() {
         // Kitchen blocks
-        Registry.register(BuiltInRegistries.BLOCK, id("stove"), STOVE);
-        Registry.register(BuiltInRegistries.BLOCK, id("pot"), POT);
-        Registry.register(BuiltInRegistries.BLOCK, id("stockpot"), STOCKPOT);
-        Registry.register(BuiltInRegistries.BLOCK, id("fruit_basket"), FRUIT_BASKET);
-        Registry.register(BuiltInRegistries.BLOCK, id("chopping_board"), CHOPPING_BOARD);
-        Registry.register(BuiltInRegistries.BLOCK, id("oil_block"), OIL_BLOCK);
-        Registry.register(BuiltInRegistries.BLOCK, id("enamel_basin"), ENAMEL_BASIN);
-        Registry.register(BuiltInRegistries.BLOCK, id("kitchenware_racks"), KITCHENWARE_RACKS);
-        Registry.register(BuiltInRegistries.BLOCK, id("chili_ristra"), CHILI_RISTRA);
-        Registry.register(BuiltInRegistries.BLOCK, id("strung_mushrooms"), STRUNG_MUSHROOMS);
-        Registry.register(BuiltInRegistries.BLOCK, id("straw_block"), STRAW_BLOCK);
-        Registry.register(BuiltInRegistries.BLOCK, id("shawarma_spit"), SHAWARMA_SPIT);
-        Registry.register(BuiltInRegistries.BLOCK, id("steamer"), STEAMER);
-        Registry.register(BuiltInRegistries.BLOCK, id("millstone"), MILLSTONE);
-        Registry.register(BuiltInRegistries.BLOCK, id("recipe_block"), RECIPE_BLOCK);
-        Registry.register(BuiltInRegistries.BLOCK, id("oil_pot"), OIL_POT);
-        Registry.register(BuiltInRegistries.BLOCK, id("cold_cut_ham_slices"), COLD_CUT_HAM_SLICES);
+        registerBlock("stove", STOVE);
+        registerBlock("pot", POT);
+        registerBlock("stockpot", STOCKPOT);
+        registerBlock("fruit_basket", FRUIT_BASKET);
+        registerBlock("chopping_board", CHOPPING_BOARD);
+        registerBlock("oil_block", OIL_BLOCK);
+        registerBlock("enamel_basin", ENAMEL_BASIN);
+        registerBlock("kitchenware_racks", KITCHENWARE_RACKS);
+        registerBlock("chili_ristra", CHILI_RISTRA);
+        registerBlock("strung_mushrooms", STRUNG_MUSHROOMS);
+        registerBlock("straw_block", STRAW_BLOCK);
+        registerBlock("shawarma_spit", SHAWARMA_SPIT);
+        registerBlock("steamer", STEAMER);
+        registerBlock("teapot", TEAPOT);
+        registerBlock("empty_cup", EMPTY_CUP);
+        registerBlock("trash_can", TRASH_CAN);
+        registerBlock("millstone", MILLSTONE);
+        registerBlock("recipe_block", RECIPE_BLOCK);
+        registerBlock("oil_pot", OIL_POT);
+        registerBlock("cold_cut_ham_slices", COLD_CUT_HAM_SLICES);
+        registerBlock("bamboo_tube_rice", BAMBOO_TUBE_RICE_BLOCK);
+
+        TeacupRegistry.forEachData((id, data) -> {
+            TeacupBlock block = new TeacupBlock(blockProperties(id.getPath()), data.getMaxCount());
+            if (data.getAABB() != null) {
+                block.setAABB(data.getAABB());
+            }
+            registerBlock(id, block);
+        });
 
         // Crop blocks
-        Registry.register(BuiltInRegistries.BLOCK, id("tomato_crop"), TOMATO_CROP);
-        Registry.register(BuiltInRegistries.BLOCK, id("chili_crop"), CHILI_CROP);
-        Registry.register(BuiltInRegistries.BLOCK, id("lettuce_crop"), LETTUCE_CROP);
-        Registry.register(BuiltInRegistries.BLOCK, id("rice_crop"), RICE_CROP);
+        registerBlock("tomato_crop", TOMATO_CROP);
+        registerBlock("chili_crop", CHILI_CROP);
+        registerBlock("lettuce_crop", LETTUCE_CROP);
+        registerBlock("rice_crop", RICE_CROP);
 
         // Cook stools
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_oak"), COOK_STOOL_OAK);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_spruce"), COOK_STOOL_SPRUCE);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_acacia"), COOK_STOOL_ACACIA);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_bamboo"), COOK_STOOL_BAMBOO);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_birch"), COOK_STOOL_BIRCH);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_cherry"), COOK_STOOL_CHERRY);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_crimson"), COOK_STOOL_CRIMSON);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_dark_oak"), COOK_STOOL_DARK_OAK);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_jungle"), COOK_STOOL_JUNGLE);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_mangrove"), COOK_STOOL_MANGROVE);
-        Registry.register(BuiltInRegistries.BLOCK, id("cook_stool_warped"), COOK_STOOL_WARPED);
+        registerBlock("cook_stool_oak", COOK_STOOL_OAK);
+        registerBlock("cook_stool_spruce", COOK_STOOL_SPRUCE);
+        registerBlock("cook_stool_acacia", COOK_STOOL_ACACIA);
+        registerBlock("cook_stool_bamboo", COOK_STOOL_BAMBOO);
+        registerBlock("cook_stool_birch", COOK_STOOL_BIRCH);
+        registerBlock("cook_stool_cherry", COOK_STOOL_CHERRY);
+        registerBlock("cook_stool_crimson", COOK_STOOL_CRIMSON);
+        registerBlock("cook_stool_dark_oak", COOK_STOOL_DARK_OAK);
+        registerBlock("cook_stool_jungle", COOK_STOOL_JUNGLE);
+        registerBlock("cook_stool_mangrove", COOK_STOOL_MANGROVE);
+        registerBlock("cook_stool_warped", COOK_STOOL_WARPED);
 
         // Chairs
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_oak"), CHAIR_OAK);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_spruce"), CHAIR_SPRUCE);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_acacia"), CHAIR_ACACIA);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_bamboo"), CHAIR_BAMBOO);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_birch"), CHAIR_BIRCH);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_cherry"), CHAIR_CHERRY);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_crimson"), CHAIR_CRIMSON);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_dark_oak"), CHAIR_DARK_OAK);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_jungle"), CHAIR_JUNGLE);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_mangrove"), CHAIR_MANGROVE);
-        Registry.register(BuiltInRegistries.BLOCK, id("chair_warped"), CHAIR_WARPED);
+        registerBlock("chair_oak", CHAIR_OAK);
+        registerBlock("chair_spruce", CHAIR_SPRUCE);
+        registerBlock("chair_acacia", CHAIR_ACACIA);
+        registerBlock("chair_bamboo", CHAIR_BAMBOO);
+        registerBlock("chair_birch", CHAIR_BIRCH);
+        registerBlock("chair_cherry", CHAIR_CHERRY);
+        registerBlock("chair_crimson", CHAIR_CRIMSON);
+        registerBlock("chair_dark_oak", CHAIR_DARK_OAK);
+        registerBlock("chair_jungle", CHAIR_JUNGLE);
+        registerBlock("chair_mangrove", CHAIR_MANGROVE);
+        registerBlock("chair_warped", CHAIR_WARPED);
 
         // Tables
-        Registry.register(BuiltInRegistries.BLOCK, id("table_oak"), TABLE_OAK);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_spruce"), TABLE_SPRUCE);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_acacia"), TABLE_ACACIA);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_bamboo"), TABLE_BAMBOO);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_birch"), TABLE_BIRCH);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_cherry"), TABLE_CHERRY);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_crimson"), TABLE_CRIMSON);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_dark_oak"), TABLE_DARK_OAK);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_jungle"), TABLE_JUNGLE);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_mangrove"), TABLE_MANGROVE);
-        Registry.register(BuiltInRegistries.BLOCK, id("table_warped"), TABLE_WARPED);
+        registerBlock("table_oak", TABLE_OAK);
+        registerBlock("table_spruce", TABLE_SPRUCE);
+        registerBlock("table_acacia", TABLE_ACACIA);
+        registerBlock("table_bamboo", TABLE_BAMBOO);
+        registerBlock("table_birch", TABLE_BIRCH);
+        registerBlock("table_cherry", TABLE_CHERRY);
+        registerBlock("table_crimson", TABLE_CRIMSON);
+        registerBlock("table_dark_oak", TABLE_DARK_OAK);
+        registerBlock("table_jungle", TABLE_JUNGLE);
+        registerBlock("table_mangrove", TABLE_MANGROVE);
+        registerBlock("table_warped", TABLE_WARPED);
 
         // Block entities
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("pot"), POT_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("stockpot"), STOCKPOT_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("fruit_basket"), FRUIT_BASKET_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("chopping_board"), CHOPPING_BOARD_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("kitchenware_racks"), KITCHENWARE_RACKS_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("shawarma_spit"), SHAWARMA_SPIT_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("chair"), CHAIR_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("table"), TABLE_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("steamer"), STEAMER_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("millstone"), MILLSTONE_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("recipe_book"), RECIPE_BLOCK_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("oil_pot"), OIL_POT_BE);
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("food_bite_three_by_three"), FOOD_BITE_THREE_BY_THREE_BE);
+        registerBlockEntity("pot", POT_BE);
+        registerBlockEntity("stockpot", STOCKPOT_BE);
+        registerBlockEntity("fruit_basket", FRUIT_BASKET_BE);
+        registerBlockEntity("chopping_board", CHOPPING_BOARD_BE);
+        registerBlockEntity("kitchenware_racks", KITCHENWARE_RACKS_BE);
+        registerBlockEntity("shawarma_spit", SHAWARMA_SPIT_BE);
+        registerBlockEntity("chair", CHAIR_BE);
+        registerBlockEntity("table", TABLE_BE);
+        registerBlockEntity("steamer", STEAMER_BE);
+        registerBlockEntity("teapot", TEAPOT_BE);
+        registerBlockEntity("trash_can", TRASH_CAN_BE);
+        registerBlockEntity("millstone", MILLSTONE_BE);
+        // Keep this legacy block entity id for existing world save compatibility.
+        registerBlockEntity("recipe_book", RECIPE_BLOCK_BE);
+        registerBlockEntity("oil_pot", OIL_POT_BE);
+        registerBlockEntity("food_bite_three_by_three", FOOD_BITE_THREE_BY_THREE_BE);
     }
 }

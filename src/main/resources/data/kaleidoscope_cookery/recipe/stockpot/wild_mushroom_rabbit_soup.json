@@ -3,11 +3,9 @@
   "ingredients": [
     "minecraft:rabbit",
     "minecraft:rabbit",
-    "minecraft:rabbit",
-    "#c:mushrooms",
-    "#c:mushrooms",
-    "#c:mushrooms",
-    "#c:mushrooms"
+    "#c:mushroom",
+    "#c:mushroom",
+    "#c:mushroom"
   ],
   "result": {
     "count": 3,

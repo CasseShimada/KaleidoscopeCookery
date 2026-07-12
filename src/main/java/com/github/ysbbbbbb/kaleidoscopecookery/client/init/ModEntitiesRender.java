@@ -14,7 +14,10 @@ import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 
 @Environment(EnvType.CLIENT)
-public class ModEntitiesRender {
+public final class ModEntitiesRender {
+    private ModEntitiesRender() {
+    }
+
     public static void register() {
         // 注册实体渲染器
         EntityRenderers.register(SitEntity.TYPE, SitRenderer::new);

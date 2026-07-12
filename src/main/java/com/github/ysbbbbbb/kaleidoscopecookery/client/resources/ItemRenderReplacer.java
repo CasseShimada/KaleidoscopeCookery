@@ -1,6 +1,5 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.client.resources;
 
-import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -14,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public record ItemRenderReplacer(Map<Identifier, Identifier> pot,
@@ -21,17 +21,28 @@ public record ItemRenderReplacer(Map<Identifier, Identifier> pot,
                                  Map<Identifier, Identifier> stockpotFinished,
                                  Map<Identifier, Identifier> millstone,
                                  Map<Identifier, Identifier> steamer) {
-    public static final Codec<Identifier> RL_CODEC = Codec.STRING.comapFlatMap(ItemRenderReplacer::toLocation, Identifier::toString).stable();
+    private static final Codec<Identifier> ITEM_MODEL_CODEC = Codec.STRING.comapFlatMap(
+            ItemRenderReplacer::parseItemModelId, Identifier::toString).stable();
+    private static final Codec<Map<Identifier, Identifier>> OVERRIDE_MAP_CODEC = Codec.unboundedMap(
+            Identifier.CODEC, ITEM_MODEL_CODEC);
     public static final Codec<ItemRenderReplacer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.unboundedMap(Identifier.CODEC, RL_CODEC).fieldOf("pot").forGetter(ItemRenderReplacer::pot),
-            Codec.unboundedMap(Identifier.CODEC, RL_CODEC).fieldOf("stockpot_cooking").forGetter(ItemRenderReplacer::stockpotCooking),
-            Codec.unboundedMap(Identifier.CODEC, RL_CODEC).fieldOf("stockpot_finished").forGetter(ItemRenderReplacer::stockpotFinished),
-            Codec.unboundedMap(Identifier.CODEC, RL_CODEC).fieldOf("millstone").forGetter(ItemRenderReplacer::millstone),
-            Codec.unboundedMap(Identifier.CODEC, RL_CODEC).fieldOf("steamer").forGetter(ItemRenderReplacer::steamer)
+            OVERRIDE_MAP_CODEC.optionalFieldOf("pot", Map.of()).forGetter(ItemRenderReplacer::pot),
+            OVERRIDE_MAP_CODEC.optionalFieldOf("stockpot_cooking", Map.of()).forGetter(ItemRenderReplacer::stockpotCooking),
+            OVERRIDE_MAP_CODEC.optionalFieldOf("stockpot_finished", Map.of()).forGetter(ItemRenderReplacer::stockpotFinished),
+            OVERRIDE_MAP_CODEC.optionalFieldOf("millstone", Map.of()).forGetter(ItemRenderReplacer::millstone),
+            OVERRIDE_MAP_CODEC.optionalFieldOf("steamer", Map.of()).forGetter(ItemRenderReplacer::steamer)
     ).apply(instance, ItemRenderReplacer::new));
 
+    public ItemRenderReplacer {
+        pot = new HashMap<>(pot);
+        stockpotCooking = new HashMap<>(stockpotCooking);
+        stockpotFinished = new HashMap<>(stockpotFinished);
+        millstone = new HashMap<>(millstone);
+        steamer = new HashMap<>(steamer);
+    }
+
     public ItemRenderReplacer() {
-        this(Maps.newHashMap(), Maps.newHashMap(), Maps.newHashMap(), Maps.newHashMap(), Maps.newHashMap());
+        this(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
     }
 
     public static void updateRenderState(ItemModelResolver resolver, ItemStackRenderState renderState,
@@ -52,9 +63,13 @@ public record ItemRenderReplacer(Map<Identifier, Identifier> pot,
         return copy;
     }
 
-    private static DataResult<Identifier> toLocation(String input) {
-        String[] split = input.split("#", 2);
-        return DataResult.success(Identifier.parse(split[0]));
+    private static DataResult<Identifier> parseItemModelId(String input) {
+        String id = input.split("#", 2)[0];
+        Identifier modelId = Identifier.tryParse(id);
+        if (modelId == null) {
+            return DataResult.error(() -> "Not a valid item model id: " + input);
+        }
+        return DataResult.success(modelId);
     }
 
     public void addAll(ItemRenderReplacer other) {
@@ -63,5 +78,13 @@ public record ItemRenderReplacer(Map<Identifier, Identifier> pot,
         this.stockpotFinished.putAll(other.stockpotFinished);
         this.millstone.putAll(other.millstone);
         this.steamer.putAll(other.steamer);
+    }
+
+    public void clear() {
+        this.pot.clear();
+        this.stockpotCooking.clear();
+        this.stockpotFinished.clear();
+        this.millstone.clear();
+        this.steamer.clear();
     }
 }

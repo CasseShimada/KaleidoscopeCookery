@@ -1,0 +1,12 @@
+{
+  "type": "kaleidoscope_cookery:flex_pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#kaleidoscope_cookery:caterpillars"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:fried_caterpillar"
+  },
+  "stir_fry_count": 3,
+  "time": 200
+}

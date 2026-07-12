@@ -6,11 +6,9 @@
     "minecraft:sugar",
     "minecraft:sugar",
     "#c:raw_pork",
-    "#c:raw_pork",
     "#c:raw_pork"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:sweet_and_sour_pork"
   }
 }

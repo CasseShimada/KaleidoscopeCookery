@@ -1,17 +1,3 @@
 {
-  "parent": "kaleidoscope_cookery:item/stockpot_lid_normal",
-  "overrides": [
-    {
-      "model": "kaleidoscope_cookery:item/stockpot_lid_normal",
-      "predicate": {
-        "kaleidoscope_cookery:using": 0.0
-      }
-    },
-    {
-      "model": "kaleidoscope_cookery:item/stockpot_lid_using",
-      "predicate": {
-        "kaleidoscope_cookery:using": 1.0
-      }
-    }
-  ]
+  "parent": "kaleidoscope_cookery:item/stockpot_lid_normal"
 }

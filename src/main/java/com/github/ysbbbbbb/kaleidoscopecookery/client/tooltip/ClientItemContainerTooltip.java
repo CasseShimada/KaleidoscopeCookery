@@ -6,22 +6,23 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ClientItemContainerTooltip implements ClientTooltipComponent {
     private static final int GRAY = 0xAAAAAA;
-    private final NonNullList<ItemStack> items = NonNullList.create();
+    private final List<ItemStack> items = new ArrayList<>();
     private @Nullable MutableComponent emptyTip = null;
 
     public ClientItemContainerTooltip(ItemContainerTooltip containerTooltip) {
-        NonNullList<ItemStack> handler = containerTooltip.handler();
-        for (ItemStack stack : handler) {
+        for (ItemStack stack : containerTooltip.items()) {
             if (!stack.isEmpty()) {
-                this.items.add(stack);
+                this.items.add(stack.copy());
             }
         }
         if (items.isEmpty()) {

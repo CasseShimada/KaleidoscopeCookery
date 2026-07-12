@@ -8,13 +8,13 @@
             "condition": "minecraft:entity_properties",
             "entity": "this",
             "predicate": {
-              "type": "minecraft:piglin_brute"
+              "minecraft:entity_type": "minecraft:piglin_brute"
             }
           }
         ],
         "killing_blow": {
           "direct_entity": {
-            "equipment": {
+            "minecraft:equipment": {
               "mainhand": {
                 "items": "#kaleidoscope_cookery:kitchen_knife"
               }
@@ -33,7 +33,6 @@
     "frame": "challenge",
     "hidden": true,
     "icon": {
-      "count": 1,
       "id": "kaleidoscope_cookery:oil"
     },
     "title": {

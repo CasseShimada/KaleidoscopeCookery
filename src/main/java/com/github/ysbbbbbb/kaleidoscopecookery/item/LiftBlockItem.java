@@ -22,7 +22,7 @@ public class LiftBlockItem extends WithTooltipsBlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (id == null) {
             return;

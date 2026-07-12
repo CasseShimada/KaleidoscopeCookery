@@ -46,12 +46,15 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock, SimpleWaterloggedBlock {
@@ -96,12 +99,6 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
         return super.updateShape(state, levelReader, tickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
-    @Nullable
-    protected static <E extends BlockEntity, A extends BlockEntity> BlockEntityTicker<A> createTickerHelper(
-            BlockEntityType<A> serverType, BlockEntityType<E> clientType, BlockEntityTicker<? super E> ticker) {
-        return clientType == serverType ? (BlockEntityTicker<A>) ticker : null;
-    }
-
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer instanceof Player player && level.getBlockEntity(pos) instanceof IPot pot && pot.hasHeatSource(level)) {
@@ -119,6 +116,12 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         ItemStack itemInHand = player.getItemInHand(hand);
+        if (level.isClientSide()) {
+            if (itemInHand.isEmpty() || itemInHand.is(ModItems.KITCHEN_SHOVEL) || state.getValue(HAS_OIL)) {
+                return InteractionResult.SUCCESS;
+            }
+            return pot.hasHeatSource(level) ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+        }
         RandomSource random = level.getRandom();
         // 先检查执行配菜取出逻辑
         if (itemInHand.isEmpty() && pot.removeIngredient(level, player)) {
@@ -144,17 +147,17 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
         }
         // 如果拿着锅铲，那么开始执行锅铲逻辑
         if (itemInHand.is(ModItems.KITCHEN_SHOVEL)) {
-            if (level.getRandom().nextDouble() < DURABILITY_COST_PROBABILITY) {
+            if (!player.hasInfiniteMaterials() && level.getRandom().nextDouble() < DURABILITY_COST_PROBABILITY) {
                 itemInHand.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
             }
             pot.onShovelHit(level, player, itemInHand);
-            level.playSound(player, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F,
+            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F,
                     1F + (random.nextFloat() - random.nextFloat()) * 0.8F);
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         // 放入配菜
         if (pot.addIngredient(level, player, itemInHand)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
@@ -175,14 +178,10 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
     @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide()) {
+        if (level.isClientSide() || !state.getValue(HAS_OIL) || blockEntityType != ModBlocks.POT_BE) {
             return null;
         }
-        if (!state.getValue(HAS_OIL)) {
-            return null;
-        }
-        return createTickerHelper(blockEntityType, ModBlocks.POT_BE,
-                (levelIn, pos, stateIn, pot) -> pot.tick(levelIn));
+        return (levelIn, pos, stateIn, blockEntity) -> ((PotBlockEntity) blockEntity).tick(levelIn);
     }
 
     @Override
@@ -213,6 +212,20 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
     @Override
     public @NotNull VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext collisionContext) {
         return AABB;
+    }
+
+    @Override
+    public @NotNull List<ItemStack> getDrops(BlockState state, LootParams.Builder lootParamsBuilder) {
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, lootParamsBuilder));
+        BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
+        if (parameter instanceof PotBlockEntity pot && pot.getStatus() == IPot.PUT_INGREDIENT) {
+            pot.getInputs().forEach(stack -> {
+                if (!stack.isEmpty()) {
+                    drops.add(stack.copy());
+                }
+            });
+        }
+        return drops;
     }
 
 }

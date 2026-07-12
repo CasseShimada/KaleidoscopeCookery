@@ -1,36 +1,20 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
-import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
 
-public class StockpotLidItem extends ShieldItem {
-    public static final Identifier USING_PROPERTY = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "using");
-    private static final int NORMAL = 0;
-    private static final int USING = 1;
-
+public class StockpotLidItem extends CookeryTooltipShieldItem {
     public StockpotLidItem(Properties properties) {
         super(properties.durability(120));
     }
 
-    public static float getTexture(ItemStack stack, Level level, LivingEntity entity, int seed) {
-        if (entity != null && entity.isUsingItem() && entity.getUseItem() == stack) {
-            return USING;
-        }
-        return NORMAL;
-    }
-
     @Override
-        public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.stockpot_lid").withStyle(ChatFormatting.GRAY));
     }
 }

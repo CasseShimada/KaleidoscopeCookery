@@ -7,6 +7,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -25,10 +26,17 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
 
     @Override
     public boolean onClick(LivingEntity user, ItemStack stack, boolean isLeft) {
+        if (this.level != null && this.level.isClientSide()) {
+            return false;
+        }
         ItemStack stackInRacks = isLeft ? itemLeft : itemRight;
         // 取出物品
         if (stack.isEmpty() && !stackInRacks.isEmpty()) {
-            ItemUtils.getItemToLivingEntity(user, stackInRacks);
+            if (user instanceof Player player) {
+                ItemUtils.giveItemToPlayer(player, stackInRacks.copy(), player.getInventory().getSelectedSlot());
+            } else {
+                ItemUtils.getItemToLivingEntity(user, stackInRacks.copy());
+            }
             if (isLeft) {
                 itemLeft = ItemStack.EMPTY;
             } else {
@@ -40,10 +48,13 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
         }
         // 放入物品
         if (stack.isDamageableItem() && stackInRacks.isEmpty()) {
+            ItemStack stored = user.hasInfiniteMaterials()
+                    ? stack.copyWithCount(1)
+                    : stack.split(1);
             if (isLeft) {
-                itemLeft = stack.split(1);
+                itemLeft = stored;
             } else {
-                itemRight = stack.split(1);
+                itemRight = stored;
             }
             user.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
             this.refresh();

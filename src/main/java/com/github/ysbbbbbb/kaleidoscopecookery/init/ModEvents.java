@@ -6,8 +6,10 @@ import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.CaterpillarChic
 import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.WetFieldHoeUseEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialFinishEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialRecipeEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.AddVillageStructuresEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.SickleHarvestNetherWartEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.ServerEntityLoadEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.TrashCanHideEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FarmerArmorEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FlatulenceServerEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.HinderEffectEvent;
@@ -15,6 +17,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.InstantSmelti
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.PreservationEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.SatiatedShieldEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.VitalityEffectEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.server.loot.ExtraLootTableDrop;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 
@@ -51,8 +54,6 @@ public final class ModEvents {
                 }
             });
 
-
-
     public static final Event<ActionEventCallback.LivingEntityHurt> LIVING_ENTITY_HURT =
             EventFactory.createArrayBacked(ActionEventCallback.LivingEntityHurt.class, call -> action -> {
                 for (ActionEventCallback.LivingEntityHurt listener : call) {
@@ -68,6 +69,14 @@ public final class ModEvents {
             });
 
     public static void init() {
+        registerEffectEvents();
+        registerServerLifecycleEvents();
+        registerInteractionEvents();
+        registerLootEvents();
+        registerRecipeEvents();
+    }
+
+    private static void registerEffectEvents() {
         SatiatedShieldEvent.register();
         FlatulenceServerEvent.register();
         PreservationEvent.register();
@@ -75,10 +84,25 @@ public final class ModEvents {
         InstantSmeltingEffectEvent.register();
         HinderEffectEvent.register();
         VitalityEffectEvent.register();
+    }
+
+    private static void registerServerLifecycleEvents() {
+        AddVillageStructuresEvent.register();
+        ServerEntityLoadEvent.register();
+        TrashCanHideEvent.register();
+    }
+
+    private static void registerInteractionEvents() {
         WetFieldHoeUseEvent.register();
         CaterpillarChickenFeedEvent.register();
         SickleHarvestNetherWartEvent.register();
-        ServerEntityLoadEvent.register();
+    }
+
+    private static void registerLootEvents() {
+        ExtraLootTableDrop.register();
+    }
+
+    private static void registerRecipeEvents() {
         MillstoneSpecialRecipeEvent.register();
         MillstoneSpecialFinishEvent.register();
         SpecialRecipeItemEvent.register();

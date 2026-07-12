@@ -7,7 +7,7 @@ import net.minecraft.server.level.ServerLevel;
 
 import java.util.List;
 
-public class SulfurEffect extends BaseEffect {
+public class SulfurEffect extends CookeryEffect {
     public SulfurEffect(int color) {
         super(color);
     }
@@ -20,7 +20,7 @@ public class SulfurEffect extends BaseEffect {
     @Override
     public boolean applyEffectTick(ServerLevel level, LivingEntity livingEntity, int amplifier) {
         AABB aabb = new AABB(livingEntity.blockPosition()).inflate(8, 16, 8);
-        List<Phantom> list = livingEntity.level().getEntitiesOfClass(Phantom.class, aabb);
+        List<Phantom> list = level.getEntitiesOfClass(Phantom.class, aabb);
         for (Phantom phantom : list) {
             if (livingEntity.equals(phantom.getTarget())) {
                 phantom.setTarget(null);

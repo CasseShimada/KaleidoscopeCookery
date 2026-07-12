@@ -136,7 +136,7 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
         BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof FruitBasketBlockEntity fruitBasket) {
             drops.stream().filter(stack -> stack.is(ModItems.FRUIT_BASKET)).findFirst()
-                    .ifPresent(stack -> stack.set(ModDataComponents.FRUIT_BASKET_ITEMS, new FruitBasketItem.ItemContainer(fruitBasket.getItems())));
+                    .ifPresent(stack -> stack.set(ModDataComponents.FRUIT_BASKET_ITEMS, FruitBasketItem.ItemContainer.of(fruitBasket.getItems())));
         }
         return drops;
     }
@@ -145,7 +145,7 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
     public @NotNull ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeFluid) {
         ItemStack cloneItemStack = super.getCloneItemStack(level, pos, state, includeFluid);
         level.getBlockEntity(pos, ModBlocks.FRUIT_BASKET_BE)
-                .ifPresent(e -> cloneItemStack.set(ModDataComponents.FRUIT_BASKET_ITEMS, new FruitBasketItem.ItemContainer(e.getItems())));
+                .ifPresent(e -> cloneItemStack.set(ModDataComponents.FRUIT_BASKET_ITEMS, FruitBasketItem.ItemContainer.of(e.getItems())));
         return cloneItemStack;
     }
 

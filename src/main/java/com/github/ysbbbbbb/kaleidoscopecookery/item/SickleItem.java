@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-public class SickleItem extends Item {
+public class SickleItem extends CookeryTooltipItem {
     private static final ToolMaterial SICKLE_MATERIAL = ToolMaterial.STONE;
     private static final float ATTACK_DAMAGE = 3.0F;
     private static final float ATTACK_SPEED = -2.4F;
@@ -197,7 +197,7 @@ public class SickleItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.sickle").withStyle(ChatFormatting.GRAY));
     }
 }

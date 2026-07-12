@@ -1,0 +1,7 @@
+{
+  "type": "kaleidoscope_cookery:rice_bowl",
+  "ingredient": "kaleidoscope_cookery:fish_flavored_shredded_pork",
+  "result": {
+    "id": "kaleidoscope_cookery:fish_flavored_shredded_pork_rice_bowl"
+  }
+}

@@ -1,8 +1,0 @@
-{
-  "type": "kaleidoscope_cookery:millstone",
-  "ingredient": "minecraft:cobblestone",
-  "result": {
-    "count": 1,
-    "id": "minecraft:smooth_stone"
-  }
-}

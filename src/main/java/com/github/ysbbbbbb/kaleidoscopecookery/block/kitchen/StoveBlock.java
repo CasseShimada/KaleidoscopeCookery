@@ -124,7 +124,7 @@ public class StoveBlock extends HorizontalDirectionalBlock {
             && !livingEntity.isInvulnerable()
             && livingEntity.invulnerableTime <= 10) {
             // 排除创造模式玩家
-            if (livingEntity instanceof Player player && player.isCreative()) {
+            if (livingEntity instanceof Player player && player.hasInfiniteMaterials()) {
                 return;
             }
             livingEntity.invulnerableTime = 20;
@@ -148,35 +148,47 @@ public class StoveBlock extends HorizontalDirectionalBlock {
         ItemStack itemInHand = player.getItemInHand(hand);
         // 点燃炉灶
         if (!state.getValue(LIT) && itemInHand.is(TagMod.LIT_STOVE)) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             level.setBlockAndUpdate(pos, state.setValue(LIT, true));
             if (itemInHand.is(Items.FIRE_CHARGE)) {
-                level.playSound(player, pos,
+                level.playSound(null, pos,
                         SoundEvents.FIRECHARGE_USE,
                         SoundSource.BLOCKS, 1.0F,
                         level.getRandom().nextFloat() * 0.4F + 0.8F);
-                itemInHand.shrink(1);
+                if (!player.hasInfiniteMaterials()) {
+                    itemInHand.shrink(1);
+                }
             } else {
-                level.playSound(player, pos,
+                level.playSound(null, pos,
                         SoundEvents.FLINTANDSTEEL_USE,
                         SoundSource.BLOCKS, 1.0F,
                         level.getRandom().nextFloat() * 0.4F + 0.8F);
-                itemInHand.hurtAndBreak(1, player, hand);
+                if (!player.hasInfiniteMaterials()) {
+                    itemInHand.hurtAndBreak(1, player, hand);
+                }
             }
             ModTrigger.EVENT.trigger(player, ModEventTriggerType.LIT_THE_STOVE);
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         // 熄灭
         if (state.getValue(LIT) && itemInHand.is(TagMod.EXTINGUISH_STOVE)) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             if (itemInHand.is(ModItems.KITCHEN_SHOVEL) && hasOil(itemInHand)) {
                 setHasOil(itemInHand, false);
             }
             level.setBlockAndUpdate(pos, state.setValue(LIT, false));
-            level.playSound(player, pos,
+            level.playSound(null, pos,
                     SoundEvents.FIRE_EXTINGUISH,
                     SoundSource.BLOCKS, 0.5F,
                     2.6F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.8F);
-            itemInHand.hurtAndBreak(1, player, hand);
-            return InteractionResult.SUCCESS;
+            if (!player.hasInfiniteMaterials()) {
+                itemInHand.hurtAndBreak(1, player, hand);
+            }
+            return InteractionResult.CONSUME;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }

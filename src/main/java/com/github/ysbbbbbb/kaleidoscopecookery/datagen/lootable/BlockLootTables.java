@@ -5,6 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.crop.RiceCropBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.EnamelBasinBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.ChiliRistraBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
@@ -37,6 +38,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCon
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class BlockLootTables extends FabricBlockLootSubProvider {
@@ -94,6 +96,9 @@ public class BlockLootTables extends FabricBlockLootSubProvider {
         dropSelf(ModBlocks.KITCHENWARE_RACKS);
         dropSelf(ModBlocks.STRAW_BLOCK);
         dropSelf(ModBlocks.SHAWARMA_SPIT);
+        dropSelf(ModBlocks.TRASH_CAN);
+        dropSelf(ModBlocks.OIL_BLOCK);
+        dropSelf(ModBlocks.OIL_POT);
 
         this.add(ModBlocks.TOMATO_CROP, createCropDrops(ModBlocks.TOMATO_CROP, ModItems.TOMATO,
                 ModItems.TOMATO_SEED, createCropBuilder(ModBlocks.TOMATO_CROP)));
@@ -121,10 +126,12 @@ public class BlockLootTables extends FabricBlockLootSubProvider {
         this.add(ModBlocks.RICE_CROP, this.applyExplosionDecay(ModBlocks.RICE_CROP,
                 LootTable.lootTable().withPool(ricePanicle).withPool(extraRiceSeeds)));
 
-        FoodBiteRegistry.FOOD_DATA_MAP.forEach(this::dropFoodBite);
+        FoodBiteRegistry.forEachData(this::dropFoodBite);
 
         this.add(ModBlocks.ENAMEL_BASIN, createEnamelBasinLootTable());
         this.add(ModBlocks.CHILI_RISTRA, createChiliRistraLootTable());
+        this.add(ModBlocks.STRUNG_MUSHROOMS, createStrungMushroomsLootTable());
+        this.add(ModBlocks.COLD_CUT_HAM_SLICES, createColdCutHamSlicesLootTable());
     }
 
     private LootTable.Builder createChiliRistraLootTable() {
@@ -140,6 +147,38 @@ public class BlockLootTables extends FabricBlockLootSubProvider {
         LootPoolSingletonContainer.Builder<?> shearedLoot = LootItem.lootTableItem(ModItems.RED_CHILI).apply(shearedDrop);
 
         builder.add(shearedLoot.when(condition).otherwise(normalLoot));
+
+        return LootTable.lootTable().withPool(builder.when(ExplosionCondition.survivesExplosion()));
+    }
+
+    private LootTable.Builder createStrungMushroomsLootTable() {
+        LootPool.Builder builder = LootPool.lootPool();
+
+        StatePropertiesPredicate.Builder isSheared = StatePropertiesPredicate.Builder.properties().hasProperty(StrungMushroomsBlock.SHEARED, true);
+        LootItemCondition.Builder condition = LootItemBlockStatePropertyCondition.hasBlockStateProperties(ModBlocks.STRUNG_MUSHROOMS).setProperties(isSheared);
+
+        LootItemConditionalFunction.Builder<?> normalDrop = SetItemCountFunction.setCount(ConstantValue.exactly(6));
+        LootItemConditionalFunction.Builder<?> shearedDrop = SetItemCountFunction.setCount(ConstantValue.exactly(3));
+
+        LootPoolSingletonContainer.Builder<?> normalLoot = LootItem.lootTableItem(Items.BROWN_MUSHROOM).apply(normalDrop);
+        LootPoolSingletonContainer.Builder<?> shearedLoot = LootItem.lootTableItem(Items.BROWN_MUSHROOM).apply(shearedDrop);
+
+        builder.add(shearedLoot.when(condition).otherwise(normalLoot));
+
+        return LootTable.lootTable().withPool(builder.when(ExplosionCondition.survivesExplosion()));
+    }
+
+    private LootTable.Builder createColdCutHamSlicesLootTable() {
+        if (!(ModBlocks.COLD_CUT_HAM_SLICES instanceof FoodBiteBlock foodBiteBlock)) {
+            throw new IllegalStateException("Cold cut ham slices block has unexpected type");
+        }
+        StatePropertiesPredicate.Builder notBite = StatePropertiesPredicate.Builder.properties().hasProperty(foodBiteBlock.getBites(), 0);
+        LootItemCondition.Builder condition = LootItemBlockStatePropertyCondition.hasBlockStateProperties(foodBiteBlock).setProperties(notBite);
+
+        LootPool.Builder builder = LootPool.lootPool()
+                .add(LootItem.lootTableItem(ModItems.COLD_CUT_HAM_SLICES)
+                        .when(condition)
+                        .otherwise(LootItem.lootTableItem(Items.BOWL)));
 
         return LootTable.lootTable().withPool(builder.when(ExplosionCondition.survivesExplosion()));
     }
@@ -180,21 +219,21 @@ public class BlockLootTables extends FabricBlockLootSubProvider {
     }
 
     private void dropFoodBite(Identifier id, FoodBiteRegistry.FoodData data) {
-        Block block = BuiltInRegistries.BLOCK.getValue(id);
-        Item food = BuiltInRegistries.ITEM.getValue(id);
-        if (block == null || food == null) {
-            return;
-        }
+        Block block = BuiltInRegistries.BLOCK.getOptional(id)
+                .orElseThrow(() -> new IllegalStateException("Missing registered food bite block: " + id));
+        Item food = BuiltInRegistries.ITEM.getOptional(id)
+                .orElseThrow(() -> new IllegalStateException("Missing registered food bite item: " + id));
         if (!(block instanceof FoodBiteBlock foodBiteBlock)) {
-            return;
+            throw new IllegalStateException("Registered food bite block has unexpected type: " + id);
         }
         ConstantValue exactly = ConstantValue.exactly(1);
         StatePropertiesPredicate.Builder notBite = StatePropertiesPredicate.Builder.properties().hasProperty(foodBiteBlock.getBites(), 0);
         LootItemCondition.Builder builder = LootItemBlockStatePropertyCondition.hasBlockStateProperties(foodBiteBlock).setProperties(notBite);
 
         LootTable.Builder lootTable = LootTable.lootTable();
-        for (int i = 0; i < data.getLootItems().size(); i++) {
-            ItemLike itemLike = data.getLootItems().get(i);
+        List<ItemLike> lootItems = data.getLootItems();
+        for (int i = 0; i < lootItems.size(); i++) {
+            ItemLike itemLike = lootItems.get(i);
             LootPool.Builder rolls = LootPool.lootPool().setRolls(exactly).when(ExplosionCondition.survivesExplosion());
             if (i == 0) {
                 rolls.add(LootItem.lootTableItem(food).when(builder).otherwise(LootItem.lootTableItem(itemLike)));

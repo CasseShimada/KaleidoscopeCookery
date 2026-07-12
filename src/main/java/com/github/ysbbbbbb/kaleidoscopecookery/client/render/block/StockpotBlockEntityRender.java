@@ -4,8 +4,13 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.client.render.ISoupBaseRender
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacer;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.FluidSoupBaseRender;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.MobSoupBaseRender;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.SimpleSoupBaseRender;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacerReloadListener;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.FluidSoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.MobSoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SimpleSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -33,8 +38,14 @@ public class StockpotBlockEntityRender implements BlockEntityRenderer<StockpotBl
         this.itemModelResolver = context.itemModelResolver();
         this.soupBaseRender = Util.memoize(id -> {
             ISoupBase soupBase = SoupBaseManager.getSoupBase(id);
-            if (soupBase != null) {
-                return soupBase.getRender();
+            if (soupBase instanceof MobSoupBase mobSoupBase) {
+                return new MobSoupBaseRender(mobSoupBase.getFluid(), mobSoupBase.getEntityType());
+            }
+            if (soupBase instanceof FluidSoupBase fluidSoupBase) {
+                return new FluidSoupBaseRender(fluidSoupBase.getFluid());
+            }
+            if (soupBase instanceof SimpleSoupBase simpleSoupBase) {
+                return new SimpleSoupBaseRender(simpleSoupBase.getSoupBaseTexture());
             }
             return null;
         });
@@ -74,16 +85,19 @@ public class StockpotBlockEntityRender implements BlockEntityRenderer<StockpotBl
 
         NonNullList<ItemStack> items = stockpot.getInputs();
         boolean useFinishedModels = state.status == StockpotBlockEntity.COOKING;
-        var modelOverrides = useFinishedModels
-                ? ItemRenderReplacerReloadListener.INSTANCE.stockpotFinished()
-                : ItemRenderReplacerReloadListener.INSTANCE.stockpotCooking();
         state.renderCount = Math.min(items.size(), state.items.length);
         for (int i = 0; i < state.renderCount; i++) {
             ItemStack stack = items.get(i);
             state.items[i] = stack;
             state.itemStates[i].clear();
             if (!stack.isEmpty()) {
-                ItemRenderReplacer.updateRenderState(itemModelResolver, state.itemStates[i], stack, ItemDisplayContext.FIXED, stockpot.getLevel(), 0, modelOverrides);
+                if (useFinishedModels) {
+                    ItemRenderReplacerReloadListener.updateStockpotFinishedRenderState(itemModelResolver, state.itemStates[i],
+                            stack, ItemDisplayContext.FIXED, stockpot.getLevel(), 0);
+                } else {
+                    ItemRenderReplacerReloadListener.updateStockpotCookingRenderState(itemModelResolver, state.itemStates[i],
+                            stack, ItemDisplayContext.FIXED, stockpot.getLevel(), 0);
+                }
             }
         }
     }

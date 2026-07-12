@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class MillstoneSpecialFinishEvent {
-
     private MillstoneSpecialFinishEvent() {
     }
 
@@ -38,7 +37,6 @@ public final class MillstoneSpecialFinishEvent {
             //最后考虑可能底下有漏斗，那么尝试把物品塞进漏斗
             handleWithHopper(millstone, level, output);
         });
-
     }
 
     private static void onGetRawDough(MillstoneBlockEntity millstone, Level level, ItemStack output) {

@@ -28,8 +28,6 @@ public class OilBlock extends Block {
         return false;
     }
 
-    // TODO: 缺少粘液块不能带动
-
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         if (random.nextInt(50) != 0) {

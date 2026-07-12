@@ -1,6 +1,5 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.client.render.ISoupBaseRender;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -62,10 +61,4 @@ public interface ISoupBase {
      */
     ItemStack getReturnSoupBase(Level level, LivingEntity user, ItemStack container);
 
-    /**
-     * 获取对应的渲染器，只能在客户端调用
-     *
-     * @return ISoupBaseRender 返回渲染器实例，用于渲染汤底
-     */
-    ISoupBaseRender getRender();
 }

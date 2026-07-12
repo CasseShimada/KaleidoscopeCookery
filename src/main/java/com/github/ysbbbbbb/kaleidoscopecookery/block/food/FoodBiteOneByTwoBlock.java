@@ -31,6 +31,16 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
     public static final int LEFT = 0;
     public static final int RIGHT = 1;
 
+    public static FoodBiteOneByTwoBlock create(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                               int maxBites, @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+        return switch (maxBites) {
+            case 3 -> new ThreeBiteOneByTwoBlock(properties, foodProperties, animateTick);
+            case 4 -> new FourBiteOneByTwoBlock(properties, foodProperties, animateTick);
+            case 5 -> new FiveBiteOneByTwoBlock(properties, foodProperties, animateTick);
+            default -> throw new IllegalArgumentException("Unsupported two-block food bite count: " + maxBites);
+        };
+    }
+
     public FoodBiteOneByTwoBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties, int maxBites,
                                  @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
         super(properties, foodProperties, maxBites, animateTick);
@@ -63,15 +73,19 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
 
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide() && player.isCreative() && state.getValue(POSITION) == LEFT) {
+        if (!level.isClientSide() && state.getValue(POSITION) == LEFT) {
             BlockPos right = pos.relative(state.getValue(FACING).getCounterClockWise());
             BlockState rightState = level.getBlockState(right);
             if (rightState.is(state.getBlock()) && rightState.getValue(POSITION) == RIGHT) {
-                BlockState airBlockState = rightState.getFluidState().is(Fluids.WATER)
-                        ? Blocks.WATER.defaultBlockState()
-                        : Blocks.AIR.defaultBlockState();
-                level.setBlock(right, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
-                level.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, right, Block.getId(rightState));
+                if (player.isCreative()) {
+                    BlockState airBlockState = rightState.getFluidState().is(Fluids.WATER)
+                            ? Blocks.WATER.defaultBlockState()
+                            : Blocks.AIR.defaultBlockState();
+                    level.setBlock(right, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
+                    level.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, right, Block.getId(rightState));
+                } else {
+                    level.destroyBlock(right, true, player);
+                }
             }
         }
         return super.playerWillDestroy(level, pos, state, player);
@@ -91,6 +105,9 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (level.isClientSide()) {
+            return;
+        }
         Direction facing = state.getValue(FACING);
         BlockPos leftPos = pos.relative(facing.getClockWise());
         BlockState leftState = state.setValue(POSITION, LEFT);
@@ -99,11 +116,6 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, POSITION);
-    }
-
-    @Override
-    protected void createBitesBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(getBites(), FACING, POSITION);
     }
 
@@ -113,5 +125,41 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
             return Collections.emptyList();
         }
         return super.getDrops(state, params);
+    }
+
+    private static final class ThreeBiteOneByTwoBlock extends FoodBiteOneByTwoBlock {
+        private ThreeBiteOneByTwoBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                       @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 3, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_3;
+        }
+    }
+
+    private static final class FourBiteOneByTwoBlock extends FoodBiteOneByTwoBlock {
+        private FourBiteOneByTwoBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                      @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 4, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_4;
+        }
+    }
+
+    private static final class FiveBiteOneByTwoBlock extends FoodBiteOneByTwoBlock {
+        private FiveBiteOneByTwoBlock(BlockBehaviour.Properties properties, FoodProperties foodProperties,
+                                      @Nullable FoodBiteAnimateTicks.AnimateTick animateTick) {
+            super(properties, foodProperties, 5, animateTick);
+        }
+
+        @Override
+        public IntegerProperty getBites() {
+            return BITES_5;
+        }
     }
 }

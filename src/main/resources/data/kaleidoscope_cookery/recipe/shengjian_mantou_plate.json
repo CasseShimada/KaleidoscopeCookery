@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "kaleidoscope_cookery:shengjian_mantou",
+    "kaleidoscope_cookery:shengjian_mantou",
+    "kaleidoscope_cookery:shengjian_mantou",
+    "kaleidoscope_cookery:shengjian_mantou",
+    "kaleidoscope_cookery:shengjian_mantou",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:shengjian_mantou_plate"
+  }
+}

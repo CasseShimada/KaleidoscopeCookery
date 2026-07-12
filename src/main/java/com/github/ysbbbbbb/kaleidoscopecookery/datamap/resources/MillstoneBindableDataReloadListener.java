@@ -2,45 +2,54 @@ package com.github.ysbbbbbb.kaleidoscopecookery.datamap.resources;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.datamap.MillstoneBindableData;
-import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.EntityType;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.util.HashMap;
 import java.util.Map;
 
-public class MillstoneBindableDataReloadListener implements ResourceManagerReloadListener {
-    public static final Map<EntityType<?>, MillstoneBindableData> INSTANCE = Maps.newHashMap();
+public final class MillstoneBindableDataReloadListener implements ResourceManagerReloadListener {
+    private static final Map<EntityType<?>, MillstoneBindableData> DATA = new HashMap<>();
     private static final Identifier FILE_PATH = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "datamap/millstone_bindable_data.json");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "millstone_bindable_data");
+
+    public static MillstoneBindableData getData(EntityType<?> entityType) {
+        return DATA.getOrDefault(entityType, MillstoneBindableData.DEFAULT);
+    }
 
     @Override
     public void onResourceManagerReload(ResourceManager resourceManager) {
-        resourceManager.listPacks().forEach((packResources) -> {
-            IoSupplier<InputStream> resource = packResources.getResource(PackType.SERVER_DATA, FILE_PATH);
-            if (resource == null) {
-                return;
+        DATA.clear();
+        int loaded = 0;
+        for (Resource resource : resourceManager.getResourceStack(FILE_PATH)) {
+            if (load(resource)) {
+                loaded++;
             }
-            try (InputStream inputStream = resource.get(); InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-                JsonElement jsonElement = JsonParser.parseReader(reader);
-                var result = MillstoneBindableData.CODEC.parse(JsonOps.INSTANCE, jsonElement);
-                if (result.result().isPresent()) {
-                    INSTANCE.putAll(result.result().get());
-                    KaleidoscopeCookery.LOGGER.info("Successfully loaded millstone bindable data");
-                } else if (result.error().isPresent()) {
-                    KaleidoscopeCookery.LOGGER.error("Failed to parse millstone bindable data: {}", result.error().get().message());
-                }
-            } catch (Exception e) {
-                KaleidoscopeCookery.LOGGER.error("Failed to load millstone bindable data", e);
-            }
-        });
+        }
+        if (loaded > 0) {
+            KaleidoscopeCookery.LOGGER.info("Loaded millstone bindable data from {} resource pack(s)", loaded);
+        }
+    }
+
+    private static boolean load(Resource resource) {
+        try (BufferedReader reader = resource.openAsReader()) {
+            JsonElement jsonElement = JsonParser.parseReader(reader);
+            var parsed = MillstoneBindableData.CODEC.parse(JsonOps.INSTANCE, jsonElement)
+                    .resultOrPartial(message -> KaleidoscopeCookery.LOGGER.error(
+                            "Failed to parse millstone bindable data from {}: {}",
+                            resource.sourcePackId(), message));
+            parsed.ifPresent(DATA::putAll);
+            return parsed.isPresent();
+        } catch (Exception e) {
+            KaleidoscopeCookery.LOGGER.error("Failed to load millstone bindable data from {}", resource.sourcePackId(), e);
+            return false;
+        }
     }
 }

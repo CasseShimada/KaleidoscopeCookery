@@ -1,8 +1,0 @@
-{
-  "type": "kaleidoscope_cookery:millstone",
-  "ingredient": "minecraft:deepslate_copper_ore",
-  "result": {
-    "count": 5,
-    "id": "minecraft:raw_copper"
-  }
-}

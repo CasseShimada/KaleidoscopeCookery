@@ -12,16 +12,22 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 
-public class ModVillager {
-    public static final ResourceKey<VillagerProfession> CHEF_KEY = ResourceKey.create(Registries.VILLAGER_PROFESSION,
-            Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chef"));
+public final class ModVillager {
+    public static final ResourceKey<VillagerProfession> CHEF_KEY = ResourceKey.create(Registries.VILLAGER_PROFESSION, id("chef"));
     public static final VillagerProfession CHEF = new VillagerProfession(
             Component.translatable("profession.kaleidoscope_cookery.chef"),
             poi -> poi.value() == ModPoi.STOVE,
             poi -> poi.value() == ModPoi.STOVE,
             ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_WORK_BUTCHER, Int2ObjectMaps.emptyMap());
 
+    private ModVillager() {
+    }
+
     public static void registerVillagerProfessions() {
         Registry.register(BuiltInRegistries.VILLAGER_PROFESSION, CHEF_KEY, CHEF);
+    }
+
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
     }
 }

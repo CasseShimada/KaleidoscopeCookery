@@ -1,6 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.block.misc;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -62,17 +63,16 @@ public class ChiliRistraBlock extends Block {
         if (!mainHandItem.isEmpty() && !mainHandItem.is(ModItems.RED_CHILI)) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
         if (state.getValue(SHEARED)) {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         } else {
             level.setBlock(pos, state.setValue(SHEARED, true), Block.UPDATE_ALL);
         }
         ItemStack redChili = new ItemStack(ModItems.RED_CHILI, 3);
-        if (mainHandItem.isEmpty()) {
-            player.setItemInHand(InteractionHand.MAIN_HAND, redChili);
-        } else {
-            player.getInventory().placeItemBackInInventory(redChili);
-        }
+        ItemUtils.giveItemToPlayer(player, redChili, player.getInventory().getSelectedSlot());
         level.playSound(null, pos,
                 SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
                 SoundSource.BLOCKS, 1.0F,
@@ -85,13 +85,13 @@ public class ChiliRistraBlock extends Block {
                     0.25, 0.25, 0.25,
                     0.05);
         }
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        return InteractionResult.CONSUME;
     }
 
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean move) {
-        if (!level.isClientSide() && entity instanceof Mob mob && mob.getType().builtInRegistryHolder().is(EntityTypeTags.UNDEAD)) {
-            mob.hurt(level.damageSources().magic(), 2.0F);
+        if (level instanceof ServerLevel serverLevel && entity instanceof Mob mob && mob.is(EntityTypeTags.UNDEAD)) {
+            mob.hurtServer(serverLevel, level.damageSources().magic(), 2.0F);
         }
     }
 

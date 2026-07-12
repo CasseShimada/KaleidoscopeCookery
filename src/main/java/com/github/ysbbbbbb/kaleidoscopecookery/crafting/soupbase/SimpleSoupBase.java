@@ -1,10 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.client.render.ISoupBaseRender;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.SimpleSoupBaseRender;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -81,9 +77,7 @@ public class SimpleSoupBase implements ISoupBase {
         return returnSoupBaseFunction.apply(level, user, container);
     }
 
-    @Override
-    @Environment(EnvType.CLIENT)
-    public ISoupBaseRender getRender() {
-        return new SimpleSoupBaseRender(soupBaseTexture);
+    public Identifier getSoupBaseTexture() {
+        return soupBaseTexture;
     }
 }

@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_dough": {
+    "has_raw_meats": {
       "conditions": {
         "items": [
           {
-            "items": "#c:dough"
+            "items": "#c:raw_meats"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_dough"
+      "has_raw_meats"
     ]
   ],
   "rewards": {

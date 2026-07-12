@@ -12,7 +12,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 
 import java.util.function.Consumer;
 
-public class KitchenKnifeItem extends Item {
+public class KitchenKnifeItem extends CookeryTooltipItem {
     private static final float ATTACK_DAMAGE = 0.0F;
     private static final float ATTACK_SPEED = -2.0F;
 
@@ -22,11 +22,13 @@ public class KitchenKnifeItem extends Item {
 
     @Override
     public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        stack.hurtAndBreak(1, attacker, EquipmentSlot.MAINHAND);
+        if (!attacker.hasInfiniteMaterials()) {
+            stack.hurtAndBreak(1, attacker, EquipmentSlot.MAINHAND);
+        }
     }
 
     @Override
-        public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+    protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.kitchen_knife").withStyle(ChatFormatting.GRAY));
     }
 }

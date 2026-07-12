@@ -2,7 +2,6 @@ package com.github.ysbbbbbb.kaleidoscopecookery.client.render.block;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.SteamerBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.SteamerBlockEntity;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacer;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacerReloadListener;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -15,12 +14,8 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.Map;
 
 public class SteamerBlockEntityRender implements BlockEntityRenderer<SteamerBlockEntity, SteamerBlockEntityRender.RenderState> {
     private final ItemModelResolver itemModelResolver;
@@ -41,16 +36,15 @@ public class SteamerBlockEntityRender implements BlockEntityRenderer<SteamerBloc
         BlockEntityRenderState.extractBase(steamer, state, crumblingOverlay);
         state.hasLid = steamer.getBlockState().getValue(SteamerBlock.HAS_LID);
         NonNullList<ItemStack> items = steamer.getItems();
-        Map<Identifier, Identifier> map = ItemRenderReplacerReloadListener.INSTANCE.steamer();
         for (int i = 0; i < state.items.length; i++) {
             ItemStack stack = items.get(i);
             state.items[i] = stack;
             state.customModel[i] = false;
             state.itemStates[i].clear();
             if (!stack.isEmpty()) {
-                Identifier key = BuiltInRegistries.ITEM.getKey(stack.getItem());
-                state.customModel[i] = map.containsKey(key);
-                ItemRenderReplacer.updateRenderState(itemModelResolver, state.itemStates[i], stack, ItemDisplayContext.FIXED, steamer.getLevel(), 0, map);
+                state.customModel[i] = ItemRenderReplacerReloadListener.hasSteamerOverride(stack);
+                ItemRenderReplacerReloadListener.updateSteamerRenderState(itemModelResolver, state.itemStates[i], stack,
+                        ItemDisplayContext.FIXED, steamer.getLevel(), 0);
             }
         }
     }

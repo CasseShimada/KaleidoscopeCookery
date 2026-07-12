@@ -19,7 +19,6 @@ import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 
 public final class MillstoneSpecialRecipeEvent {
-
     private MillstoneSpecialRecipeEvent() {
     }
 

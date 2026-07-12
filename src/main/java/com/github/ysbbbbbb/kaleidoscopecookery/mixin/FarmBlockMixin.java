@@ -22,11 +22,13 @@ public class FarmBlockMixin {
             at = @At("HEAD"), cancellable = true
     )
     private static void onTurnToDirt(Entity entity, BlockState state, Level level, BlockPos pos, CallbackInfo ci) {
-        if (level instanceof ServerLevel serverLevel) {
-            List<ScarecrowEntity> entities = serverLevel.getEntitiesOfClass(ScarecrowEntity.class, new AABB(pos).inflate(16));
-            if (!entities.isEmpty()) {
-                ci.cancel();
-            }
+        if (level instanceof ServerLevel serverLevel && hasNearbyScarecrow(serverLevel, pos)) {
+            ci.cancel();
         }
+    }
+
+    private static boolean hasNearbyScarecrow(ServerLevel level, BlockPos pos) {
+        List<ScarecrowEntity> entities = level.getEntitiesOfClass(ScarecrowEntity.class, new AABB(pos).inflate(16));
+        return !entities.isEmpty();
     }
 }

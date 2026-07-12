@@ -6,13 +6,9 @@
     "minecraft:bamboo",
     "#c:raw_pork",
     "#c:raw_pork",
-    "#c:raw_pork",
-    "#c:raw_pork",
-    "#c:raw_pork",
     "#c:raw_pork"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:dongpo_pork"
   }
 }

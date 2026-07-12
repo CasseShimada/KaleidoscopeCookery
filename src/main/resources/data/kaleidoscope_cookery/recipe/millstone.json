@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "F": "#c:fences/wooden",
     "G": "minecraft:grindstone",
@@ -13,7 +12,6 @@
     "TTT"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:millstone"
   }
 }

@@ -4,6 +4,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -15,6 +17,10 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class SitEntity extends Entity {
+    public static final int DEFAULT = 0;
+    public static final int TRASH_CAN = 1;
+    private static final String SIT_TYPE_KEY = "SitType";
+    private static final EntityDataAccessor<Integer> SIT_TYPE = SynchedEntityData.defineId(SitEntity.class, EntityDataSerializers.INT);
     private static final ResourceKey<EntityType<?>> KEY = ResourceKey.create(Registries.ENTITY_TYPE,
             Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sit"));
     public static final EntityType<SitEntity> TYPE = EntityType.Builder.<SitEntity>of(SitEntity::new, MobCategory.MISC)
@@ -38,6 +44,11 @@ public class SitEntity extends Entity {
         this.setPos(pos.getX() + 0.5, pos.getY() + y, pos.getZ() + 0.5);
     }
 
+    public SitEntity(Level worldIn, BlockPos pos, double y, int sitType) {
+        this(worldIn, pos, y);
+        this.setSitType(sitType);
+    }
+
     @Override
     public Vec3 getPassengerRidingPosition(Entity entity) {
         return super.getPassengerRidingPosition(entity).add(0, -0.0625, 0);
@@ -45,14 +56,25 @@ public class SitEntity extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(SIT_TYPE, DEFAULT);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
+        this.setSitType(input.getIntOr(SIT_TYPE_KEY, DEFAULT));
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
+        output.putInt(SIT_TYPE_KEY, this.getSitType());
+    }
+
+    public int getSitType() {
+        return this.entityData.get(SIT_TYPE);
+    }
+
+    public void setSitType(int sitType) {
+        this.entityData.set(SIT_TYPE, sitType);
     }
 
     @Override

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "kaleidoscope_cookery:sticky_rice_cake",
+    "kaleidoscope_cookery:sticky_rice_cake",
+    "kaleidoscope_cookery:sticky_rice_cake",
+    "kaleidoscope_cookery:sticky_rice_cake",
+    "kaleidoscope_cookery:sticky_rice_cake",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:sticky_rice_cake_plate"
+  }
+}

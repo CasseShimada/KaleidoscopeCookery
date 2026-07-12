@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "R": "kaleidoscope_cookery:rice_panicle"
   },
@@ -10,7 +9,6 @@
     "RRR"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:straw_block"
   }
 }

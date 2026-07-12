@@ -3,13 +3,9 @@
   "carrier": "kaleidoscope_cookery:cooked_rice",
   "ingredients": [
     "#c:raw_fishes/salmon",
-    "#c:raw_fishes/salmon",
-    "#c:raw_fishes/salmon",
-    "#c:raw_fishes/salmon",
-    "#c:raw_fishes/salmon"
+    "#c:crops/chilipepper"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:braised_fish_rice_bowl"
   }
 }

@@ -1,9 +1,0 @@
-{
-  "type": "kaleidoscope_cookery:millstone",
-  "carrier": "kaleidoscope_cookery:oil_pot",
-  "ingredient": "#c:seeds",
-  "result": {
-    "count": 1,
-    "id": "kaleidoscope_cookery:oil_pot"
-  }
-}

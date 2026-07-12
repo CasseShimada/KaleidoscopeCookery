@@ -4,10 +4,9 @@
     "#c:raw_chicken",
     "#c:raw_chicken",
     "#c:raw_chicken",
-    "#c:mushrooms",
-    "#c:mushrooms",
-    "#c:mushrooms",
-    "#c:mushrooms"
+    "#c:mushroom",
+    "#c:mushroom",
+    "#c:mushroom"
   ],
   "result": {
     "count": 3,

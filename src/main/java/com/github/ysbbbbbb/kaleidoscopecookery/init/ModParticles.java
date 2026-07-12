@@ -14,16 +14,27 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-public class ModParticles {
+public final class ModParticles {
     public static final SimpleParticleType COOKING = FabricParticleTypes.simple();
     public static final ModParticleType<StockpotParticleOptions> STOCKPOT = new ModParticleType<>(false, StockpotParticleOptions.CODEC, StockpotParticleOptions.STREAM_CODEC);
 
-    public static void registerParticles() {
-        Registry.register(BuiltInRegistries.PARTICLE_TYPE, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "cooking_particle"), COOKING);
-        Registry.register(BuiltInRegistries.PARTICLE_TYPE, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "stockpot_particle"), STOCKPOT);
+    private ModParticles() {
     }
 
-    public static class ModParticleType<T extends ParticleOptions> extends ParticleType<T> {
+    public static void registerParticles() {
+        register("cooking_particle", COOKING);
+        register("stockpot_particle", STOCKPOT);
+    }
+
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
+    }
+
+    private static <T extends ParticleOptions> void register(String path, ParticleType<T> particleType) {
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, id(path), particleType);
+    }
+
+    public static final class ModParticleType<T extends ParticleOptions> extends ParticleType<T> {
         private final MapCodec<T> codec;
         private final StreamCodec<? super RegistryFriendlyByteBuf, T> streamCodec;
 

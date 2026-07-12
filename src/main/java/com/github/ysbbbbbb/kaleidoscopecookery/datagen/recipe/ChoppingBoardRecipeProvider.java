@@ -13,28 +13,28 @@ public class ChoppingBoardRecipeProvider extends ModRecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput consumer) {
-        ChoppingBoardBuilder.builder()
+        choppingBoardBuilder()
                 .setIngredient(Items.MUTTON)
                 .setResult(ModItems.RAW_LAMB_CHOPS, 2)
                 .setCutCount(4)
                 .setModelId(modLoc("raw_lamb_chops"))
                 .save(consumer);
 
-        ChoppingBoardBuilder.builder()
+        choppingBoardBuilder()
                 .setIngredient(Items.TROPICAL_FISH)
                 .setResult(ModItems.SASHIMI, 2)
                 .setCutCount(3)
                 .setModelId(modLoc("sashimi"))
                 .save(consumer);
 
-        ChoppingBoardBuilder.builder()
+        choppingBoardBuilder()
                 .setIngredient(Items.BEEF)
                 .setResult(ModItems.RAW_COW_OFFAL, 2)
                 .setCutCount(4)
                 .setModelId(modLoc("raw_cow_offal"))
                 .save(consumer);
 
-        ChoppingBoardBuilder.builder()
+        choppingBoardBuilder()
                 .setIngredient(Items.PORKCHOP)
                 .setResult(ModItems.RAW_PORK_BELLY, 2)
                 .setCutCount(4)

@@ -14,6 +14,9 @@ import net.minecraft.world.item.Items;
 
 public class ShapedRecipeProvider extends ModRecipeProvider {
     private static final TagKey<Item> FLOWERS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "flowers"));
+    private static final TagKey<Item> IRON_INGOTS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ingots/iron"));
+    private static final TagKey<Item> WOODEN_FENCES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "fences/wooden"));
+    private static final TagKey<Item> CHAINS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "chains"));
 
     public ShapedRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
         super(registries, output);
@@ -186,6 +189,48 @@ public class ShapedRecipeProvider extends ModRecipeProvider {
                 .unlockedBy("has_rice_panicle", has(ModItems.RICE_PANICLE))
                 .save(consumer);
 
+        shaped(RecipeCategory.DECORATIONS, ModItems.MILLSTONE)
+                .pattern(" F ")
+                .pattern("SG ")
+                .pattern("TTT")
+                .define('F', WOODEN_FENCES)
+                .define('G', Items.GRINDSTONE)
+                .define('S', Items.STICK)
+                .define('T', Items.SMOOTH_STONE)
+                .unlockedBy("has_grindstone", has(Items.GRINDSTONE))
+                .save(consumer);
+
+        shaped(RecipeCategory.DECORATIONS, ModItems.STRUNG_MUSHROOMS)
+                .pattern("MM")
+                .pattern("MM")
+                .pattern("MM")
+                .define('M', Items.BROWN_MUSHROOM)
+                .unlockedBy("has_brown_mushroom", has(Items.BROWN_MUSHROOM))
+                .save(consumer);
+
+        shaped(RecipeCategory.DECORATIONS, ModItems.RECIPE_ITEM)
+                .pattern("PP")
+                .pattern("PP")
+                .define('P', Items.PAPER)
+                .unlockedBy("has_paper", has(Items.PAPER))
+                .save(consumer);
+
+        shaped(RecipeCategory.MISC, ModItems.EMPTY_CUP, 4)
+                .pattern("B B")
+                .pattern(" B ")
+                .define('B', Items.BRICK)
+                .unlockedBy("has_brick", has(Items.BRICK))
+                .save(consumer);
+
+        shaped(RecipeCategory.MISC, ModItems.TEAPOT)
+                .pattern(" # ")
+                .pattern("C C")
+                .pattern("CCC")
+                .define('#', CHAINS)
+                .define('C', Items.COPPER_INGOT)
+                .unlockedBy("has_copper_ingot", has(Items.COPPER_INGOT))
+                .save(consumer);
+
         shaped(RecipeCategory.DECORATIONS, ModItems.FARMER_CHEST_PLATE)
                 .pattern("I I")
                 .pattern("LLL")
@@ -226,6 +271,43 @@ public class ShapedRecipeProvider extends ModRecipeProvider {
                 .define('T', Items.BAMBOO_TRAPDOOR)
                 .define('B', Items.BAMBOO_BLOCK)
                 .unlockedBy("has_bamboo", has(Items.BAMBOO))
+                .save(consumer);
+
+        shaped(RecipeCategory.TOOLS, ModItems.OIL_POT)
+                .pattern("P ")
+                .pattern("BS")
+                .define('B', Items.BUCKET)
+                .define('P', Items.HEAVY_WEIGHTED_PRESSURE_PLATE)
+                .define('S', Items.STICK)
+                .unlockedBy("has_bucket", has(Items.BUCKET))
+                .save(consumer);
+
+        shaped(RecipeCategory.TOOLS, ModItems.SICKLE)
+                .pattern("AAB")
+                .pattern(" CA")
+                .pattern("C  ")
+                .define('A', Items.FLINT)
+                .define('B', Items.STRING)
+                .define('C', Items.STICK)
+                .unlockedBy("has_flint", has(Items.FLINT))
+                .save(consumer);
+
+        shaped(RecipeCategory.TOOLS, ModItems.TRANSMUTATION_LUNCH_BAG)
+                .pattern(" L ")
+                .pattern("LSL")
+                .pattern("LLL")
+                .define('L', Items.LEATHER)
+                .define('S', Items.NETHER_STAR)
+                .unlockedBy("has_nether_star", has(Items.NETHER_STAR))
+                .save(consumer);
+
+        shaped(RecipeCategory.MISC, ModItems.TRASH_CAN)
+                .pattern("III")
+                .pattern("ICI")
+                .pattern("III")
+                .define('I', IRON_INGOTS)
+                .define('C', Items.COMPOSTER)
+                .unlockedBy("has_composter", has(Items.COMPOSTER))
                 .save(consumer);
     }
 }

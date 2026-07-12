@@ -11,17 +11,28 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
-public class ModEntities {
+public final class ModEntities {
     public static final EntityType<SitEntity> SIT = SitEntity.TYPE;
     public static final EntityType<ScarecrowEntity> SCARECROW = ScarecrowEntity.TYPE;
     public static final EntityType<ThrowableBaoziEntity> THROWABLE_BAOZI = ThrowableBaoziEntity.TYPE;
 
+    private ModEntities() {
+    }
+
     public static void registerEntities() {
-        Registry.register(BuiltInRegistries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sit"), SIT);
-        Registry.register(BuiltInRegistries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "scarecrow"), SCARECROW);
-        Registry.register(BuiltInRegistries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "throwable_baozi"), THROWABLE_BAOZI);
+        register("sit", SIT);
+        register("scarecrow", SCARECROW);
+        register("throwable_baozi", THROWABLE_BAOZI);
 
         // Register entity attributes
         FabricDefaultAttributeRegistry.register(SCARECROW, LivingEntity.createLivingAttributes());
+    }
+
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
+    }
+
+    private static <T extends net.minecraft.world.entity.Entity> void register(String path, EntityType<T> entityType) {
+        Registry.register(BuiltInRegistries.ENTITY_TYPE, id(path), entityType);
     }
 }

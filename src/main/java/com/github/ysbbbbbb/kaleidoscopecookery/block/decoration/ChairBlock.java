@@ -42,6 +42,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.github.ysbbbbbb.kaleidoscopecookery.util.CarpetColor.getCarpetByColor;
@@ -135,18 +136,26 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
 
         // 第一种情况，椅子上没有地毯
         if (!hasCarpet) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true));
             if (level.getBlockEntity(pos) instanceof ChairBlockEntity chairBlockEntity) {
                 level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
                 chairBlockEntity.setColor(dyeColor);
                 chairBlockEntity.refresh();
-                itemInHand.shrink(1);
-                return InteractionResult.SUCCESS;
+                if (!player.hasInfiniteMaterials()) {
+                    itemInHand.shrink(1);
+                }
+                return InteractionResult.CONSUME;
             }
         }
 
         // 第二种情况：有地毯，但是颜色不一致
         if (hasCarpet && level.getBlockEntity(pos) instanceof ChairBlockEntity chairBlockEntity && chairBlockEntity.getColor() != dyeColor) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             // 掉落原地毯
             DyeColor originalColor = chairBlockEntity.getColor();
             ItemStack carpetItem = getCarpetByColor(originalColor).getDefaultInstance();
@@ -156,8 +165,10 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
             chairBlockEntity.setColor(dyeColor);
             chairBlockEntity.refresh();
             level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true));
-            itemInHand.shrink(1);
-            return InteractionResult.SUCCESS;
+            if (!player.hasInfiniteMaterials()) {
+                itemInHand.shrink(1);
+            }
+            return InteractionResult.CONSUME;
         }
 
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -170,7 +181,7 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
 
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder lootParamsBuilder) {
-        List<ItemStack> drops = super.getDrops(state, lootParamsBuilder);
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, lootParamsBuilder));
         BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (state.getValue(HAS_CARPET) && parameter instanceof ChairBlockEntity chairBlockEntity) {
             Item carpet = getCarpetByColor(chairBlockEntity.getColor());

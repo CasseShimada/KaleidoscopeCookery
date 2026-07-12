@@ -7,9 +7,12 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
-public class ModTrigger {
+public final class ModTrigger {
     public static ModEventTrigger EVENT;
     public static DistanceTrigger FLATULENCE_FLY_HEIGHT;
+
+    private ModTrigger() {
+    }
 
     public static void init() {
         EVENT = register("mod_event", new ModEventTrigger());

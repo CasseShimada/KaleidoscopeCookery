@@ -10,7 +10,6 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModParticles;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
-import com.google.common.collect.Lists;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -34,6 +33,7 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.TagValueInput;
@@ -41,6 +41,8 @@ import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -130,12 +132,36 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
     }
 
     public List<ItemStack> dropAsItem(Level level) {
-        List<ItemStack> drops = Lists.newArrayList();
-        // 先看看是单层还是双层
-        boolean half = this.getBlockState().getValue(SteamerBlock.HALF);
-        // 全为空？那么直接返回
+        return createSteamerDrops(this.getBlockState(), this.items, this.cookingProgress, this.cookingTime, this.getType(), level);
+    }
+
+    public static List<ItemStack> dropFallingSteamerAsItem(BlockState blockState, CompoundTag steamerTag, Level level) {
+        NonNullList<ItemStack> items = NonNullList.withSize(8, ItemStack.EMPTY);
+        int[] cookingProgress = new int[8];
+        int[] cookingTime = new int[8];
+        if (steamerTag != null) {
+            ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), steamerTag);
+            ContainerHelper.loadAllItems(input, items);
+            steamerTag.getIntArray(COOKING_PROGRESS_TAG).ifPresent(value -> {
+                int length = Math.min(cookingProgress.length, value.length);
+                System.arraycopy(value, 0, cookingProgress, 0, length);
+            });
+            steamerTag.getIntArray(COOKING_TIME_TAG).ifPresent(value -> {
+                int length = Math.min(cookingTime.length, value.length);
+                System.arraycopy(value, 0, cookingTime, 0, length);
+            });
+        }
+
+        return createSteamerDrops(blockState, items, cookingProgress, cookingTime, ModBlocks.STEAMER_BE, level);
+    }
+
+    private static List<ItemStack> createSteamerDrops(BlockState blockState, NonNullList<ItemStack> items,
+                                                      int[] cookingProgress, int[] cookingTime,
+                                                      BlockEntityType<?> blockEntityType, Level level) {
+        List<ItemStack> drops = new ArrayList<>();
+        boolean half = blockState.getValue(SteamerBlock.HALF);
         ItemStack first = ModItems.STEAMER.getDefaultInstance();
-        if (this.items.stream().allMatch(ItemStack::isEmpty)) {
+        if (items.stream().allMatch(ItemStack::isEmpty)) {
             drops.add(first);
             if (!half) {
                 drops.add(ModItems.STEAMER.getDefaultInstance());
@@ -143,22 +169,27 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
             return drops;
         }
 
-        // 只需要保存物品和进度即可
         TagValueOutput tag1 = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
         TagValueOutput tag2 = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
-        saveSplit(tag1, tag2, level, this.items, this.cookingProgress, this.cookingTime);
+        saveSplit(tag1, tag2, level, items, cookingProgress, cookingTime);
 
-        BlockItem.setBlockEntityData(first, this.getType(), tag1);
-        first.set(DataComponents.MAX_STACK_SIZE, 1);
+        setSteamerData(first, blockEntityType, tag1);
         drops.add(first);
 
         if (!half) {
             ItemStack second = ModItems.STEAMER.getDefaultInstance();
-            BlockItem.setBlockEntityData(second, this.getType(), tag2);
-            second.set(DataComponents.MAX_STACK_SIZE, 1);
+            setSteamerData(second, blockEntityType, tag2);
             drops.add(second);
         }
         return drops;
+    }
+
+    public static void setSteamerData(ItemStack stack, BlockEntityType<?> type, TagValueOutput data) {
+        if (data.isEmpty()) {
+            return;
+        }
+        BlockItem.setBlockEntityData(stack, type, data);
+        stack.set(DataComponents.MAX_STACK_SIZE, 1);
     }
 
     @Override
@@ -173,6 +204,8 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
             } else {
                 this.litLevel = Math.max(steamer.litLevel - 1, 0);
             }
+        } else {
+            this.litLevel = 0;
         }
     }
 
@@ -280,8 +313,40 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         return this.quickCheck.getRecipeFor(new SingleRecipeInput(stack), serverLevel);
     }
 
+    public boolean canPlaceFood(Level level, ItemStack food) {
+        if (food.isEmpty() || !canInteractWithOpenLayer(level) || !hasOpenSlotInCurrentLayer()) {
+            return false;
+        }
+        if (level.recipeAccess() instanceof RecipeManager recipeManager) {
+            return recipeManager.getRecipeFor(ModRecipes.STEAMER_RECIPE, new SingleRecipeInput(food), level)
+                    .map(holder -> holder.value().getCookTick() > 0)
+                    .orElse(false);
+        }
+        return true;
+    }
+
+    private boolean canInteractWithOpenLayer(Level level) {
+        BlockPos above = this.getBlockPos().above();
+        return !level.getBlockState(above).isFaceSturdy(level, above, Direction.DOWN)
+                && !this.getBlockState().getValue(SteamerBlock.HAS_LID);
+    }
+
+    private boolean hasOpenSlotInCurrentLayer() {
+        boolean half = this.getBlockState().getValue(SteamerBlock.HALF);
+        int startIndex = half ? 0 : 4;
+        for (int i = startIndex; i < startIndex + 4; i++) {
+            if (this.items.get(i).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public boolean placeFood(Level level, LivingEntity user, ItemStack food) {
+        if (level.isClientSide()) {
+            return false;
+        }
         // 先检查这层是否是能交互的
         // 上层不能阻拦交互
         BlockPos above = this.getBlockPos().above();
@@ -303,14 +368,19 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         }
         boolean half = this.getBlockState().getValue(SteamerBlock.HALF);
         int startIndex = half ? 0 : 4;
+        boolean added = false;
         // 一次性放入一层的
         for (int i = startIndex; i < startIndex + 4; i++) {
             ItemStack itemstack = this.items.get(i);
-            if (itemstack.isEmpty()) {
+            if (itemstack.isEmpty() && !food.isEmpty()) {
                 this.cookingTime[i] = cookTime;
                 this.cookingProgress[i] = 0;
-                this.items.set(i, food.split(1));
+                this.items.set(i, user.hasInfiniteMaterials() ? food.copyWithCount(1) : food.split(1));
+                added = true;
             }
+        }
+        if (!added) {
+            return false;
         }
         this.refresh();
         return true;
@@ -318,6 +388,9 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
 
     @Override
     public boolean takeFood(Level level, LivingEntity user, InteractionHand hand) {
+        if (level.isClientSide()) {
+            return false;
+        }
         // 先检查这层是否是能交互的
         // 上层不能阻拦交互
         BlockPos above = this.getBlockPos().above();
@@ -331,6 +404,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         }
         boolean isAllEmpty = true;
         boolean half = blockState.getValue(SteamerBlock.HALF);
+        int preferredSlot = user instanceof Player player ? player.getInventory().getSelectedSlot() : -1;
         int startIndex = half ? 4 : 8;
         // 一次性取出一层的
         for (int i = startIndex - 1; i >= (startIndex - 4); i--) {
@@ -339,14 +413,14 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
                 continue;
             }
             isAllEmpty = false;
-            ItemUtils.getItemToLivingEntity(user, stack);
+            ItemUtils.getItemToLivingEntity(user, stack, preferredSlot);
             this.items.set(i, ItemStack.EMPTY);
             this.cookingTime[i] = 0;
             this.cookingProgress[i] = 0;
         }
-        // 全为空，还是双层，那么拆掉一层
-        if (isAllEmpty) {
-            int preferredSlot = user instanceof Player player ? player.getInventory().getSelectedSlot() : -1;
+        boolean isAboveSteamer = level.getBlockState(this.getBlockPos().above()).is(blockState.getBlock());
+        // 全为空，且上面没有蒸笼阻挡时，拆掉当前可交互的一层
+        if (isAllEmpty && !isAboveSteamer) {
             ItemUtils.getItemToLivingEntity(user, ModItems.STEAMER.getDefaultInstance(), preferredSlot);
             // 把 4-8 全部清空
             for (int i = 4; i < 8; i++) {
@@ -362,10 +436,11 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
                 setChanged();
                 level.setBlockAndUpdate(this.getBlockPos(), blockState.setValue(SteamerBlock.HALF, true));
             }
+            return true;
         } else {
             this.refresh();
         }
-        return true;
+        return !isAllEmpty;
     }
 
     public NonNullList<ItemStack> getItems() {
@@ -375,7 +450,11 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.items.clear();
+        for (int i = 0; i < this.items.size(); i++) {
+            this.items.set(i, ItemStack.EMPTY);
+        }
+        Arrays.fill(this.cookingProgress, 0);
+        Arrays.fill(this.cookingTime, 0);
         ContainerHelper.loadAllItems(input, this.items);
         input.getIntArray(COOKING_PROGRESS_TAG).ifPresent(times -> {
             int length = Math.min(this.cookingTime.length, times.length);

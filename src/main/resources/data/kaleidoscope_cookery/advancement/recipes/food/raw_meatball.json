@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:raw_meats"
+            "items": "#c:raw_meats"
           }
         ]
       },

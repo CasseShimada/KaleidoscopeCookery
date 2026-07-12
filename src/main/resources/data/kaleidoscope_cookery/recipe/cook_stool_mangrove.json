@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": "minecraft:mangrove_planks"
   },
@@ -10,7 +9,6 @@
     "# #"
   ],
   "result": {
-    "count": 1,
     "id": "kaleidoscope_cookery:cook_stool_mangrove"
   }
 }

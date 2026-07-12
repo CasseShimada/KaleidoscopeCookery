@@ -1,0 +1,13 @@
+{
+  "type": "kaleidoscope_cookery:flex_pot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "minecraft:sugar",
+    "minecraft:potato"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:candied_potato"
+  },
+  "stir_fry_count": 3,
+  "time": 200
+}

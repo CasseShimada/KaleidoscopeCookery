@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "kaleidoscope_cookery:qingtuan",
+    "kaleidoscope_cookery:qingtuan",
+    "kaleidoscope_cookery:qingtuan",
+    "kaleidoscope_cookery:qingtuan",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:qingtuan_plate"
+  }
+}

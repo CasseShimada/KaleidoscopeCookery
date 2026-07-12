@@ -1,6 +1,5 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.client.render.block;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ChoppingBoardBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ChoppingBoardBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -47,7 +46,7 @@ public class ChoppingBoardBlockEntityRender implements BlockEntityRenderer<Chopp
             choppingBoard.previousModel = modelId;
             choppingBoard.cacheModels = new Identifier[choppingBoard.getMaxCutCount() + 1];
             for (int i = 0; i <= choppingBoard.getMaxCutCount(); i++) {
-                choppingBoard.cacheModels[i] = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chopping_board/" + modelId.getPath() + "/" + i);
+                choppingBoard.cacheModels[i] = Identifier.fromNamespaceAndPath(modelId.getNamespace(), "chopping_board/" + modelId.getPath() + "/" + i);
             }
         }
         if (choppingBoard.cacheModels == null) {

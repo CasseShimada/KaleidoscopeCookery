@@ -72,11 +72,15 @@ public class CookStoolBlock extends HorizontalDirectionalBlock implements Simple
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         List<SitEntity> entities = level.getEntitiesOfClass(SitEntity.class, new AABB(pos));
         if (entities.isEmpty()) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
             SitEntity entitySit = new SitEntity(level, pos);
             entitySit.setYRot(state.getValue(FACING).toYRot());
-            level.addFreshEntity(entitySit);
-            player.startRiding(entitySit, true, true);
-            return InteractionResult.SUCCESS;
+            if (level.addFreshEntity(entitySit)) {
+                player.startRiding(entitySit, true, true);
+                return InteractionResult.CONSUME;
+            }
         }
         return super.useWithoutItem(state, level, pos, player, hitResult);
     }

@@ -7,21 +7,30 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.farmersdelight.FarmersDelightCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.StockpotInput;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.FlexStockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotVisuals;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.StockpotRecipeSerializer;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.FluidSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.*;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.Quality;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityEvaluator;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityUtils;
 import com.github.ysbbbbbb.kaleidoscopecookery.particle.StockpotParticleOptions;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.BlockDrop;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.storage.ValueInput;
@@ -36,6 +45,7 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
@@ -62,6 +72,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     private static final String LID_ITEM = "LidItem";
 
     private final RecipeManager.CachedCheck<StockpotInput, StockpotRecipe> quickCheck = RecipeManager.createCheck(ModRecipes.STOCKPOT_RECIPE);
+    private final RecipeManager.CachedCheck<StockpotInput, FlexStockpotRecipe> flexQuickCheck = RecipeManager.createCheck(ModRecipes.FLEX_STOCKPOT_RECIPE);
 
     private NonNullList<ItemStack> inputs = NonNullList.withSize(StockpotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
     private Identifier recipeId = StockpotRecipeSerializer.EMPTY_ID;
@@ -79,6 +90,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
      * 主要用于客户端渲染的字段，recipe 里缓存了数据包中定义的部分客户端渲染需要的东西
      */
     public RecipeHolder<StockpotRecipe> recipe = StockpotRecipeSerializer.getEmptyRecipe();
+    public StockpotVisuals visuals = StockpotVisuals.DEFAULT;
     public @Nullable Entity renderEntity = null;
 
     public StockpotBlockEntity(BlockPos pPos, BlockState pBlockState) {
@@ -160,7 +172,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             }
             status = FINISHED;
             currentTick = -1;
-            this.inputs.clear();
+            this.inputs = NonNullList.withSize(StockpotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
             this.refresh();
         }
     }
@@ -193,7 +205,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             }
             // 如果带有容器，此时返还容器
             Item containerItem = ItemUtils.getContainerItem(stack);
-            if (containerItem != Items.AIR) {
+            if (!user.hasInfiniteMaterials() && containerItem != Items.AIR) {
                 ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
             }
             this.inputs.set(i, stack.copyWithCount(1));
@@ -227,7 +239,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     }
 
     @Nullable
-    private RecipeHolder<StockpotRecipe> getRecipeById(RecipeManager recipeManager, Level level, Identifier id) {
+    private RecipeHolder<StockpotRecipe> getStockpotRecipeById(RecipeManager recipeManager, Level level, Identifier id) {
         Optional<RecipeHolder<?>> holder = recipeManager.byKey(ResourceKey.create(Registries.RECIPE, id));
         if (holder.isEmpty()) {
             return null;
@@ -239,25 +251,52 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         return new RecipeHolder<>(rawHolder.id(), stockpotRecipe);
     }
 
+    @Nullable
+    private RecipeHolder<?> getRecipeById(RecipeManager recipeManager, Level level, Identifier id) {
+        Optional<RecipeHolder<?>> holder = recipeManager.byKey(ResourceKey.create(Registries.RECIPE, id));
+        if (holder.isEmpty()) {
+            return null;
+        }
+        RecipeHolder<?> rawHolder = holder.get();
+        if (rawHolder.value() instanceof StockpotRecipe || rawHolder.value() instanceof FlexStockpotRecipe) {
+            return rawHolder;
+        }
+        return FarmersDelightCompat.tryTransformRecipeHolder(rawHolder, level);
+    }
+
+    private void refreshVisualsFromRecipeId(RecipeManager recipeManager, Level level) {
+        RecipeHolder<?> holder = getRecipeById(recipeManager, level, this.recipeId);
+        if (holder == null) {
+            this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
+            this.visuals = StockpotVisuals.DEFAULT;
+            return;
+        }
+        if (holder.value() instanceof StockpotRecipe stockpotRecipe) {
+            this.recipe = new RecipeHolder<>(holder.id(), stockpotRecipe);
+            this.visuals = StockpotVisuals.from(stockpotRecipe);
+        } else if (holder.value() instanceof FlexStockpotRecipe flexStockpotRecipe) {
+            this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
+            this.visuals = flexStockpotRecipe.visuals();
+        }
+    }
+
     private int getBubbleColor() {
         // 需要检查下 recipe 是否更新
         if (this.level != null && !this.recipeId.equals(StockpotRecipeSerializer.EMPTY_ID)
-            && this.recipe.id().identifier().equals(StockpotRecipeSerializer.EMPTY_ID)) {
-            RecipeHolder<StockpotRecipe> stockpotRecipe = null;
+            && this.visuals.equals(StockpotVisuals.DEFAULT)) {
             if (this.level instanceof ServerLevel serverLevel) {
                 if (serverLevel.recipeAccess() instanceof RecipeManager recipeManager) {
-                    stockpotRecipe = getRecipeById(recipeManager, serverLevel, this.recipeId);
+                    this.refreshVisualsFromRecipeId(recipeManager, serverLevel);
                 }
             } else if (this.level.recipeAccess() instanceof RecipeManager recipeManager) {
-                stockpotRecipe = getRecipeById(recipeManager, this.level, this.recipeId);
+                this.refreshVisualsFromRecipeId(recipeManager, this.level);
             }
-            this.recipe = Objects.requireNonNullElseGet(stockpotRecipe, StockpotRecipeSerializer::getEmptyRecipe);
         }
         if (status == COOKING) {
-            return this.recipe.value().cookingBubbleColor();
+            return this.visuals.cookingBubbleColor();
         }
         if (status == FINISHED) {
-            return this.recipe.value().finishedBubbleColor();
+            return this.visuals.finishedBubbleColor();
         }
         ISoupBase soup = this.getSoupBase();
         if (soup != null) {
@@ -273,7 +312,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
 
         // 第一种情况，放上盖子
         if (!hasLid && stack.is(ModItems.STOCKPOT_LID)) {
-            this.setLidItem(stack.split(1));
+            this.setLidItem(user.hasInfiniteMaterials() ? stack.copyWithCount(1) : stack.split(1));
             this.setChanged();
             level.setBlockAndUpdate(worldPosition, blockState.setValue(StockpotBlock.HAS_LID, true));
             user.playSound(SoundEvents.LANTERN_PLACE, 0.5F, 0.5F);
@@ -302,35 +341,60 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     private void setRecipe(Level levelIn) {
         StockpotInput container = new StockpotInput(this.inputs, this.soupBaseId);
         if (!(levelIn instanceof ServerLevel serverLevel)) {
-            this.recipeId = StockpotRecipeSerializer.EMPTY_ID;
-            this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
-            this.result = Items.SUSPICIOUS_STEW.getDefaultInstance();
-            this.currentTick = StockpotRecipeSerializer.DEFAULT_TIME;
-            this.takeoutCount = 1;
+            this.applySuspiciousRecipe();
             return;
         }
-        this.quickCheck.getRecipeFor(container, serverLevel).ifPresentOrElse(recipe -> {
-            this.recipeId = recipe.id().identifier();
-            this.recipe = recipe;
-            this.result = recipe.value().assemble(container);
-            this.currentTick = recipe.value().time();
-            this.takeoutCount = Math.min(this.result.getCount(), MAX_TAKEOUT_COUNT);
-        }, () -> {
-            RecipeHolder<StockpotRecipe> compatRecipe = FarmersDelightCompat.findMatchingRecipe(serverLevel, container);
-            if (compatRecipe != null) {
-                this.recipeId = compatRecipe.id().identifier();
-                this.recipe = compatRecipe;
-                this.result = compatRecipe.value().assemble(container);
-                this.currentTick = compatRecipe.value().time();
-                this.takeoutCount = Math.min(this.result.getCount(), MAX_TAKEOUT_COUNT);
-            } else {
-                this.recipeId = StockpotRecipeSerializer.EMPTY_ID;
-                this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
-                this.result = Items.SUSPICIOUS_STEW.getDefaultInstance();
-                this.currentTick = StockpotRecipeSerializer.DEFAULT_TIME;
-                this.takeoutCount = 1;
-            }
-        });
+        Optional<RecipeHolder<StockpotRecipe>> stockpotRecipe = this.quickCheck.getRecipeFor(container, serverLevel);
+        if (stockpotRecipe.isPresent()) {
+            this.applyRecipe(container, stockpotRecipe.get());
+            return;
+        }
+
+        RecipeHolder<StockpotRecipe> compatRecipe = FarmersDelightCompat.findMatchingRecipe(serverLevel, container);
+        if (compatRecipe != null) {
+            this.applyRecipe(container, compatRecipe);
+            return;
+        }
+
+        Optional<RecipeHolder<FlexStockpotRecipe>> flexRecipe = this.flexQuickCheck.getRecipeFor(container, serverLevel);
+        if (flexRecipe.isPresent()) {
+            this.applyFlexRecipe(serverLevel, container, flexRecipe.get());
+            return;
+        }
+
+        this.applySuspiciousRecipe();
+    }
+
+    private void applySuspiciousRecipe() {
+        this.recipeId = StockpotRecipeSerializer.EMPTY_ID;
+        this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
+        this.visuals = StockpotVisuals.DEFAULT;
+        this.result = Items.SUSPICIOUS_STEW.getDefaultInstance();
+        this.currentTick = StockpotRecipeSerializer.DEFAULT_TIME;
+        this.takeoutCount = 1;
+    }
+
+    private void applyRecipe(StockpotInput input, RecipeHolder<StockpotRecipe> recipe) {
+        StockpotRecipe value = recipe.value();
+        this.recipeId = recipe.id().identifier();
+        this.recipe = recipe;
+        this.visuals = StockpotVisuals.from(value);
+        this.result = value.assemble(input);
+        this.currentTick = value.time();
+        this.takeoutCount = Math.min(this.result.getCount(), MAX_TAKEOUT_COUNT);
+    }
+
+    private void applyFlexRecipe(ServerLevel level, StockpotInput input, RecipeHolder<FlexStockpotRecipe> recipe) {
+        FlexStockpotRecipe value = recipe.value();
+        this.recipeId = recipe.id().identifier();
+        this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
+        this.visuals = value.visuals();
+        this.result = value.assemble(input);
+        this.currentTick = value.time();
+        this.takeoutCount = Math.min(this.result.getCount(), MAX_TAKEOUT_COUNT);
+
+        Quality quality = QualityEvaluator.evaluate(this.inputs, value.ingredients(), recipe.id().identifier(), level.getSeed());
+        QualityUtils.setQuality(this.result, quality);
     }
 
     @Override
@@ -352,8 +416,10 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 this.refresh();
 
                 ItemStack container = soupBase.getReturnContainer(level, user, bucket);
-                bucket.shrink(1);
-                ItemUtils.getItemToLivingEntity(user, container);
+                if (!user.hasInfiniteMaterials()) {
+                    bucket.shrink(1);
+                    ItemUtils.getItemToLivingEntity(user, container);
+                }
                 return true;
             }
         }
@@ -374,8 +440,10 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             this.refresh();
 
             ItemStack container = soupBase.getReturnSoupBase(level, user, bucket);
-            bucket.shrink(1);
-            ItemUtils.getItemToLivingEntity(user, container);
+            if (!user.hasInfiniteMaterials()) {
+                bucket.shrink(1);
+                ItemUtils.getItemToLivingEntity(user, container);
+            }
             return true;
         }
         return false;
@@ -401,10 +469,10 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 continue;
             }
             Item containerItem = ItemUtils.getContainerItem(itemStack);
-            if (containerItem != Items.AIR) {
+            if (!user.hasInfiniteMaterials() && containerItem != Items.AIR) {
                 ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
             }
-            this.inputs.set(i, itemStack.split(1));
+            this.inputs.set(i, user.hasInfiniteMaterials() ? itemStack.copyWithCount(1) : itemStack.split(1));
             level.playSound(null, user.getX(), user.getY() + 0.5, user.getZ(),
                     SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
                     ((level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
@@ -427,17 +495,38 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             if (stack.isEmpty()) {
                 continue;
             }
+            if (!containerIsMatch(user, stack)) {
+                return false;
+            }
             ItemUtils.getItemToLivingEntity(user, stack.copy());
             this.inputs.set(i, ItemStack.EMPTY);
             // 如果是流体汤底，且温度过高，玩家会受到伤害
             ISoupBase soupBase = this.getSoupBase();
-            if (soupBase instanceof FluidSoupBase fluidSoupBase && fluidSoupBase.getFluid().is(FluidTags.LAVA)) {
-                user.hurt(level.damageSources().inFire(), 1);
+            if (soupBase instanceof FluidSoupBase fluidSoupBase
+                && fluidSoupBase.getFluid().defaultFluidState().typeHolder().is(FluidTags.LAVA)
+                && level instanceof ServerLevel serverLevel) {
+                user.hurtServer(serverLevel, level.damageSources().inFire(), 1.0F);
                 ModTrigger.EVENT.trigger(user, ModEventTriggerType.HURT_WHEN_TAKEOUT_FROM_STOCKPOT);
             }
             this.refresh();
             return true;
         }
+        return false;
+    }
+
+    private boolean containerIsMatch(LivingEntity user, ItemStack stack) {
+        Item containerItem = ItemUtils.getContainerItem(stack);
+        if (containerItem == Items.AIR) {
+            return true;
+        }
+        if (user.getMainHandItem().is(containerItem)) {
+            if (!user.hasInfiniteMaterials()) {
+                user.getMainHandItem().shrink(1);
+            }
+            return true;
+        }
+        this.sendActionBarMessage(user, "tip.kaleidoscope_cookery.kitchen.remove_ingredient.need_container",
+                containerItem.getDefaultInstance().getHoverName());
         return false;
     }
 
@@ -450,19 +539,25 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         if (status != FINISHED || this.result.isEmpty() || this.takeoutCount <= 0) {
             return false;
         }
-        // 目前限定死了只能用碗来取出成品
-        if (!stack.is(Items.BOWL)) {
+        Ingredient carrier = this.getCurrentCarrier(level);
+        if (!carrier.isEmpty() && !carrier.test(stack)) {
+            Component carrierName = ItemUtils.getIngredientName(level, carrier);
+            this.sendActionBarMessage(user, "tip.kaleidoscope_cookery.pot.need_carrier", carrierName);
             return false;
         }
-        // 放入碗中
-        stack.shrink(1);
+        if (!carrier.isEmpty() && !user.hasInfiniteMaterials()) {
+            stack.shrink(1);
+        }
+
         ItemStack resultCopy = this.result.copyWithCount(1);
         ItemUtils.getItemToLivingEntity(user, resultCopy);
         this.takeoutCount--;
         if (this.takeoutCount <= 0) {
             this.status = PUT_SOUP_BASE;
-            this.inputs.clear();
+            this.inputs = NonNullList.withSize(StockpotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
             this.recipeId = StockpotRecipeSerializer.EMPTY_ID;
+            this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
+            this.visuals = StockpotVisuals.DEFAULT;
             this.soupBaseId = ModSoupBases.WATER;
             this.result = ItemStack.EMPTY;
             this.currentTick = -1;
@@ -470,6 +565,39 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         }
         this.refresh();
         return true;
+    }
+
+    private Ingredient getCurrentCarrier(Level level) {
+        if (this.recipeId.equals(StockpotRecipeSerializer.EMPTY_ID)) {
+            return StockpotRecipeSerializer.DEFAULT_CARRIER;
+        }
+        RecipeManager recipeManager = null;
+        if (level instanceof ServerLevel serverLevel) {
+            recipeManager = serverLevel.recipeAccess();
+        } else if (level.recipeAccess() instanceof RecipeManager manager) {
+            recipeManager = manager;
+        }
+        if (recipeManager == null) {
+            return StockpotRecipeSerializer.DEFAULT_CARRIER;
+        }
+        RecipeHolder<?> holder = getRecipeById(recipeManager, level, this.recipeId);
+        if (holder == null) {
+            return StockpotRecipeSerializer.DEFAULT_CARRIER;
+        }
+        if (holder.value() instanceof StockpotRecipe stockpotRecipe) {
+            return stockpotRecipe.carrier();
+        }
+        if (holder.value() instanceof FlexStockpotRecipe flexStockpotRecipe) {
+            return flexStockpotRecipe.carrier();
+        }
+        return StockpotRecipeSerializer.DEFAULT_CARRIER;
+    }
+
+    private void sendActionBarMessage(LivingEntity user, String key, Object... args) {
+        if (user instanceof ServerPlayer serverPlayer) {
+            MutableComponent message = Component.translatable(key, args);
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(message));
+        }
     }
 
     @Override
@@ -499,12 +627,14 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 .orElse(StockpotRecipeSerializer.EMPTY_ID);
         if (this.level instanceof ServerLevel serverLevel) {
             if (serverLevel.recipeAccess() instanceof RecipeManager recipeManager) {
-                RecipeHolder<StockpotRecipe> stockpotRecipe = getRecipeById(recipeManager, serverLevel, this.recipeId);
+                RecipeHolder<StockpotRecipe> stockpotRecipe = getStockpotRecipeById(recipeManager, serverLevel, this.recipeId);
                 this.recipe = Objects.requireNonNullElseGet(stockpotRecipe, StockpotRecipeSerializer::getEmptyRecipe);
+                this.refreshVisualsFromRecipeId(recipeManager, serverLevel);
             }
         } else if (this.level != null && this.level.recipeAccess() instanceof RecipeManager recipeManager) {
-            RecipeHolder<StockpotRecipe> stockpotRecipe = getRecipeById(recipeManager, this.level, this.recipeId);
+            RecipeHolder<StockpotRecipe> stockpotRecipe = getStockpotRecipeById(recipeManager, this.level, this.recipeId);
             this.recipe = Objects.requireNonNullElseGet(stockpotRecipe, StockpotRecipeSerializer::getEmptyRecipe);
+            this.refreshVisualsFromRecipeId(recipeManager, this.level);
         }
         this.soupBaseId = input.getString(SOUP_BASE_ID)
                 .flatMap(value -> Optional.ofNullable(Identifier.tryParse(value)))

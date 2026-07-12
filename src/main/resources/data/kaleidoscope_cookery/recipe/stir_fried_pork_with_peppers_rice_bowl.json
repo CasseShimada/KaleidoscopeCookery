@@ -1,0 +1,7 @@
+{
+  "type": "kaleidoscope_cookery:rice_bowl",
+  "ingredient": "kaleidoscope_cookery:stir_fried_pork_with_peppers",
+  "result": {
+    "id": "kaleidoscope_cookery:stir_fried_pork_with_peppers_rice_bowl"
+  }
+}

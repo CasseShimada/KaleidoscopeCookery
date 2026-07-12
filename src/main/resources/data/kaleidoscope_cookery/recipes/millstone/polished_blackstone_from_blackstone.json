@@ -1,8 +1,0 @@
-{
-  "type": "kaleidoscope_cookery:millstone",
-  "ingredient": "minecraft:blackstone",
-  "result": {
-    "count": 1,
-    "id": "minecraft:polished_blackstone"
-  }
-}
