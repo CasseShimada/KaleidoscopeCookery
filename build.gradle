@@ -24,8 +24,8 @@ loom {
 
 fabricApi {
     configureDataGeneration {
-        outputDirectory.set(layout.buildDirectory.file("generated/datagen"))
-        addToResources.set(false)
+        outputDirectory.set(file("src/main/generated"))
+        addToResources.set(true)
     }
 }
 

@@ -9,12 +9,13 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable
 
+from resource_roots import iter_resource_files, resolve_resource, resource_relative
+
 
 MOD_ID = "kaleidoscope_cookery"
 ROOT = Path(__file__).resolve().parents[1]
 JAVA_ROOT = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
 RESOURCES = ROOT / "src/main/resources"
-DATA = RESOURCES / "data"
 ASSETS = RESOURCES / "assets" / MOD_ID
 
 
@@ -109,8 +110,15 @@ def collect_loot_codec_ids() -> tuple[set[str], set[str]]:
     )
 
 
+def iter_data_files(category: str) -> Iterable[Path]:
+    for path in iter_resource_files("data", pattern="*.json"):
+        parts = resource_relative(path).parts
+        if len(parts) >= 4 and parts[2] == category:
+            yield path
+
+
 def tag_path(namespace: str, registry: str, tag_id: str) -> Path:
-    return DATA / namespace / "tags" / registry / f"{tag_id}.json"
+    return resolve_resource("data", namespace, "tags", registry, f"{tag_id}.json")
 
 
 def recipe_path(identifier: str) -> Path | None:
@@ -118,7 +126,7 @@ def recipe_path(identifier: str) -> Path | None:
     if parsed is None:
         return None
     namespace, path = parsed
-    return DATA / namespace / "recipe" / f"{path}.json"
+    return resolve_resource("data", namespace, "recipe", f"{path}.json")
 
 
 def advancement_path(identifier: str) -> Path | None:
@@ -126,7 +134,7 @@ def advancement_path(identifier: str) -> Path | None:
     if parsed is None:
         return None
     namespace, path = parsed
-    return DATA / namespace / "advancement" / f"{path}.json"
+    return resolve_resource("data", namespace, "advancement", f"{path}.json")
 
 
 def texture_path(identifier: str) -> Path | None:
@@ -136,7 +144,7 @@ def texture_path(identifier: str) -> Path | None:
     namespace, path = parsed
     if namespace != MOD_ID:
         return None
-    return RESOURCES / "assets" / namespace / f"{path}"
+    return resolve_resource("assets", namespace, path)
 
 
 def tag_values(data: Any) -> Iterable[str]:
@@ -169,8 +177,8 @@ def validate_tag_files(registered_items: set[str], registered_blocks: set[str], 
         "point_of_interest_type": registered_pois,
     }
 
-    for path in sorted(DATA.rglob("tags/**/*.json")):
-        rel_parts = path.relative_to(DATA).parts
+    for path in iter_data_files("tags"):
+        rel_parts = resource_relative(path).parts[1:]
         if len(rel_parts) < 4:
             continue
         namespace = rel_parts[0]
@@ -193,7 +201,7 @@ def validate_tag_files(registered_items: set[str], registered_blocks: set[str], 
                 continue
             ref_namespace, ref_path = parsed
             if registry == "villager_trade" and ref_namespace == MOD_ID:
-                trade_path = DATA / MOD_ID / "villager_trade" / f"{ref_path}.json"
+                trade_path = resolve_resource("data", MOD_ID, "villager_trade", f"{ref_path}.json")
                 if not trade_path.exists():
                     errors.append(f"{path.relative_to(ROOT)} references missing villager trade {value}.")
             elif registry in registries and ref_namespace == MOD_ID and ref_path not in registries[registry]:
@@ -212,7 +220,7 @@ def validate_advancements(registered_items: set[str], trigger_ids: set[str]) -> 
     lang_en = parse_json(ASSETS / "lang/en_us.json")
     lang_zh = parse_json(ASSETS / "lang/zh_cn.json")
 
-    for path in sorted(DATA.rglob("advancement/**/*.json")):
+    for path in iter_data_files("advancement"):
         data = parse_json(path)
 
         parent = data.get("parent")
@@ -265,7 +273,7 @@ def validate_advancements(registered_items: set[str], trigger_ids: set[str]) -> 
 
 def validate_loot_tables(registered_items: set[str], loot_functions: set[str], loot_conditions: set[str]) -> list[str]:
     errors: list[str] = []
-    for path in sorted(DATA.rglob("loot_table/**/*.json")):
+    for path in iter_data_files("loot_table"):
         data = parse_json(path)
         for key, value in walk_strings(data):
             if key == "name":
@@ -288,11 +296,11 @@ def validate_loot_tables(registered_items: set[str], loot_functions: set[str], l
 def validate_trades(registered_items: set[str], villager_professions: set[str],
                     loot_functions: set[str]) -> tuple[list[str], int, int]:
     errors: list[str] = []
-    trade_sets = sorted((DATA / MOD_ID / "trade_set").rglob("*.json"))
-    trade_files = sorted((DATA / MOD_ID / "villager_trade").rglob("*.json"))
+    trade_sets = list(iter_data_files("trade_set"))
+    trade_files = list(iter_data_files("villager_trade"))
 
     for path in trade_sets:
-        rel = path.relative_to(DATA / MOD_ID / "trade_set").parts
+        rel = resource_relative(path).parts[3:]
         if len(rel) < 2:
             errors.append(f"{path.relative_to(ROOT)} should be under trade_set/<profession>/...")
             continue
@@ -336,7 +344,7 @@ def validate_trades(registered_items: set[str], villager_professions: set[str],
 
 def validate_millstone_datamap() -> tuple[list[str], int]:
     errors: list[str] = []
-    path = DATA / MOD_ID / "datamap/millstone_bindable_data.json"
+    path = resolve_resource("data", MOD_ID, "datamap", "millstone_bindable_data.json")
     data = parse_json(path)
     if not isinstance(data, dict):
         return [f"{path.relative_to(ROOT)} must be an object."], 0
@@ -365,11 +373,11 @@ def validate_village_structures() -> tuple[list[str], int]:
     processor_lists = set(re.findall(r'Registries\.PROCESSOR_LIST,\s*Identifier\.fromNamespaceAndPath\([^,]+,\s*"([a-z0-9_./-]+)"\)', event_text))
 
     for structure_path in structure_paths:
-        path = DATA / MOD_ID / "structure" / f"{structure_path}.nbt"
+        path = resolve_resource("data", MOD_ID, "structure", f"{structure_path}.nbt")
         if not path.exists():
             errors.append(f"AddVillageStructuresEvent references missing structure {path.relative_to(ROOT)}.")
     for processor_list in processor_lists:
-        path = DATA / MOD_ID / "worldgen/processor_list" / f"{processor_list}.json"
+        path = resolve_resource("data", MOD_ID, "worldgen", "processor_list", f"{processor_list}.json")
         if not path.exists():
             errors.append(f"AddVillageStructuresEvent references missing processor list {path.relative_to(ROOT)}.")
 

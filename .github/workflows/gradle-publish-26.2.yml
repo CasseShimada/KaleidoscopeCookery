@@ -7,6 +7,7 @@ on:
       - "main"
     paths:
       - 'src/main/**'
+      - 'src/client/**'
       - 'scripts/**'
       - 'build.gradle'
       - 'gradle.properties'
@@ -49,7 +50,14 @@ jobs:
       - name: Validate generated resources and build
         run: |
           chmod +x ./gradlew
-          ./gradlew runDatagen build --warning-mode all
+          rm -rf src/main/generated
+          ./gradlew runDatagen --warning-mode all
+          if [ -n "$(git status --porcelain -- src/main/generated)" ]; then
+            echo "Datagen output is out of date:"
+            git status --short -- src/main/generated
+            exit 1
+          fi
+          ./gradlew build --warning-mode all
           python3 scripts/verify_resources.py
           python3 scripts/verify_server_boundary.py
           python3 scripts/verify_mixins.py
@@ -59,13 +67,6 @@ jobs:
           python3 scripts/verify_data_pack.py
           python3 scripts/verify_client_assets.py
           python3 scripts/verify_release_hygiene.py
-          find build/generated/datagen -type f -print0 | while IFS= read -r -d '' generated; do
-            rel="${generated#build/generated/datagen/}"
-            if ! cmp -s "$generated" "src/main/resources/$rel"; then
-              echo "Generated resource differs from src/main/resources: $rel"
-              exit 1
-            fi
-          done
 
       - name: Create timestamp
         id: create_timestamp

@@ -10,6 +10,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Iterable
 
+from resource_roots import RESOURCE_ROOTS, iter_resource_files, resource_relative
+
 
 MOD_ID = "kaleidoscope_cookery"
 ROOT = Path(__file__).resolve().parents[1]
@@ -103,10 +105,10 @@ def collect_registrations(text: str, function_name: str) -> dict[str, str]:
 
 
 def iter_recipe_files() -> Iterable[Path]:
-    for namespace_dir in sorted((RESOURCES / "data").iterdir()):
-        recipe_dir = namespace_dir / "recipe"
-        if recipe_dir.exists():
-            yield from sorted(recipe_dir.rglob("*.json"))
+    for path in iter_resource_files("data", pattern="*.json"):
+        parts = resource_relative(path).parts
+        if len(parts) >= 4 and parts[2] == "recipe":
+            yield path
 
 
 def collect_result_ids(value: Any) -> Iterable[str]:
@@ -127,10 +129,11 @@ def collect_result_ids(value: Any) -> Iterable[str]:
 
 def collect_legacy_recipe_dirs() -> list[Path]:
     legacy_dirs: list[Path] = []
-    for path in (RESOURCES / "data").rglob("recipes"):
-        if path.parent.name == "advancement":
-            continue
-        legacy_dirs.append(path)
+    for root in RESOURCE_ROOTS:
+        for path in (root / "data").rglob("recipes"):
+            if path.parent.name == "advancement":
+                continue
+            legacy_dirs.append(path)
     return legacy_dirs
 
 

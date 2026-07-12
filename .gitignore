@@ -16,6 +16,10 @@ atlassian-ide-plugin.xml
 # Compiled class file
 *.class
 
+# Python caches
+__pycache__/
+*.py[cod]
+
 # Log file
 *.log
 
@@ -114,7 +118,6 @@ gradle-app.setting
 # Common working directory
 run/
 runs/
-src/main/generated/
 src/generated/
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)

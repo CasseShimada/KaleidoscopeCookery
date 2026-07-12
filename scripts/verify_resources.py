@@ -14,6 +14,8 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable
 
+from resource_roots import iter_resource_files
+
 
 MOD_ID = "kaleidoscope_cookery"
 ROOT = Path(__file__).resolve().parents[1]
@@ -181,7 +183,7 @@ def main() -> int:
     errors: list[str] = []
 
     json_errors: list[str] = []
-    for path in RESOURCES.rglob("*.json"):
+    for path in iter_resource_files(pattern="*.json"):
         try:
             parse_json(path)
         except Exception as exc:  # noqa: BLE001 - print path and parser error.
@@ -195,7 +197,7 @@ def main() -> int:
     blockstates = {path.stem for path in (ASSETS / "blockstates").glob("*.json")}
     block_loot_tables = {
         path.stem
-        for path in (RESOURCES / "data" / MOD_ID / "loot_table" / "blocks").glob("*.json")
+        for path in iter_resource_files("data", MOD_ID, "loot_table", "blocks", pattern="*.json")
     }
 
     report_missing(

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TEXT_ROOTS = (
     ROOT / "src/main/java",
     ROOT / "src/client/java",
+    ROOT / "src/main/generated",
     ROOT / "src/main/resources",
 )
 TEXT_FILES = (
@@ -82,10 +83,29 @@ def validate_forbidden_paths() -> list[str]:
     return errors
 
 
+def validate_resource_source_sets() -> list[str]:
+    handwritten = ROOT / "src/main/resources"
+    generated = ROOT / "src/main/generated"
+    errors: list[str] = []
+    generated_files = [path for path in generated.rglob("*") if path.is_file()]
+    if not generated_files:
+        errors.append("Generated resource source set is empty: src/main/generated")
+        return errors
+    for path in generated_files:
+        relative = path.relative_to(generated)
+        duplicate = handwritten / relative
+        if duplicate.exists():
+            errors.append(
+                f"Generated resource is duplicated in src/main/resources: {relative.as_posix()}"
+            )
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     errors.extend(validate_forbidden_text())
     errors.extend(validate_forbidden_paths())
+    errors.extend(validate_resource_source_sets())
 
     if errors:
         print("Release hygiene verification failed:")
