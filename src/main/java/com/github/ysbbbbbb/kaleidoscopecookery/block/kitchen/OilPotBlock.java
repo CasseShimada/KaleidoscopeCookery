@@ -40,6 +40,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
@@ -163,7 +164,7 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
     @Override
     public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                                 InteractionHand hand, BlockHitResult hitResult) {
-        if (hand != InteractionHand.MAIN_HAND) {
+        if (hand != InteractionHand.MAIN_HAND || !stack.is(ModItems.OIL)) {
             return InteractionResult.PASS;
         }
         BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -171,39 +172,46 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
             return InteractionResult.PASS;
         }
 
-        // 空手取油
-        if (stack.isEmpty()) {
-            int currentOilCount = oilPot.getOilCount();
-            if (currentOilCount <= 0) {
-                return InteractionResult.PASS;
-            }
+        int currentOilCount = oilPot.getOilCount();
+        int needOilCount = OilPotBlockEntity.MAX_OIL_COUNT - currentOilCount;
+        if (needOilCount <= 0) {
+            return InteractionResult.PASS;
+        }
+        if (!level.isClientSide()) {
+            int addOilCount = Math.min(needOilCount, stack.getCount());
+            oilPot.setOilCount(currentOilCount + addOilCount);
+            stack.consume(addOilCount, player);
+            level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
+                    0.4F + level.getRandom().nextFloat() * 0.2F);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        }
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+    }
+
+    @Override
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                                      BlockHitResult hitResult) {
+        if (!player.getMainHandItem().isEmpty()) {
+            return InteractionResult.PASS;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof OilPotBlockEntity oilPot)) {
+            return InteractionResult.PASS;
+        }
+
+        int currentOilCount = oilPot.getOilCount();
+        if (currentOilCount <= 0) {
+            return InteractionResult.PASS;
+        }
+        if (!level.isClientSide()) {
             int takeCount = Math.min(currentOilCount, 64);
-            ItemStack oilStack = new ItemStack(ModItems.OIL, takeCount);
-            player.setItemInHand(hand, oilStack);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount));
             oilPot.setOilCount(currentOilCount - takeCount);
             level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
                     0.8F + level.getRandom().nextFloat() * 0.2F);
-            return InteractionResult.SUCCESS;
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
         }
-
-        // 手持油增加
-        if (stack.is(ModItems.OIL)) {
-            int currentOilCount = oilPot.getOilCount();
-            int needOilCount = OilPotBlockEntity.MAX_OIL_COUNT - currentOilCount;
-            if (needOilCount <= 0) {
-                return InteractionResult.PASS;
-            }
-            int addOilCount = Math.min(needOilCount, stack.getCount());
-            oilPot.setOilCount(currentOilCount + addOilCount);
-            if (!player.isCreative()) {
-                stack.shrink(addOilCount);
-            }
-            level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
-                    0.4F + level.getRandom().nextFloat() * 0.2F);
-            return InteractionResult.SUCCESS;
-        }
-
-        return InteractionResult.PASS;
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
 
     @Override

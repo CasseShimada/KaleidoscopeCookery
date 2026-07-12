@@ -59,6 +59,7 @@ WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
 CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeedEvent.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
+OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
 SICKLE_ITEM = SRC / "item/SickleItem.java"
 RICE_CROP_BLOCK = SRC / "block/crop/RiceCropBlock.java"
@@ -270,6 +271,24 @@ def main() -> int:
     )
     if remove_recipe_block_index > return_recipe_item_index:
         errors.append("RecipeBlock returns the recipe item before confirming block removal.")
+
+    oil_pot_text = OIL_POT_BLOCK.read_text(encoding="utf-8")
+    for required_reference in (
+        "useItemOn",
+        "hand != InteractionHand.MAIN_HAND || !stack.is(ModItems.OIL)",
+        "stack.consume(addOilCount, player)",
+        "useWithoutItem",
+        "player.getMainHandItem().isEmpty()",
+        "player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount))",
+    ):
+        if required_reference not in oil_pot_text:
+            errors.append(f"Oil pot native interaction is missing {required_reference}.")
+    if "stack.isEmpty()" in oil_pot_text:
+        errors.append("OilPotBlock still handles empty-hand extraction through the item interaction path.")
+    if "stack.shrink(addOilCount)" in oil_pot_text:
+        errors.append("OilPotBlock still manually shrinks oil instead of using ItemStack.consume().")
+    if oil_pot_text.count("GameEvent.BLOCK_CHANGE") < 2:
+        errors.append("OilPotBlock does not emit block-change events for both oil transfer directions.")
 
     if SICKLE_NETHER_WART_EVENT.exists():
         sickle_nether_wart_text = SICKLE_NETHER_WART_EVENT.read_text(encoding="utf-8")
