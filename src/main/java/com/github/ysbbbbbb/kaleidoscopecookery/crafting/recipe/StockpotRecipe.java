@@ -2,7 +2,6 @@ package com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.StockpotInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
-import com.github.ysbbbbbb.kaleidoscopecookery.util.RecipeMatcher;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -41,7 +40,7 @@ public record StockpotRecipe(NonNullList<Ingredient> ingredients,
                 .filter(stack -> !stack.isEmpty())
                 .toList();
         return container.getSoupBase().equals(this.soupBase)
-               && RecipeMatcher.findMatches(inputs, ingredients) != null;
+               && BaseRecipe.matchesIngredients(inputs, ingredients);
     }
 
     public @NotNull NonNullList<Ingredient> getIngredients() {

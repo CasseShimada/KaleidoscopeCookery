@@ -2,7 +2,6 @@ package com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
-import com.github.ysbbbbbb.kaleidoscopecookery.util.RecipeMatcher;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
@@ -31,7 +30,7 @@ public record PotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier
         List<ItemStack> inputs = simpleInput.getInputs().stream()
                 .filter(stack -> !stack.isEmpty())
                 .toList();
-        return RecipeMatcher.findMatches(inputs, ingredients) != null;
+        return BaseRecipe.matchesIngredients(inputs, ingredients);
     }
 
     public NonNullList<Ingredient> getIngredients() {
