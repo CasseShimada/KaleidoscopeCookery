@@ -21,6 +21,7 @@ BLOCK_ROOT = JAVA_ROOT / "block"
 BASE_BLOCK_ENTITY = BLOCK_ENTITY_ROOT / "BaseBlockEntity.java"
 
 EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
+    BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java",
 )

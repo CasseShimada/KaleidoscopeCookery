@@ -77,7 +77,7 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
             this.currentCutCount = 0;
             this.currentCutStack = user.hasInfiniteMaterials() ? putOnItem.copyWithCount(1) : putOnItem.split(1);
             this.result = recipe.assemble(container);
-            this.refresh();
+            this.setChangedAndSync();
             level.playSound(null, this.worldPosition,
                     SoundEvents.WOOD_PLACE,
                     SoundSource.BLOCKS,
@@ -108,7 +108,7 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
             // 否则，检测是否是刀具，进行切菜逻辑
             this.currentCutCount++;
             this.playParticlesSound();
-            this.refresh();
+            this.setChangedAndSync();
             return true;
         } else {
             return false;
@@ -189,7 +189,7 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
         this.currentCutStack = ItemStack.EMPTY;
         this.currentCutCount = 0;
         this.maxCutCount = 0;
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     @Override
