@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -106,6 +107,7 @@ public class StackableFoodBlock extends HorizontalDirectionalBlock {
             if (!player.hasInfiniteMaterials()) {
                 stack.consume(1, player);
             }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
         }
         return InteractionResult.SUCCESS;
     }
@@ -116,8 +118,12 @@ public class StackableFoodBlock extends HorizontalDirectionalBlock {
         if (!level.isClientSide()) {
             if (count > 1) {
                 level.setBlockAndUpdate(pos, state.setValue(COUNT, count - 1));
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             } else {
-                level.removeBlock(pos, false);
+                if (!level.removeBlock(pos, false)) {
+                    return InteractionResult.FAIL;
+                }
+                level.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(player, state));
             }
             ItemUtils.getItemToLivingEntity(player, this.item.get().getDefaultInstance(), player.getInventory().getSelectedSlot());
         }

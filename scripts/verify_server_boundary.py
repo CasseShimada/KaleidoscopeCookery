@@ -483,6 +483,26 @@ def main() -> int:
         if "GameEvent.Context.of(player, state)" not in furniture_block_text:
             errors.append(f"{name} game events do not include the interacting player and prior block state.")
 
+    plate_block_text = PLATE_BLOCK.read_text(encoding="utf-8")
+    if plate_block_text.count("GameEvent.BLOCK_CHANGE") != 2:
+        errors.append("PlateBlock does not emit block-change game events for serving updates.")
+    if "GameEvent.Context.of(player, state)" not in plate_block_text:
+        errors.append("PlateBlock game events do not include the interacting player and prior block state.")
+
+    stackable_food_text = STACKABLE_FOOD_BLOCK.read_text(encoding="utf-8")
+    for required_reference in (
+        "if (!level.removeBlock(pos, false))",
+        "GameEvent.BLOCK_CHANGE",
+        "GameEvent.BLOCK_DESTROY",
+        "GameEvent.Context.of(player, state)",
+    ):
+        if required_reference not in stackable_food_text:
+            errors.append(f"StackableFoodBlock transactional interaction is missing {required_reference}.")
+    remove_stackable_index = stackable_food_text.find("level.removeBlock(pos, false)")
+    return_stackable_index = stackable_food_text.find("ItemUtils.getItemToLivingEntity(player")
+    if remove_stackable_index > return_stackable_index:
+        errors.append("StackableFoodBlock returns the last serving before confirming block removal.")
+
     stove_block_text = STOVE_BLOCK.read_text(encoding="utf-8")
     if "itemInHand.consume(1, player)" not in stove_block_text:
         errors.append("StoveBlock does not use vanilla ItemStack.consume() for fire charges.")

@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.pathfinder.PathComputationType;
@@ -112,6 +113,7 @@ public class PlateBlock extends HorizontalDirectionalBlock {
                 }
                 level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
                 level.setBlockAndUpdate(pos, state.setValue(servings, count + 1));
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             }
             return InteractionResult.SUCCESS;
         }
@@ -128,6 +130,7 @@ public class PlateBlock extends HorizontalDirectionalBlock {
                 giveServing(player);
                 level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
                 level.setBlockAndUpdate(pos, state.setValue(servings, count - 1));
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             } else {
                 level.destroyBlock(pos, true, player);
             }
