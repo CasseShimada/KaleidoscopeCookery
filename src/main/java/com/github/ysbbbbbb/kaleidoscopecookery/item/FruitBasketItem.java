@@ -7,19 +7,13 @@ import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.mojang.serialization.Codec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -114,24 +108,7 @@ public class FruitBasketItem extends CookeryTooltipBlockItem {
                 ItemContainer::itemsForCodec
         );
 
-        public static final StreamCodec<RegistryFriendlyByteBuf, ItemContainer> STREAM_CODEC = new StreamCodec<>() {
-            @Override
-            public ItemContainer decode(RegistryFriendlyByteBuf buffer) {
-                CompoundTag compoundTag = buffer.readNbt();
-                NonNullList<ItemStack> handler = NonNullList.withSize(8, ItemStack.EMPTY);
-                if (compoundTag != null) {
-                    ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, buffer.registryAccess(), compoundTag);
-                    ContainerHelper.loadAllItems(input, handler);
-                }
-                return new ItemContainer(handler);
-            }
-
-            @Override
-            public void encode(RegistryFriendlyByteBuf buffer, ItemContainer value) {
-                TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, buffer.registryAccess());
-                ContainerHelper.saveAllItems(output, value.items);
-                buffer.writeNbt(output.buildResult());
-            }
-        };
+        public static final StreamCodec<RegistryFriendlyByteBuf, ItemContainer> STREAM_CODEC =
+                ItemStack.OPTIONAL_LIST_STREAM_CODEC.map(ItemContainer::fromList, ItemContainer::itemsForCodec);
     }
 }

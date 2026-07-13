@@ -16,6 +16,9 @@ NETWORK_HANDLER = JAVA_ROOT / "network/NetworkHandler.java"
 CLIENT_NETWORK_HANDLER = CLIENT_JAVA_ROOT / "client/network/ClientNetworkHandler.java"
 BAOZI_THROW_CLIENT_EVENT = CLIENT_JAVA_ROOT / "client/event/BaoziThrowClientEvent.java"
 FLATULENCE_CLIENT_EVENT = CLIENT_JAVA_ROOT / "client/event/FlatulenceClientEvent.java"
+FRUIT_BASKET_ITEM = JAVA_ROOT / "item/FruitBasketItem.java"
+LUNCH_BAG_ITEM = JAVA_ROOT / "item/TransmutationLunchBagItem.java"
+ITEM_STACK_CONTAINER = JAVA_ROOT / "inventory/ItemStackContainer.java"
 
 
 def read(path: Path) -> str:
@@ -39,6 +42,8 @@ def main() -> int:
     client_network_handler = read(CLIENT_NETWORK_HANDLER)
     baozi_throw_client_event = read(BAOZI_THROW_CLIENT_EVENT)
     flatulence_client_event = read(FLATULENCE_CLIENT_EVENT)
+    component_container_sources = (read(FRUIT_BASKET_ITEM), read(LUNCH_BAG_ITEM))
+    item_stack_container = read(ITEM_STACK_CONTAINER)
 
     if not messages:
         errors.append("No CustomPacketPayload records found under network/message.")
@@ -102,6 +107,13 @@ def main() -> int:
         errors.append("Baozi pre-attack handling does not consume attacks after a successful payload send.")
     if "!player.getCooldowns().isOnCooldown(player.getMainHandItem())" not in baozi_throw_client_event:
         errors.append("Baozi pre-attack handling ignores the synchronized item cooldown.")
+    for source in component_container_sources:
+        if "ItemStack.OPTIONAL_LIST_STREAM_CODEC.map(" not in source:
+            errors.append("Container data component does not use the vanilla ItemStack list stream codec.")
+        if "readNbt()" in source or "writeNbt(" in source:
+            errors.append("Container data component still tunnels network state through NBT.")
+    if "serializeNBT(" in item_stack_container or "deserializeNBT(" in item_stack_container:
+        errors.append("ItemStackContainer still exposes obsolete network-NBT serialization helpers.")
     flatulence_edge_update = flatulence_client_event.find("wasShiftPressed = isShiftPressed;")
     flatulence_early_return = flatulence_client_event.find("if (!justPressed || !isInGame(client))")
     if flatulence_edge_update < 0 or flatulence_early_return < 0 or flatulence_edge_update > flatulence_early_return:

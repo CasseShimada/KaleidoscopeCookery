@@ -1,17 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.inventory;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
 
 public class ItemStackContainer {
-    private static final String SIZE = "Size";
-
     protected NonNullList<ItemStack> stacks;
 
     public ItemStackContainer() {
@@ -36,10 +27,6 @@ public class ItemStackContainer {
 
     public static ItemStackContainer copyOf(ItemStackContainer items, int size) {
         return copyOf(items.stacks, size);
-    }
-
-    private void setSize(int size) {
-        this.stacks = NonNullList.withSize(size, ItemStack.EMPTY);
     }
 
     public void set(int slot, ItemStack stack) {
@@ -113,19 +100,6 @@ public class ItemStackContainer {
 
     protected int getStackLimit(int slot, ItemStack stack) {
         return Math.min(this.getSlotLimit(slot), stack.getMaxStackSize());
-    }
-
-    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, provider);
-        ContainerHelper.saveAllItems(output, this.stacks);
-        output.putInt(SIZE, this.stacks.size());
-        return output.buildResult();
-    }
-
-    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
-        ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, provider, nbt);
-        this.setSize(input.getIntOr(SIZE, this.stacks.size()));
-        ContainerHelper.loadAllItems(input, this.stacks);
     }
 
     protected void validateSlotIndex(int slot) {

@@ -10,7 +10,6 @@ import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import com.mojang.serialization.Codec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -448,22 +447,7 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
                 ItemContainer::itemsForCodec
         );
 
-        public static final StreamCodec<RegistryFriendlyByteBuf, ItemContainer> STREAM_CODEC = new StreamCodec<>() {
-            @Override
-            public @NotNull ItemContainer decode(RegistryFriendlyByteBuf buffer) {
-                CompoundTag compoundTag = buffer.readNbt();
-                ItemStackContainer handler = new ItemStackContainer(MAX_SIZE);
-                if (compoundTag != null) {
-                    handler.deserializeNBT(buffer.registryAccess(), compoundTag);
-                }
-                return new ItemContainer(handler);
-            }
-
-            @Override
-            public void encode(RegistryFriendlyByteBuf buffer, ItemContainer value) {
-                CompoundTag compoundTag = value.items().serializeNBT(buffer.registryAccess());
-                buffer.writeNbt(compoundTag);
-            }
-        };
+        public static final StreamCodec<RegistryFriendlyByteBuf, ItemContainer> STREAM_CODEC =
+                ItemStack.OPTIONAL_LIST_STREAM_CODEC.map(ItemContainer::fromList, ItemContainer::itemsForCodec);
     }
 }
