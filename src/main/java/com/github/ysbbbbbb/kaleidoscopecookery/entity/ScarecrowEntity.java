@@ -111,7 +111,7 @@ public class ScarecrowEntity extends LivingEntity {
             return InteractionResult.SUCCESS;
         }
         if (player.level().isClientSide()) {
-            return InteractionResult.CONSUME;
+            return InteractionResult.SUCCESS_SERVER;
         }
         if (hand == InteractionHand.OFF_HAND) {
             return InteractionResult.PASS;
@@ -134,7 +134,7 @@ public class ScarecrowEntity extends LivingEntity {
         if (itemInHand.isEmpty() && !headItem.isEmpty()) {
             this.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
             ItemUtils.giveItemToPlayer(player, headItem, player.getInventory().getSelectedSlot());
-            return InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS_SERVER;
         }
 
         if (!(itemInHand.getItem() instanceof BlockItem blockItem) || !(blockItem.getBlock() instanceof SkullBlock)) {
@@ -145,14 +145,14 @@ public class ScarecrowEntity extends LivingEntity {
             this.setItemSlot(EquipmentSlot.HEAD, itemInHand.copyWithCount(1));
             this.level().playSound(null, this.blockPosition(), SoundEvents.ITEM_FRAME_ADD_ITEM, this.getSoundSource());
             ModTrigger.EVENT.trigger(player, ModEventTriggerType.PLACE_HEAD_ON_SCARECROW);
-            return InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS_SERVER;
         }
         if (!itemInHand.isEmpty() && itemInHand.getCount() > 1) {
             if (headItem.isEmpty()) {
                 this.setItemSlot(EquipmentSlot.HEAD, itemInHand.split(1));
                 this.level().playSound(null, this.blockPosition(), SoundEvents.ITEM_FRAME_ADD_ITEM, this.getSoundSource());
                 ModTrigger.EVENT.trigger(player, ModEventTriggerType.PLACE_HEAD_ON_SCARECROW);
-                return InteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS_SERVER;
             }
             return InteractionResult.PASS;
         }
@@ -160,7 +160,7 @@ public class ScarecrowEntity extends LivingEntity {
         this.level().playSound(null, this.blockPosition(), SoundEvents.ITEM_FRAME_ADD_ITEM, this.getSoundSource());
         player.setItemInHand(InteractionHand.MAIN_HAND, headItem);
         ModTrigger.EVENT.trigger(player, ModEventTriggerType.PLACE_HEAD_ON_SCARECROW);
-        return InteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS_SERVER;
     }
 
     private InteractionResult handleHandItems(Player player, ItemStack itemInHand) {
@@ -171,25 +171,25 @@ public class ScarecrowEntity extends LivingEntity {
             if (!mainhand.isEmpty()) {
                 this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                 ItemUtils.giveItemToPlayer(player, mainhand, player.getInventory().getSelectedSlot());
-                return InteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS_SERVER;
             }
             if (!offhand.isEmpty()) {
                 this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
                 ItemUtils.giveItemToPlayer(player, offhand, player.getInventory().getSelectedSlot());
-                return InteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS_SERVER;
             }
             return InteractionResult.PASS;
         }
         if (itemInHand.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof LanternBlock) {
             if (swapHand(InteractionHand.OFF_HAND, player, itemInHand)) {
                 this.level().playSound(null, this.blockPosition(), SoundEvents.LANTERN_PLACE, this.getSoundSource());
-                return InteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS_SERVER;
             }
         }
         if (itemInHand.has(DataComponents.DAMAGE)) {
             if (swapHand(InteractionHand.MAIN_HAND, player, itemInHand)) {
                 this.level().playSound(null, this.blockPosition(), SoundEvents.ITEM_FRAME_ADD_ITEM, this.getSoundSource());
-                return InteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS_SERVER;
             }
         }
         return InteractionResult.PASS;

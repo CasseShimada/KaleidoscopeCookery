@@ -719,6 +719,17 @@ def main() -> int:
         errors.append("ScarecrowEntity death still respects the voluntary shoulder release delay.")
     if "this.removeEntitiesOnShoulder();" in kill_text:
         errors.append("ScarecrowEntity death still routes through the delayed shoulder release path.")
+    interact_start = scarecrow_entity_text.find("public InteractionResult interact(")
+    head_handler_start = scarecrow_entity_text.find("private InteractionResult handleHeadItems(", interact_start)
+    hand_swap_start = scarecrow_entity_text.find("private boolean swapHand(", head_handler_start)
+    scarecrow_interact = scarecrow_entity_text[interact_start:head_handler_start]
+    scarecrow_interaction_handlers = scarecrow_entity_text[head_handler_start:hand_swap_start]
+    if "if (player.level().isClientSide()) {\n            return InteractionResult.SUCCESS_SERVER;" not in scarecrow_interact:
+        errors.append("ScarecrowEntity client interaction does not defer its swing to the server.")
+    if "return InteractionResult.SUCCESS;" in scarecrow_interaction_handlers:
+        errors.append("ScarecrowEntity equipment handling still reports a client-sourced success on the server.")
+    if scarecrow_interaction_handlers.count("return InteractionResult.SUCCESS_SERVER;") != 8:
+        errors.append("ScarecrowEntity equipment success paths do not consistently use SUCCESS_SERVER.")
 
     raw_dough_text = RAW_DOUGH_ITEM.read_text(encoding="utf-8")
     if "stack.consume(count, entityLiving)" not in raw_dough_text:

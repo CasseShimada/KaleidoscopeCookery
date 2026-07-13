@@ -64,6 +64,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.animal.wolf.Wolf;
@@ -574,6 +575,26 @@ public final class KaleidoscopeCookeryGameTests {
                 "Killed scarecrow retained its shoulder entity data");
         helper.assertEntityPresent(EntityTypes.PARROT,
                 new AABB(pos).inflate(2.0));
+        helper.succeed();
+    }
+
+    @GameTest
+    public void scarecrowEquipmentUsesServerSwingResult(GameTestHelper helper) {
+        ScarecrowEntity scarecrow = helper.spawn(ModEntities.SCARECROW, new BlockPos(1, 1, 1));
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack skulls = new ItemStack(Items.SKELETON_SKULL, 2);
+        player.setItemInHand(InteractionHand.MAIN_HAND, skulls);
+
+        InteractionResult result = scarecrow.interact(
+                player, InteractionHand.MAIN_HAND, new Vec3(0.0, 2.0, 0.0));
+
+        helper.assertValueEqual(result, InteractionResult.SUCCESS_SERVER,
+                "Scarecrow equipment interaction did not request a server-authoritative swing");
+        helper.assertTrue(scarecrow.getItemBySlot(EquipmentSlot.HEAD).is(Items.SKELETON_SKULL),
+                "Scarecrow did not equip the interacted skull");
+        helper.assertValueEqual(skulls.getCount(), 1,
+                "Scarecrow equipment interaction consumed the wrong stack count");
         helper.succeed();
     }
 
