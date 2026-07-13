@@ -43,7 +43,7 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
                 itemRight = ItemStack.EMPTY;
             }
             user.playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1.0F, 1.0F);
-            this.refresh();
+            this.setChangedAndSync();
             return true;
         }
         // 放入物品
@@ -57,7 +57,7 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
                 itemRight = stored;
             }
             user.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
-            this.refresh();
+            this.setChangedAndSync();
             return true;
         }
         return false;
