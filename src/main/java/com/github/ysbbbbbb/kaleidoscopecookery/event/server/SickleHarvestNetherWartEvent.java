@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 
 /**
  * 镰刀收割地狱疣事件特判
@@ -50,7 +51,10 @@ public final class SickleHarvestNetherWartEvent {
         if (!level.getBlockState(pos).isAir()) {
             return false;
         }
-        level.setBlock(pos, Blocks.NETHER_WART.defaultBlockState(), Block.UPDATE_ALL);
+        BlockState replantedState = Blocks.NETHER_WART.defaultBlockState();
+        if (level.setBlock(pos, replantedState, Block.UPDATE_ALL)) {
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, replantedState));
+        }
         return true;
     }
 }

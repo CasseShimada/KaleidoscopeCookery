@@ -700,7 +700,8 @@ def main() -> int:
             "SickleHarvestCallback.EVENT.register(SickleHarvestNetherWartEvent::onSickleHarvest)",
             "if (!player.gameMode.destroyBlock(pos))",
             "level.getBlockState(pos).isAir()",
-            "Blocks.NETHER_WART.defaultBlockState()",
+            "if (level.setBlock(pos, replantedState, Block.UPDATE_ALL))",
+            "GameEvent.BLOCK_CHANGE",
             "SickleHarvestCallback.Result.HARVESTED",
             "SickleHarvestCallback.Result.SKIP",
         ):
@@ -709,6 +710,10 @@ def main() -> int:
         for duplicate_side_effect in ("LevelEvent.PARTICLES_DESTROY_BLOCK",):
             if duplicate_side_effect in sickle_nether_wart_text:
                 errors.append(f"Sickle nether wart event retains duplicate side effect: {duplicate_side_effect}.")
+        replant_write_index = sickle_nether_wart_text.find("if (level.setBlock(pos, replantedState, Block.UPDATE_ALL))")
+        harvested_return_index = sickle_nether_wart_text.rfind("return true;")
+        if harvested_return_index < replant_write_index:
+            errors.append("Sickle nether wart harvest skips durability when only replanting fails.")
 
     if not SICKLE_HARVEST_CALLBACK.exists():
         errors.append(f"Sickle harvest callback is missing: {SICKLE_HARVEST_CALLBACK.relative_to(ROOT)}")

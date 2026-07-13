@@ -68,6 +68,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.TagValueInput;
@@ -641,6 +642,23 @@ public final class KaleidoscopeCookeryGameTests {
                 "Sickle callback intercepted an unrelated crop");
         helper.assertValueEqual(netherWartResult, SickleHarvestCallback.Result.SKIP,
                 "Immature nether wart did not stop default sickle harvesting");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void sickleHarvestReplantsMatureNetherWart(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, 3));
+        Player player = helper.makeMockServerPlayer(GameType.SURVIVAL);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockState matureState = helper.getLevel().getBlockState(absolutePos);
+
+        SickleHarvestCallback.Result result = SickleHarvestCallback.EVENT.invoker().harvest(
+                player, ItemStack.EMPTY, absolutePos, matureState);
+
+        helper.assertValueEqual(result, SickleHarvestCallback.Result.HARVESTED,
+                "Mature nether wart did not report a completed sickle harvest");
+        helper.assertBlockProperty(pos, NetherWartBlock.AGE, 0);
         helper.succeed();
     }
 
