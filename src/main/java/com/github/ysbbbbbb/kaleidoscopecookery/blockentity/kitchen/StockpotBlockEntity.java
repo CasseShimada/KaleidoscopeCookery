@@ -659,7 +659,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     }
 
     public NonNullList<ItemStack> getInputs() {
-        return inputs;
+        return copyStacks(this.inputs);
     }
 
     @Override

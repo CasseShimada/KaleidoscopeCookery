@@ -46,11 +46,7 @@ public class TableBlockEntity extends BaseBlockEntity {
     }
 
     public NonNullList<ItemStack> getItems() {
-        NonNullList<ItemStack> copy = NonNullList.withSize(this.items.size(), ItemStack.EMPTY);
-        for (int i = 0; i < this.items.size(); i++) {
-            copy.set(i, this.items.get(i).copy());
-        }
-        return copy;
+        return copyStacks(this.items);
     }
 
     public ItemStack getLastItem() {

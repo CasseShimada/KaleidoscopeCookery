@@ -543,7 +543,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     }
 
     public List<ItemStack> getInputs() {
-        return inputs;
+        return copyStacks(this.inputs);
     }
 
     public SimpleInput getInput() {

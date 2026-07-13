@@ -446,7 +446,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
     }
 
     public NonNullList<ItemStack> getItems() {
-        return items;
+        return copyStacks(this.items);
     }
 
     @Override

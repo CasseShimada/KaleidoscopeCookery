@@ -71,7 +71,7 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
     }
 
     public NonNullList<ItemStack> getItems() {
-        return items.items;
+        return copyStacks(this.items.items);
     }
 
     public void setItems(NonNullList<ItemStack> items) {

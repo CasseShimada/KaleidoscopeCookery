@@ -34,6 +34,7 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -159,6 +160,14 @@ public final class KaleidoscopeCookeryGameTests {
                 "Creative fruit basket insertion mutated the source stack");
         helper.assertValueEqual(basket.getItems().get(2).getCount(), 4,
                 "Creative fruit basket insertion did not copy items into storage");
+
+        NonNullList<ItemStack> snapshot = basket.getItems();
+        snapshot.get(0).shrink(1);
+        snapshot.set(1, ItemStack.EMPTY);
+        helper.assertValueEqual(basket.getItems().get(0).getCount(), 64,
+                "Mutating a fruit basket item snapshot changed the stored stack");
+        helper.assertValueEqual(basket.getItems().get(1).getCount(), 2,
+                "Replacing a fruit basket snapshot slot changed the stored slot");
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         basket.takeOut(player);

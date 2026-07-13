@@ -37,6 +37,14 @@ EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
     BLOCK_ENTITY_ROOT / "misc/TrashCanBlockEntity.java",
 )
 
+SNAPSHOT_CONTAINER_GETTERS = {
+    BLOCK_ENTITY_ROOT / "decoration/FruitBasketBlockEntity.java": "return copyStacks(this.items.items);",
+    BLOCK_ENTITY_ROOT / "decoration/TableBlockEntity.java": "return copyStacks(this.items);",
+    BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java": "return copyStacks(this.inputs);",
+    BLOCK_ENTITY_ROOT / "kitchen/SteamerBlockEntity.java": "return copyStacks(this.items);",
+    BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java": "return copyStacks(this.inputs);",
+}
+
 EXPECTED_BLOCK_ENTITY_IDS = {
     "POT_BE": "pot",
     "STOCKPOT_BE": "stockpot",
@@ -140,6 +148,11 @@ def main() -> int:
         errors.append("BaseBlockEntity is missing an explicit dirty-and-client-sync path.")
     if "Block.UPDATE_CLIENTS" not in base_block_entity:
         errors.append("BaseBlockEntity client synchronization still requires neighbor updates.")
+    if "copy.set(i, stacks.get(i).copy());" not in base_block_entity:
+        errors.append("BaseBlockEntity does not deep-copy item stacks for public inventory snapshots.")
+    for path, expected_return in SNAPSHOT_CONTAINER_GETTERS.items():
+        if expected_return not in read(path):
+            errors.append(f"{path.name} exposes mutable block entity inventory state.")
     for path in EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES:
         block_entity_text = read(path)
         if "this.refresh();" in block_entity_text:
@@ -302,6 +315,7 @@ def main() -> int:
     print(f"  stateful block entities: {stateful_count}")
     print(f"  stateless block entities: {stateless_count}")
     print(f"  block classes checked: {len(block_classes_checked)}")
+    print(f"  inventory snapshot getters: {len(SNAPSHOT_CONTAINER_GETTERS)}")
     print("  legacy block entity ids: recipe_book -> RECIPE_BLOCK_BE")
     return 0
 
