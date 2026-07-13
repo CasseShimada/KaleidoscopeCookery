@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -42,28 +43,16 @@ public class ChoppingBoardBlockEntityRender implements BlockEntityRenderer<Chopp
             state.modelId = null;
             return;
         }
-        if (!modelId.equals(choppingBoard.previousModel)) {
-            choppingBoard.previousModel = modelId;
-            choppingBoard.cacheModels = new Identifier[choppingBoard.getMaxCutCount() + 1];
-            for (int i = 0; i <= choppingBoard.getMaxCutCount(); i++) {
-                choppingBoard.cacheModels[i] = Identifier.fromNamespaceAndPath(modelId.getNamespace(), "chopping_board/" + modelId.getPath() + "/" + i);
-            }
-        }
-        if (choppingBoard.cacheModels == null) {
-            state.modelId = null;
-            return;
-        }
-        int index = Math.min(choppingBoard.getCurrentCutCount(), choppingBoard.cacheModels.length - 1);
-        Identifier cacheModel = choppingBoard.cacheModels[index];
-        state.modelId = cacheModel;
+        int index = Mth.clamp(choppingBoard.getCurrentCutCount(), 0, Math.max(choppingBoard.getMaxCutCount(), 0));
+        Identifier stageModel = Identifier.fromNamespaceAndPath(
+                modelId.getNamespace(), "chopping_board/" + modelId.getPath() + "/" + index);
+        state.modelId = stageModel;
         state.modelState.clear();
-        if (cacheModel != null) {
-            if (state.modelStack.isEmpty() || !cacheModel.equals(state.modelStack.get(DataComponents.ITEM_MODEL))) {
-                state.modelStack = new ItemStack(Items.STONE);
-                state.modelStack.set(DataComponents.ITEM_MODEL, cacheModel);
-            }
-            itemModelResolver.updateForTopItem(state.modelState, state.modelStack, ItemDisplayContext.FIXED, choppingBoard.getLevel(), null, 0);
+        if (state.modelStack.isEmpty() || !stageModel.equals(state.modelStack.get(DataComponents.ITEM_MODEL))) {
+            state.modelStack = new ItemStack(Items.STONE);
+            state.modelStack.set(DataComponents.ITEM_MODEL, stageModel);
         }
+        itemModelResolver.updateForTopItem(state.modelState, state.modelStack, ItemDisplayContext.FIXED, choppingBoard.getLevel(), null, 0);
     }
 
     @Override

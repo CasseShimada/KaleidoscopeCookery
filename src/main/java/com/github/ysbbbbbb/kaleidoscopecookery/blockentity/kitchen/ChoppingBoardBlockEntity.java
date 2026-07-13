@@ -38,14 +38,6 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
     private static final String RESULT_ITEM = "ResultItem";
     private static final String MAX_CUT_COUNT = "MaxCutCount";
     private static final String CURRENT_CUT_COUNT = "CurrentCutCount";
-    /**
-     * 仅用于客户端渲染
-     */
-    public @Nullable Identifier[] cacheModels = null;
-    public @Nullable Identifier previousModel = null;
-    /**
-     * 服务端客户端共通数据
-     */
     private @Nullable Identifier modelId = null;
     private int maxCutCount = 0;
     private int currentCutCount = 0;

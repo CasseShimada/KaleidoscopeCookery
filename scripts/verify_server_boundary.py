@@ -87,6 +87,8 @@ PROJECTILE_MIXIN = SRC / "mixin/ProjectileMixin.java"
 LEGACY_NEW_EFFECT_EVENTS = SRC / "event/server/effect/NewEffectEvents.java"
 WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
 CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeedEvent.java"
+CHOPPING_BOARD_BLOCK_ENTITY = SRC / "blockentity/kitchen/ChoppingBoardBlockEntity.java"
+CHOPPING_BOARD_RENDERER = CLIENT_SRC / "client/render/block/ChoppingBoardBlockEntityRender.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
 OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
@@ -157,6 +159,15 @@ def main() -> int:
         for pattern in CLIENT_ONLY_PATTERNS:
             if pattern.search(text):
                 errors.append(f"{path.relative_to(ROOT)} contains client-only reference: {pattern.pattern}")
+
+    chopping_board = CHOPPING_BOARD_BLOCK_ENTITY.read_text(encoding="utf-8")
+    if "cacheModels" in chopping_board or "previousModel" in chopping_board:
+        errors.append("ChoppingBoardBlockEntity still stores client-only model caches in common state.")
+    chopping_board_renderer = CHOPPING_BOARD_RENDERER.read_text(encoding="utf-8")
+    if "Mth.clamp(choppingBoard.getCurrentCutCount()" not in chopping_board_renderer:
+        errors.append("Chopping board renderer does not clamp its derived model stage.")
+    if '"chopping_board/" + modelId.getPath() + "/" + index' not in chopping_board_renderer:
+        errors.append("Chopping board renderer does not derive the stage model from synchronized state.")
 
     entrypoints = json.loads(FABRIC_MOD.read_text(encoding="utf-8"))["entrypoints"]
     expected_optional_entrypoints = {
