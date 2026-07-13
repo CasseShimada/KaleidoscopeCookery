@@ -1,7 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.entity;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTriggerType;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
@@ -9,14 +9,11 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -55,13 +52,8 @@ import java.util.OptionalInt;
 import java.util.function.Predicate;
 
 public class ScarecrowEntity extends LivingEntity {
-    private static final ResourceKey<EntityType<?>> KEY = ResourceKey.create(Registries.ENTITY_TYPE,
-            Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "scarecrow"));
-    public static final EntityType<ScarecrowEntity> TYPE = EntityType.Builder
-            .<ScarecrowEntity>of(ScarecrowEntity::new, MobCategory.MISC)
-            .sized(0.5F, 2.375f)
-            .clientTrackingRange(10)
-            .build(KEY);
+    @Deprecated(forRemoval = false)
+    public static final EntityType<ScarecrowEntity> TYPE = ModEntities.SCARECROW;
 
     private static final EntityDataAccessor<OptionalInt> DATA_SHOULDER = SynchedEntityData.defineId(ScarecrowEntity.class, EntityDataSerializers.OPTIONAL_UNSIGNED_INT);
     private static final Predicate<Entity> RIDABLE_MINECARTS = e -> e instanceof AbstractMinecart minecart && minecart.isRideable();
@@ -83,7 +75,7 @@ public class ScarecrowEntity extends LivingEntity {
     }
 
     public ScarecrowEntity(Level level, double pX, double pY, double pZ) {
-        this(TYPE, level);
+        this(ModEntities.SCARECROW, level);
         this.setPos(pX, pY, pZ);
     }
 

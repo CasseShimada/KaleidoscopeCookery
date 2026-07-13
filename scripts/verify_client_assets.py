@@ -74,8 +74,11 @@ def collect_block_entity_declarations() -> set[str]:
 def collect_registered_entities() -> dict[str, str]:
     mod_entities = strip_comments(read(JAVA_ROOT / "init/ModEntities.java"))
     const_to_type: dict[str, str] = {}
-    for const, entity_class in re.findall(r"public\s+static\s+final\s+EntityType<\w+>\s+(\w+)\s*=\s*(\w+)\.TYPE", mod_entities):
-        const_to_type[const] = f"{entity_class}.TYPE"
+    for entity_class, const in re.findall(
+        r"public\s+static\s+final\s+EntityType<(\w+)>\s+(\w+)\s*=\s*EntityType\.Builder",
+        mod_entities,
+    ):
+        const_to_type[const] = entity_class
     return const_to_type
 
 
@@ -138,9 +141,14 @@ def validate_renderers() -> list[str]:
     mod_entities_render = strip_comments(read(CLIENT_ROOT / "init/ModEntitiesRender.java"))
 
     entity_types = collect_registered_entities()
-    for const, type_reference in sorted(entity_types.items()):
-        if f"EntityRenderers.register({type_reference}" not in mod_entities_render:
-            errors.append(f"Entity renderer missing for ModEntities.{const} ({type_reference}).")
+    for const, entity_class in sorted(entity_types.items()):
+        if f"EntityRenderers.register(ModEntities.{const}" not in mod_entities_render:
+            errors.append(f"Entity renderer missing for ModEntities.{const} ({entity_class}).")
+        entity_file = find_class_file(JAVA_ROOT / "entity", entity_class)
+        if entity_file is None:
+            errors.append(f"Registered entity class not found: {entity_class}.")
+        elif f"TYPE = ModEntities.{const}" not in strip_comments(read(entity_file)):
+            errors.append(f"{entity_class}.TYPE does not preserve the ModEntities.{const} compatibility bridge.")
 
     block_entity_consts = collect_block_entity_declarations()
     rendered_block_entities = set(re.findall(r"BlockEntityRenderers\.register\(\s*ModBlocks\.(\w+)\s*,\s*(\w+)::new", client_registry))

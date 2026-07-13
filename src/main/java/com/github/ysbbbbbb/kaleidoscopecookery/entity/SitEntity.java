@@ -1,13 +1,10 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.entity;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
@@ -21,13 +18,8 @@ public class SitEntity extends Entity {
     public static final int TRASH_CAN = 1;
     private static final String SIT_TYPE_KEY = "SitType";
     private static final EntityDataAccessor<Integer> SIT_TYPE = SynchedEntityData.defineId(SitEntity.class, EntityDataSerializers.INT);
-    private static final ResourceKey<EntityType<?>> KEY = ResourceKey.create(Registries.ENTITY_TYPE,
-            Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "sit"));
-    public static final EntityType<SitEntity> TYPE = EntityType.Builder.<SitEntity>of(SitEntity::new, MobCategory.MISC)
-            .sized(0.5f, 0.1f)
-            .clientTrackingRange(10)
-            .noSummon()
-            .build(KEY);
+    @Deprecated(forRemoval = false)
+    public static final EntityType<SitEntity> TYPE = ModEntities.SIT;
     private int passengerTick = 0;
 
     public SitEntity(EntityType<?> entityTypeIn, Level worldIn) {
@@ -35,12 +27,12 @@ public class SitEntity extends Entity {
     }
 
     public SitEntity(Level worldIn, BlockPos pos) {
-        this(TYPE, worldIn);
+        this(ModEntities.SIT, worldIn);
         this.setPos(pos.getX() + 0.5, pos.getY() + 0.4375, pos.getZ() + 0.5);
     }
 
     public SitEntity(Level worldIn, BlockPos pos, double y) {
-        this(TYPE, worldIn);
+        this(ModEntities.SIT, worldIn);
         this.setPos(pos.getX() + 0.5, pos.getY() + y, pos.getZ() + 0.5);
     }
 

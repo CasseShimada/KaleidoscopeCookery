@@ -1,15 +1,12 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.entity;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTriggerType;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -25,14 +22,8 @@ import net.minecraft.world.phys.HitResult;
 
 
 public class ThrowableBaoziEntity extends ThrowableItemProjectile {
-    private static final ResourceKey<EntityType<?>> KEY = ResourceKey.create(Registries.ENTITY_TYPE,
-            Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "throwable_baozi"));
-    public static final EntityType<ThrowableBaoziEntity> TYPE = EntityType.Builder
-            .<ThrowableBaoziEntity>of(ThrowableBaoziEntity::new, MobCategory.MISC)
-            .sized(0.25F, 0.25F)
-            .clientTrackingRange(4)
-            .updateInterval(10)
-            .build(KEY);
+    @Deprecated(forRemoval = false)
+    public static final EntityType<ThrowableBaoziEntity> TYPE = ModEntities.THROWABLE_BAOZI;
 
     public ThrowableBaoziEntity(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
         super(entityType, level);
@@ -47,7 +38,7 @@ public class ThrowableBaoziEntity extends ThrowableItemProjectile {
     }
 
     public ThrowableBaoziEntity(Level level, LivingEntity shooter) {
-        super(TYPE, shooter, level, new ItemStack(ModItems.BAOZI));
+        super(ModEntities.THROWABLE_BAOZI, shooter, level, new ItemStack(ModItems.BAOZI));
     }
 
     @Override

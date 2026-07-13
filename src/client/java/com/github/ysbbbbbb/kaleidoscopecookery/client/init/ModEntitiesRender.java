@@ -4,9 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.client.model.ScarecrowModel;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.model.StrawHatModel;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.render.entity.ScarecrowRender;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.render.entity.SitRenderer;
-import com.github.ysbbbbbb.kaleidoscopecookery.entity.ScarecrowEntity;
-import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
-import com.github.ysbbbbbb.kaleidoscopecookery.entity.ThrowableBaoziEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
@@ -20,9 +18,9 @@ public final class ModEntitiesRender {
 
     public static void register() {
         // 注册实体渲染器
-        EntityRenderers.register(SitEntity.TYPE, SitRenderer::new);
-        EntityRenderers.register(ScarecrowEntity.TYPE, ScarecrowRender::new);
-        EntityRenderers.register(ThrowableBaoziEntity.TYPE, ThrownItemRenderer::new);
+        EntityRenderers.register(ModEntities.SIT, SitRenderer::new);
+        EntityRenderers.register(ModEntities.SCARECROW, ScarecrowRender::new);
+        EntityRenderers.register(ModEntities.THROWABLE_BAOZI, ThrownItemRenderer::new);
 
         // 注册模型层定义
         ModelLayerRegistry.registerModelLayer(ScarecrowModel.LAYER_LOCATION, ScarecrowModel::createBodyLayer);
