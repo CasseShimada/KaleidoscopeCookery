@@ -2,7 +2,6 @@ package com.github.ysbbbbbb.kaleidoscopecookery.util;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -22,7 +21,6 @@ import net.minecraft.world.item.component.UseRemainder;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.level.Level;
-import org.apache.commons.lang3.tuple.Pair;
 
 public final class ItemUtils {
     private ItemUtils() {
@@ -68,17 +66,6 @@ public final class ItemUtils {
                 }
             }
         }
-    }
-
-    public static Pair<Integer, ItemStack> getLastStack(NonNullList<ItemStack> itemList) {
-        for (int i = itemList.size(); i > 0; i--) {
-            int index = i - 1;
-            ItemStack stack = itemList.get(index);
-            if (!stack.isEmpty()) {
-                return Pair.of(index, stack);
-            }
-        }
-        return Pair.of(0, ItemStack.EMPTY);
     }
 
     public static void giveItemToPlayer(Player player, ItemStack stack) {
@@ -195,7 +182,7 @@ public final class ItemUtils {
         return remainder;
     }
 
-    public static ItemStack insertItem(ItemStackContainer dest, ItemStack stack) {
+    private static ItemStack insertItem(ItemStackContainer dest, ItemStack stack) {
         if (dest != null && !stack.isEmpty()) {
             for(int i = 0; i < dest.size(); ++i) {
                 stack = dest.insertItem(i, stack);
