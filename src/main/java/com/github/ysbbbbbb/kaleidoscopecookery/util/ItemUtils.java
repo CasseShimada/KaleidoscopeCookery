@@ -27,27 +27,15 @@ public final class ItemUtils {
     }
 
     public static void getItemToLivingEntity(LivingEntity entity, ItemStack stack) {
-        if (stack.isEmpty()) {
-            return;
-        }
-        if (entity.getMainHandItem().isEmpty()) {
-            RandomSource random = entity.level().getRandom();
-            entity.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            entity.playSound(SoundEvents.ITEM_PICKUP, 0.2F, ((random.nextFloat() - random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
-        } else if (entity instanceof Player player) {
-            player.getInventory().placeItemBackInInventory(stack);
-        } else {
-            // 否则直接在实体所处位置生成物品
-            if (entity.level() instanceof ServerLevel serverLevel) {
-                ItemEntity dropItem = entity.spawnAtLocation(serverLevel, stack);
-                if (dropItem != null) {
-                    dropItem.setPickUpDelay(0);
-                }
-            }
-        }
+        giveItemToLivingEntity(entity, stack, -1, false);
     }
 
     public static void getItemToLivingEntity(LivingEntity entity, ItemStack stack, int preferredSlot) {
+        giveItemToLivingEntity(entity, stack, preferredSlot, true);
+    }
+
+    private static void giveItemToLivingEntity(LivingEntity entity, ItemStack stack,
+                                               int preferredSlot, boolean usePreferredSlot) {
         if (stack.isEmpty()) {
             return;
         }
@@ -56,7 +44,11 @@ public final class ItemUtils {
             entity.setItemInHand(InteractionHand.MAIN_HAND, stack);
             entity.playSound(SoundEvents.ITEM_PICKUP, 0.2F, ((random.nextFloat() - random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
         } else if (entity instanceof Player player) {
-            giveItemToPlayer(player, stack, preferredSlot);
+            if (usePreferredSlot) {
+                giveItemToPlayer(player, stack, preferredSlot);
+            } else {
+                player.getInventory().placeItemBackInInventory(stack);
+            }
         } else {
             // 否则直接在实体所处位置生成物品
             if (entity.level() instanceof ServerLevel serverLevel) {
