@@ -13,19 +13,16 @@ public final class BaoziThrowClientEvent {
     }
 
     public static void register() {
-        ClientPreAttackCallback.EVENT.register((client, player, clickCount) -> {
-            onPreAttack(player);
-            return false;
-        });
+        ClientPreAttackCallback.EVENT.register((client, player, clickCount) -> onPreAttack(player));
     }
 
-    private static void onPreAttack(Player player) {
-        if (canThrowBaozi(player)) {
-            ClientNetworkHandler.sendThrowBaozi();
-        }
+    private static boolean onPreAttack(Player player) {
+        return canThrowBaozi(player) && ClientNetworkHandler.sendThrowBaozi();
     }
 
     private static boolean canThrowBaozi(Player player) {
-        return player.isSecondaryUseActive() && player.getMainHandItem().is(ModItems.BAOZI);
+        return player.isSecondaryUseActive()
+                && player.getMainHandItem().is(ModItems.BAOZI)
+                && !player.getCooldowns().isOnCooldown(player.getMainHandItem());
     }
 }

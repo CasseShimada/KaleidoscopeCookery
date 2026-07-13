@@ -143,14 +143,17 @@ public final class NetworkHandler {
 
     private static void throwBaozi(ServerPlayer player, ItemStack stack) {
         ServerLevel level = player.level();
-        level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.SNOWBALL_THROW, SoundSource.NEUTRAL,
-                BAOZI_THROW_SOUND_VOLUME, getBaoziThrowSoundPitch(level));
         ThrowableBaoziEntity baozi = new ThrowableBaoziEntity(level, player);
         baozi.setItem(stack.copyWithCount(THROWN_BAOZI_COUNT));
         baozi.shootFromRotation(player, player.getXRot(), player.getYRot(), 0,
                 BAOZI_THROW_VELOCITY, BAOZI_THROW_INACCURACY);
-        level.addFreshEntity(baozi);
+        if (!level.addFreshEntity(baozi)) {
+            return;
+        }
+
+        level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                SoundEvents.SNOWBALL_THROW, SoundSource.NEUTRAL,
+                BAOZI_THROW_SOUND_VOLUME, getBaoziThrowSoundPitch(level));
         player.getCooldowns().addCooldown(stack, BAOZI_THROW_COOLDOWN_TICKS);
         if (!player.hasInfiniteMaterials()) {
             stack.shrink(THROWN_BAOZI_COUNT);

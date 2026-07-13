@@ -14,6 +14,7 @@ CLIENT_JAVA_ROOT = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecooke
 MESSAGE_DIR = JAVA_ROOT / "network/message"
 NETWORK_HANDLER = JAVA_ROOT / "network/NetworkHandler.java"
 CLIENT_NETWORK_HANDLER = CLIENT_JAVA_ROOT / "client/network/ClientNetworkHandler.java"
+BAOZI_THROW_CLIENT_EVENT = CLIENT_JAVA_ROOT / "client/event/BaoziThrowClientEvent.java"
 
 
 def read(path: Path) -> str:
@@ -35,6 +36,7 @@ def main() -> int:
     messages = collect_messages()
     network_handler = read(NETWORK_HANDLER)
     client_network_handler = read(CLIENT_NETWORK_HANDLER)
+    baozi_throw_client_event = read(BAOZI_THROW_CLIENT_EVENT)
 
     if not messages:
         errors.append("No CustomPacketPayload records found under network/message.")
@@ -90,6 +92,14 @@ def main() -> int:
         errors.append("Baozi throwing does not add server-side cooldown.")
     if "stack.shrink(THROWN_BAOZI_COUNT)" not in network_handler:
         errors.append("Baozi throwing does not consume the server-side stack.")
+    if "if (!level.addFreshEntity(baozi))" not in network_handler:
+        errors.append("Baozi throwing mutates player state without checking projectile spawn success.")
+    if "public static boolean sendThrowBaozi()" not in client_network_handler:
+        errors.append("Baozi client networking does not report whether the payload was sent.")
+    if "return canThrowBaozi(player) && ClientNetworkHandler.sendThrowBaozi();" not in baozi_throw_client_event:
+        errors.append("Baozi pre-attack handling does not consume attacks after a successful payload send.")
+    if "!player.getCooldowns().isOnCooldown(player.getMainHandItem())" not in baozi_throw_client_event:
+        errors.append("Baozi pre-attack handling ignores the synchronized item cooldown.")
 
     if errors:
         print("Network safety verification failed:")

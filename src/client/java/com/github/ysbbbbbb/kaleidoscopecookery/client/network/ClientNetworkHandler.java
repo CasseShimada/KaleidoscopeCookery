@@ -16,13 +16,15 @@ public final class ClientNetworkHandler {
         sendIfAvailable(FlatulenceMessage.TYPE, FlatulenceMessage.INSTANCE);
     }
 
-    public static void sendThrowBaozi() {
-        sendIfAvailable(ThrowBaoziMessage.TYPE, ThrowBaoziMessage.INSTANCE);
+    public static boolean sendThrowBaozi() {
+        return sendIfAvailable(ThrowBaoziMessage.TYPE, ThrowBaoziMessage.INSTANCE);
     }
 
-    private static <T extends CustomPacketPayload> void sendIfAvailable(CustomPacketPayload.Type<T> type, T payload) {
+    private static <T extends CustomPacketPayload> boolean sendIfAvailable(CustomPacketPayload.Type<T> type, T payload) {
         if (ClientPlayNetworking.canSend(type)) {
             ClientPlayNetworking.send(payload);
+            return true;
         }
+        return false;
     }
 }
