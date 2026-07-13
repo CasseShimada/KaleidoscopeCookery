@@ -37,6 +37,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.FruitBasketItem;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.RawDoughItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.TransmutationLunchBagItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
@@ -471,6 +472,36 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(ItemStack.isSameItemSameComponents(
                         ItemUtils.getContainerStack(componentCarrier), namedBowl),
                 "Container lookup discarded remainder stack components");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void rawDoughTransformationUsesVanillaConsumption(GameTestHelper helper) {
+        RawDoughItem rawDough = (RawDoughItem) ModItems.RAW_DOUGH;
+        Player survivalPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack survivalDough = new ItemStack(rawDough, 3);
+        int survivalTimeLeft = rawDough.getUseDuration(survivalDough, survivalPlayer) - 30;
+
+        helper.assertTrue(rawDough.releaseUsing(
+                        survivalDough, helper.getLevel(), survivalPlayer, survivalTimeLeft),
+                "Fully pulled survival dough did not transform");
+        helper.assertTrue(survivalDough.isEmpty(),
+                "Survival dough was not consumed through vanilla item handling");
+        helper.assertValueEqual(countItem(survivalPlayer, ModItems.RAW_NOODLES), 3,
+                "Survival dough did not preserve its stack count when transformed");
+
+        Player creativePlayer = helper.makeMockPlayer(GameType.CREATIVE);
+        creativePlayer.getAbilities().instabuild = true;
+        ItemStack creativeDough = new ItemStack(rawDough, 3);
+        int creativeTimeLeft = rawDough.getUseDuration(creativeDough, creativePlayer) - 30;
+
+        helper.assertTrue(rawDough.releaseUsing(
+                        creativeDough, helper.getLevel(), creativePlayer, creativeTimeLeft),
+                "Fully pulled creative dough did not transform");
+        helper.assertValueEqual(creativeDough.getCount(), 3,
+                "Creative dough was consumed during transformation");
+        helper.assertValueEqual(countItem(creativePlayer, ModItems.RAW_NOODLES), 1,
+                "Creative dough produced more than one transformed item");
         helper.succeed();
     }
 

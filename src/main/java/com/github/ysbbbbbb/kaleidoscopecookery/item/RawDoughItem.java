@@ -8,6 +8,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -49,23 +50,23 @@ public class RawDoughItem extends CookeryTooltipItem {
     @Override
     public boolean releaseUsing(ItemStack stack, Level worldIn, LivingEntity entityLiving, int timeLeft) {
         int time = stack.getUseDuration(entityLiving) - timeLeft;
-        if (time >= MIN_USE_DURATION) {
-            if (worldIn.isClientSide()) {
-                entityLiving.playSound(ModSounds.ITEM_DOUGH_TRANSFORM, 1.0F, 1.0F);
-                return true;
-            }
-            int count = entityLiving.hasInfiniteMaterials() ? 1 : stack.getCount();
-            ItemStack noodles = new ItemStack(ModItems.RAW_NOODLES, count);
-            if (!entityLiving.hasInfiniteMaterials()) {
-                stack.setCount(0);
-            }
-            ItemUtils.getItemToLivingEntity(entityLiving, noodles);
-            if (entityLiving instanceof ServerPlayer serverPlayer) {
-                ModTrigger.EVENT.trigger(serverPlayer, ModEventTriggerType.PULL_THE_DOUGH);
-            }
+        if (time < MIN_USE_DURATION) {
+            return false;
+        }
+        if (worldIn.isClientSide()) {
             return true;
         }
-        return false;
+
+        int count = entityLiving.hasInfiniteMaterials() ? 1 : stack.getCount();
+        ItemStack noodles = new ItemStack(ModItems.RAW_NOODLES, count);
+        stack.consume(count, entityLiving);
+        worldIn.playSound(null, entityLiving.getX(), entityLiving.getY(), entityLiving.getZ(),
+                ModSounds.ITEM_DOUGH_TRANSFORM, SoundSource.PLAYERS, 1.0F, 1.0F);
+        ItemUtils.getItemToLivingEntity(entityLiving, noodles);
+        if (entityLiving instanceof ServerPlayer serverPlayer) {
+            ModTrigger.EVENT.trigger(serverPlayer, ModEventTriggerType.PULL_THE_DOUGH);
+        }
+        return true;
     }
 
     @Override

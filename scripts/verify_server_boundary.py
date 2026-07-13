@@ -116,6 +116,7 @@ STOVE_BLOCK = SRC / "block/kitchen/StoveBlock.java"
 ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
 SCARECROW_ENTITY = SRC / "entity/ScarecrowEntity.java"
+RAW_DOUGH_ITEM = SRC / "item/RawDoughItem.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
 TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
 TRASH_CAN_RENDERER = CLIENT_SRC / "client/render/block/TrashCanBlockEntityRender.java"
@@ -705,6 +706,14 @@ def main() -> int:
         errors.append("ScarecrowEntity death still respects the voluntary shoulder release delay.")
     if "this.removeEntitiesOnShoulder();" in kill_text:
         errors.append("ScarecrowEntity death still routes through the delayed shoulder release path.")
+
+    raw_dough_text = RAW_DOUGH_ITEM.read_text(encoding="utf-8")
+    if "stack.consume(count, entityLiving)" not in raw_dough_text:
+        errors.append("RawDoughItem does not use vanilla item consumption.")
+    if "stack.setCount(0)" in raw_dough_text:
+        errors.append("RawDoughItem still clears the source stack manually.")
+    if "worldIn.playSound(null," not in raw_dough_text:
+        errors.append("RawDoughItem transformation sound is not server-broadcast.")
 
     enamel_basin_text = ENAMEL_BASIN_BLOCK.read_text(encoding="utf-8")
     if "mainHandItem.consume(consumeCount, player)" not in enamel_basin_text:
