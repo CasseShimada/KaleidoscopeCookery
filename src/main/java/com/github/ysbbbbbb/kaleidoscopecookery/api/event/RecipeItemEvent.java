@@ -33,9 +33,9 @@ public abstract class RecipeItemEvent {
 
     public static class DeductItem extends RecipeItemEvent {
         private final Item needItem;
-        private final int[] needCount;
+        private int needCount;
 
-        public DeductItem(ItemStack stack, Item needItem, int[] needCount) {
+        public DeductItem(ItemStack stack, Item needItem, int needCount) {
             super(stack);
             this.needItem = needItem;
             this.needCount = needCount;
@@ -46,12 +46,11 @@ public abstract class RecipeItemEvent {
         }
 
         public int getNeedCount() {
-            return needCount[0];
+            return this.needCount;
         }
 
         public void deduct(int count) {
-            needCount[0] -= count;
-            needCount[0] = Math.max(needCount[0], 0);
+            this.needCount = Math.max(this.needCount - count, 0);
         }
     }
 }

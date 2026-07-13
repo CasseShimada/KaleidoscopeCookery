@@ -222,7 +222,7 @@ public class RecipeItem extends CookeryTooltipBlockItem {
                 }
 
                 // 触发特殊扣除
-                var event = new RecipeItemEvent.DeductItem(inSlot, item, new int[]{needCount});
+                var event = new RecipeItemEvent.DeductItem(inSlot, item, needCount);
                 ModEvents.DEDUCT_SPECIAL_ITEM.invoker().onDeductItemEvent(event);
                 needCount = event.getNeedCount();
                 if (needCount <= 0) {

@@ -211,6 +211,10 @@ def main() -> int:
     recipe_item_event_path = SRC / "api/event/RecipeItemEvent.java"
     if "extends ActionEvent" in recipe_item_event_path.read_text(encoding="utf-8"):
         errors.append("RecipeItemEvent still extends the legacy ActionEvent base class.")
+    recipe_item_event_text = recipe_item_event_path.read_text(encoding="utf-8")
+    recipe_item_text = (SRC / "item/RecipeItem.java").read_text(encoding="utf-8")
+    if "int[] needCount" in recipe_item_event_text or "new int[]{needCount}" in recipe_item_text:
+        errors.append("Recipe item deduction still uses a single-element mutable array.")
     millstone_finish_event_path = SRC / "api/event/MillstoneFinishEvent.java"
     if millstone_finish_event_path.exists():
         errors.append("Millstone finish callbacks still allocate a legacy event wrapper.")
