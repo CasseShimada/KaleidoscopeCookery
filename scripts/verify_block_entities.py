@@ -26,6 +26,7 @@ EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
     BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java",
+    BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java",
 )
 
@@ -144,6 +145,9 @@ def main() -> int:
         errors.append("TransmutationLunchBagItem still mutates the fruit basket inventory directly.")
     if "fruitBasket.refresh()" in transmutation_lunch_bag:
         errors.append("TransmutationLunchBagItem still calls the legacy block entity refresh API.")
+    shawarma_spit = read(BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java")
+    if "cookTime--;\n            this.setChanged();" not in shawarma_spit:
+        errors.append("ShawarmaSpitBlockEntity does not mark cooking progress dirty.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

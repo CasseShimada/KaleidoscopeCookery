@@ -55,7 +55,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
             this.cookedItem = recipe.value().assemble(singleRecipeInput);
             this.cookedItem.setCount(this.cookingItem.getCount());
             this.cookTime = recipe.value().cookingTime();
-            this.refresh();
+            this.setChangedAndSync();
             if (level instanceof ServerLevel) {
                 level.playSound(null,
                         worldPosition.getX() + 0.5,
@@ -93,7 +93,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
         this.cookingItem = ItemStack.EMPTY;
         this.cookedItem = ItemStack.EMPTY;
         this.cookTime = 0;
-        this.refresh();
+        this.setChangedAndSync();
 
         if (!mainHandItem.is(TagMod.KITCHEN_KNIFE)
             && this.getBlockState().getValue(ShawarmaSpitBlock.POWERED)
@@ -123,6 +123,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
         this.spawnParticles();
         if (cookTime > 0) {
             cookTime--;
+            this.setChanged();
         } else {
             if (level instanceof ServerLevel) {
                 level.playSound(null,
@@ -135,7 +136,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
                         level.getRandom().nextFloat() * 0.7F + 0.6F);
             }
             this.cookingItem = ItemStack.EMPTY;
-            this.refresh();
+            this.setChangedAndSync();
         }
     }
 
