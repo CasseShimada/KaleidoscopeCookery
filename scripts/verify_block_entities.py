@@ -67,6 +67,9 @@ SNAPSHOT_STATE_RETURNS = {
     BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java": (
         "return this.result.copy();",
     ),
+    BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java": (
+        "return (this.cookingItem.isEmpty() ? this.cookedItem : this.cookingItem).copy();",
+    ),
     BLOCK_ENTITY_ROOT / "kitchen/TeapotBlockEntity.java": (
         "return this.input.copy();",
         "return this.result.copy();",
@@ -203,6 +206,13 @@ def main() -> int:
     shawarma_spit = read(BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java")
     if "cookTime--;\n            this.setChanged();" not in shawarma_spit:
         errors.append("ShawarmaSpitBlockEntity does not mark cooking progress dirty.")
+    if "public ItemStack cookingItem" in shawarma_spit or "public ItemStack cookedItem" in shawarma_spit or "public int cookTime" in shawarma_spit:
+        errors.append("ShawarmaSpitBlockEntity still exposes mutable cooking state.")
+    shawarma_block = read(BLOCK_ROOT / "kitchen/ShawarmaSpitBlock.java")
+    shawarma_renderer = read(ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery/client/render/block/ShawarmaSpitBlockEntityRender.java")
+    shawarma_jade = read(ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery/compat/jade/block/ShawarmaSpitComponentProvider.java")
+    if any("shawarmaSpit.cookingItem" in text or "shawarmaSpit.cookedItem" in text for text in (shawarma_block, shawarma_renderer, shawarma_jade)):
+        errors.append("Shawarma spit consumers still access mutable item fields directly.")
     steamer = read(BLOCK_ENTITY_ROOT / "kitchen/SteamerBlockEntity.java")
     if "stack.isEmpty() || steamer.cookingTime[i] < 0" not in steamer:
         errors.append("SteamerBlockEntity still reprocesses completed cooking slots.")

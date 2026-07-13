@@ -176,12 +176,9 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
 
     private void dropCookItems(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof ShawarmaSpitBlockEntity shawarmaSpit) {
-            if (!shawarmaSpit.cookingItem.isEmpty()) {
-                popResource(level, pos, shawarmaSpit.cookingItem.copy());
-                shawarmaSpit.cookingItem = ItemStack.EMPTY;
-            } else if (!shawarmaSpit.cookedItem.isEmpty()) {
-                popResource(level, pos, shawarmaSpit.cookedItem.copy());
-                shawarmaSpit.cookedItem = ItemStack.EMPTY;
+            ItemStack storedItem = shawarmaSpit.removeStoredItem();
+            if (!storedItem.isEmpty()) {
+                popResource(level, pos, storedItem);
             }
         }
     }
@@ -238,10 +235,9 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
         }
         BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof ShawarmaSpitBlockEntity shawarmaSpit) {
-            if (!shawarmaSpit.cookingItem.isEmpty()) {
-                drops.add(shawarmaSpit.cookingItem.copy());
-            } else if (!shawarmaSpit.cookedItem.isEmpty()) {
-                drops.add(shawarmaSpit.cookedItem.copy());
+            ItemStack storedItem = shawarmaSpit.getStoredItem();
+            if (!storedItem.isEmpty()) {
+                drops.add(storedItem);
             }
         }
         return drops;

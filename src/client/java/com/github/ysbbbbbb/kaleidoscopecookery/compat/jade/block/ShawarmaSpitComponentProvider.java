@@ -44,7 +44,7 @@ public enum ShawarmaSpitComponentProvider implements IBlockComponentProvider {
     }
 
     private void addItemInfo(ITooltip tooltip, ShawarmaSpitBlockEntity shawarmaSpit) {
-        ItemStack showItem = shawarmaSpit.cookingItem.isEmpty() ? shawarmaSpit.cookedItem : shawarmaSpit.cookingItem;
+        ItemStack showItem = shawarmaSpit.getStoredItem();
         if (!showItem.isEmpty()) {
             Element icon = JadeUI.smallItem(showItem.copyWithCount(1));
             MutableComponent stackName = IDisplayHelper.get().stripColor(showItem.getHoverName());
@@ -52,9 +52,9 @@ public enum ShawarmaSpitComponentProvider implements IBlockComponentProvider {
             tooltip.add(icon);
             tooltip.append(JadeUI.spacer(3, 1));
             tooltip.append(text);
-            if (shawarmaSpit.cookTime > 0) {
+            if (shawarmaSpit.getCookTime() > 0) {
                 tooltip.append(JadeUI.spacer(3, 1));
-                tooltip.append(IThemeHelper.get().seconds(shawarmaSpit.cookTime, 20).withStyle(ChatFormatting.GRAY));
+                tooltip.append(IThemeHelper.get().seconds(shawarmaSpit.getCookTime(), 20).withStyle(ChatFormatting.GRAY));
             }
         }
     }

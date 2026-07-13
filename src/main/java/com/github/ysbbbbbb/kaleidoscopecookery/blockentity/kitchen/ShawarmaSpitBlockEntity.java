@@ -30,9 +30,9 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
     public static final String COOK_TIME = "CookTime";
 
     private final RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> quickCheck = RecipeManager.createCheck(RecipeType.CAMPFIRE_COOKING);
-    public ItemStack cookingItem = ItemStack.EMPTY;
-    public ItemStack cookedItem = ItemStack.EMPTY;
-    public int cookTime;
+    private ItemStack cookingItem = ItemStack.EMPTY;
+    private ItemStack cookedItem = ItemStack.EMPTY;
+    private int cookTime;
 
     public ShawarmaSpitBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(ModBlocks.SHAWARMA_SPIT_BE, pPos, pBlockState);
@@ -182,5 +182,24 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
         this.cookingItem = input.read(COOKING_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
         this.cookedItem = input.read(COOKED_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
         this.cookTime = input.getIntOr(COOK_TIME, 0);
+    }
+
+    public ItemStack getStoredItem() {
+        return (this.cookingItem.isEmpty() ? this.cookedItem : this.cookingItem).copy();
+    }
+
+    public ItemStack removeStoredItem() {
+        ItemStack storedItem = this.getStoredItem();
+        if (!storedItem.isEmpty()) {
+            this.cookingItem = ItemStack.EMPTY;
+            this.cookedItem = ItemStack.EMPTY;
+            this.cookTime = 0;
+            this.setChangedAndSync();
+        }
+        return storedItem;
+    }
+
+    public int getCookTime() {
+        return this.cookTime;
     }
 }

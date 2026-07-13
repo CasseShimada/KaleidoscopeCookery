@@ -35,16 +35,10 @@ public class ShawarmaSpitBlockEntityRender implements BlockEntityRenderer<Shawar
                                    net.minecraft.world.phys.Vec3 cameraPos,
                                    net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderState.extractBase(shawarmaSpit, state, crumblingOverlay);
-        ItemStack cookedItem = shawarmaSpit.cookedItem;
-        if (cookedItem.isEmpty()) {
+        ItemStack renderItem = shawarmaSpit.getStoredItem();
+        if (renderItem.isEmpty()) {
             state.itemCount = 0;
             return;
-        }
-        ItemStack renderItem;
-        if (!shawarmaSpit.cookingItem.isEmpty()) {
-            renderItem = shawarmaSpit.cookingItem;
-        } else {
-            renderItem = cookedItem;
         }
         BlockState blockState = shawarmaSpit.getBlockState();
         state.powered = blockState.getValue(BlockStateProperties.POWERED);
