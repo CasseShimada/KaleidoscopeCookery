@@ -31,10 +31,10 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
@@ -385,6 +385,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
             return false;
         }
         this.setChangedAndSync();
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
         return true;
     }
 
@@ -408,6 +409,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         boolean half = blockState.getValue(SteamerBlock.HALF);
         int preferredSlot = user instanceof Player player ? player.getInventory().getSelectedSlot() : -1;
         int startIndex = half ? 4 : 8;
+        List<ItemStack> taken = new ArrayList<>();
         // 一次性取出一层的
         for (int i = startIndex - 1; i >= (startIndex - 4); i--) {
             ItemStack stack = this.items.get(i);
@@ -415,7 +417,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
                 continue;
             }
             isAllEmpty = false;
-            ItemUtils.getItemToLivingEntity(user, stack, preferredSlot);
+            taken.add(stack);
             this.items.set(i, ItemStack.EMPTY);
             this.cookingTime[i] = 0;
             this.cookingProgress[i] = 0;
@@ -423,26 +425,36 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         boolean isAboveSteamer = level.getBlockState(this.getBlockPos().above()).is(blockState.getBlock());
         // 全为空，且上面没有蒸笼阻挡时，拆掉当前可交互的一层
         if (isAllEmpty && !isAboveSteamer) {
-            ItemUtils.getItemToLivingEntity(user, ModItems.STEAMER.getDefaultInstance(), preferredSlot);
-            // 把 4-8 全部清空
-            for (int i = 4; i < 8; i++) {
-                this.items.set(i, ItemStack.EMPTY);
-                this.cookingTime[i] = 0;
-                this.cookingProgress[i] = 0;
-            }
-            // 释放粒子效果
-            level.playSound(null, this.getBlockPos(), blockState.getSoundType().getBreakSound(), SoundSource.BLOCKS);
             if (half) {
-                level.setBlockAndUpdate(this.getBlockPos(), Blocks.AIR.defaultBlockState());
+                if (!level.removeBlock(this.getBlockPos(), false)) {
+                    return false;
+                }
             } else {
-                setChanged();
-                level.setBlockAndUpdate(this.getBlockPos(), blockState.setValue(SteamerBlock.HALF, true));
+                if (!level.setBlockAndUpdate(this.getBlockPos(), blockState.setValue(SteamerBlock.HALF, true))) {
+                    return false;
+                }
+                for (int i = 4; i < 8; i++) {
+                    this.items.set(i, ItemStack.EMPTY);
+                    this.cookingTime[i] = 0;
+                    this.cookingProgress[i] = 0;
+                }
+                this.setChangedAndSync();
             }
+            ItemUtils.getItemToLivingEntity(user, ModItems.STEAMER.getDefaultInstance(), preferredSlot);
+            level.playSound(null, this.getBlockPos(), blockState.getSoundType().getBreakSound(), SoundSource.BLOCKS);
+            level.gameEvent(half ? GameEvent.BLOCK_DESTROY : GameEvent.BLOCK_CHANGE,
+                    this.getBlockPos(), GameEvent.Context.of(user, blockState));
             return true;
-        } else {
-            this.setChangedAndSync();
         }
-        return !isAllEmpty;
+        if (isAllEmpty) {
+            return false;
+        }
+        this.setChangedAndSync();
+        for (ItemStack stack : taken) {
+            ItemUtils.getItemToLivingEntity(user, stack, preferredSlot);
+        }
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, blockState));
+        return true;
     }
 
     public NonNullList<ItemStack> getItems() {

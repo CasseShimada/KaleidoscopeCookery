@@ -218,6 +218,12 @@ def main() -> int:
         errors.append("SteamerBlockEntity still reprocesses completed cooking slots.")
     if "Block.UPDATE_ALL" in steamer:
         errors.append("SteamerBlockEntity still broadcasts neighbor updates for inventory changes.")
+    if "if (!level.removeBlock(this.getBlockPos(), false))" not in steamer:
+        errors.append("SteamerBlockEntity returns an empty layer before confirming block removal.")
+    if "if (!level.setBlockAndUpdate(this.getBlockPos(), blockState.setValue(SteamerBlock.HALF, true)))" not in steamer:
+        errors.append("SteamerBlockEntity returns a stacked layer before confirming the half-state update.")
+    if steamer.count("GameEvent.BLOCK_CHANGE") < 3 or "GameEvent.BLOCK_DESTROY" not in steamer:
+        errors.append("SteamerBlockEntity does not emit game events for food and layer mutations.")
     steamer_block = read(BLOCK_ROOT / "kitchen/SteamerBlock.java")
     if "if (!level.setBlockAndUpdate(pos, state.setValue(HAS_LID, !hasLid)))" not in steamer_block:
         errors.append("SteamerBlock does not confirm lid state changes.")
