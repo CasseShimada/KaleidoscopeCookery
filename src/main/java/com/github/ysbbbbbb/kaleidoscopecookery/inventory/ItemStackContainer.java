@@ -45,7 +45,7 @@ public final class ItemStackContainer {
         } else {
             this.validateSlotIndex(slot);
             ItemStack existing = this.stacks.get(slot);
-            int limit = this.getStackLimit(slot, stack);
+            int limit = stack.getMaxStackSize();
             if (!existing.isEmpty()) {
                 if (!ItemStack.isSameItemSameComponents(stack, existing)) {
                     return stack;
@@ -88,14 +88,6 @@ public final class ItemStackContainer {
                 }
             }
         }
-    }
-
-    private int getSlotLimit(int slot) {
-        return 99;
-    }
-
-    private int getStackLimit(int slot, ItemStack stack) {
-        return Math.min(this.getSlotLimit(slot), stack.getMaxStackSize());
     }
 
     private void validateSlotIndex(int slot) {
