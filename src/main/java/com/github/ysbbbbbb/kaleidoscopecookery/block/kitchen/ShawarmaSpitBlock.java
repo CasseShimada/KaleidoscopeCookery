@@ -155,10 +155,14 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
                 BlockState belowState = level.getBlockState(below);
                 if (belowState.is(state.getBlock()) && belowState.getValue(HALF) == DoubleBlockHalf.LOWER) {
                     if (player.isCreative()) {
-                        dropCookItems(level, below);
+                        ItemStack storedItem = getStoredItem(level, below);
                         BlockState airBlockState = belowState.getFluidState().is(Fluids.WATER) ? Blocks.WATER.defaultBlockState() : Blocks.AIR.defaultBlockState();
-                        level.setBlock(below, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
-                        level.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, below, Block.getId(belowState));
+                        if (level.setBlock(below, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL)) {
+                            if (!storedItem.isEmpty()) {
+                                popResource(level, below, storedItem);
+                            }
+                            level.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, below, Block.getId(belowState));
+                        }
                     } else {
                         level.destroyBlock(below, true, player);
                     }
@@ -181,6 +185,13 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
                 popResource(level, pos, storedItem);
             }
         }
+    }
+
+    private static ItemStack getStoredItem(Level level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof ShawarmaSpitBlockEntity shawarmaSpit) {
+            return shawarmaSpit.getStoredItem();
+        }
+        return ItemStack.EMPTY;
     }
 
     @Override

@@ -232,6 +232,14 @@ def main() -> int:
         errors.append("ShawarmaSpitBlock does not copy waterlogging from the upper placement position.")
     if "level.isClientSide()" in set_placed_by:
         errors.append("ShawarmaSpitBlock suppresses vanilla client-side placement of its upper half.")
+    destroy_start = shawarma_block.find("public @NotNull BlockState playerWillDestroy(")
+    destroy_end = shawarma_block.find("private static BlockPos getStoragePos(", destroy_start)
+    player_will_destroy = shawarma_block[destroy_start:destroy_end]
+    confirmed_removal = "if (level.setBlock(below, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL))"
+    if confirmed_removal not in player_will_destroy:
+        errors.append("ShawarmaSpitBlock does not confirm creative lower-half removal.")
+    if player_will_destroy.find("popResource(level, below, storedItem)") < player_will_destroy.find(confirmed_removal):
+        errors.append("ShawarmaSpitBlock drops stored food before confirming creative lower-half removal.")
     shawarma_renderer = read(ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery/client/render/block/ShawarmaSpitBlockEntityRender.java")
     shawarma_jade = read(ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery/compat/jade/block/ShawarmaSpitComponentProvider.java")
     if any("shawarmaSpit.cookingItem" in text or "shawarmaSpit.cookedItem" in text for text in (shawarma_block, shawarma_renderer, shawarma_jade)):
