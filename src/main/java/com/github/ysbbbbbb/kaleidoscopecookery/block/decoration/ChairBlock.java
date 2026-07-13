@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
@@ -146,6 +147,7 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
                 if (!player.hasInfiniteMaterials()) {
                     itemInHand.consume(1, player);
                 }
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
                 return InteractionResult.CONSUME;
             }
         }
@@ -166,6 +168,7 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
             if (!player.hasInfiniteMaterials()) {
                 itemInHand.consume(1, player);
             }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
         }
 

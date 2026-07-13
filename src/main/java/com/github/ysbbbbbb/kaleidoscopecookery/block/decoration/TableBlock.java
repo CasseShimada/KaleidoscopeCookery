@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
@@ -81,14 +82,15 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             if (itemInHand.is(ItemTags.WOOL_CARPETS)) {
                 return useWithCarpets(state, level, pos, player, itemInHand);
             } else if (level.getBlockEntity(pos) instanceof TableBlockEntity table) {
-                return useWithOther(level, pos, player, hand, table, itemInHand);
+                return useWithOther(state, level, pos, player, table, itemInHand);
             }
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
     @NotNull
-    private InteractionResult useWithOther(Level level, BlockPos pos, Player player, InteractionHand hand, TableBlockEntity table, ItemStack itemInHand) {
+    private InteractionResult useWithOther(BlockState state, Level level, BlockPos pos, Player player,
+                                           TableBlockEntity table, ItemStack itemInHand) {
         ItemStack tableItem = table.getLastItem();
 
         boolean handEmpty = itemInHand.isEmpty();
@@ -98,6 +100,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             if (!level.isClientSide()) {
                 level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, player.getSoundSource(), 1.0F, 1.0F);
                 ItemUtils.getItemToLivingEntity(player, table.removeLastItem(), player.getInventory().getSelectedSlot());
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
@@ -111,6 +114,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
                         itemInHand.consume(1, player);
                     }
                     level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
                 }
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
@@ -144,6 +148,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
                 if (!player.hasInfiniteMaterials()) {
                     itemInHand.consume(1, player);
                 }
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
                 return InteractionResult.CONSUME;
             }
         }
@@ -164,6 +169,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             if (!player.hasInfiniteMaterials()) {
                 itemInHand.consume(1, player);
             }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
         }
 

@@ -473,6 +473,16 @@ def main() -> int:
         if shrink_expression in decoration_block_text:
             errors.append(f"{name} still manually shrinks player item stacks.")
 
+    for name, path, expected_game_events in (
+        ("TableBlock", TABLE_BLOCK, 4),
+        ("ChairBlock", CHAIR_BLOCK, 2),
+    ):
+        furniture_block_text = path.read_text(encoding="utf-8")
+        if furniture_block_text.count("GameEvent.BLOCK_CHANGE") != expected_game_events:
+            errors.append(f"{name} does not emit block-change game events for every furniture state update.")
+        if "GameEvent.Context.of(player, state)" not in furniture_block_text:
+            errors.append(f"{name} game events do not include the interacting player and prior block state.")
+
     stove_block_text = STOVE_BLOCK.read_text(encoding="utf-8")
     if "itemInHand.consume(1, player)" not in stove_block_text:
         errors.append("StoveBlock does not use vanilla ItemStack.consume() for fire charges.")
