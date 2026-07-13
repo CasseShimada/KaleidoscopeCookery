@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 GENERAL_CONFIG = (
     ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/config/GeneralConfig.java"
 )
+REGISTRY_HOLDER_FILES = (
+    ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/init/ModEffects.java",
+    ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/init/ModTrigger.java",
+)
 
 TEXT_ROOTS = (
     ROOT / "src/main/java",
@@ -127,12 +131,22 @@ def validate_configuration_boundary() -> list[str]:
     return errors
 
 
+def validate_registry_holders() -> list[str]:
+    errors: list[str] = []
+    for path in REGISTRY_HOLDER_FILES:
+        text = path.read_text(encoding="utf-8")
+        if re.search(r"public\s+static\s+(?!final\b)[^;=]+\s+[A-Z][A-Z0-9_]*\s*(?:=|;)", text):
+            errors.append(f"Registry holder exposes mutable content: {path.relative_to(ROOT)}")
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     errors.extend(validate_forbidden_text())
     errors.extend(validate_forbidden_paths())
     errors.extend(validate_resource_source_sets())
     errors.extend(validate_configuration_boundary())
+    errors.extend(validate_registry_holders())
 
     if errors:
         print("Release hygiene verification failed:")

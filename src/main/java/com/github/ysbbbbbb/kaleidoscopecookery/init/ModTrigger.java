@@ -8,15 +8,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
 public final class ModTrigger {
-    public static ModEventTrigger EVENT;
-    public static DistanceTrigger FLATULENCE_FLY_HEIGHT;
+    public static final ModEventTrigger EVENT = register("mod_event", new ModEventTrigger());
+    public static final DistanceTrigger FLATULENCE_FLY_HEIGHT = register(
+            "flatulence_fly_height", new DistanceTrigger());
 
     private ModTrigger() {
     }
 
     public static void init() {
-        EVENT = register("mod_event", new ModEventTrigger());
-        FLATULENCE_FLY_HEIGHT = register("flatulence_fly_height", new DistanceTrigger());
     }
 
     private static <T extends net.minecraft.advancements.triggers.CriterionTrigger<?>> T register(String id, T trigger) {

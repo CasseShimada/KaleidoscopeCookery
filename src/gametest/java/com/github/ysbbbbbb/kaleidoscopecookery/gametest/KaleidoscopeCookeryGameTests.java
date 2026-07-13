@@ -24,6 +24,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
@@ -86,6 +87,12 @@ public final class KaleidoscopeCookeryGameTests {
                 "Pot recipe type registry does not contain the registered instance");
         helper.assertValueEqual(BuiltInRegistries.ENTITY_TYPE.getKey(ModEntities.SCARECROW),
                 id("scarecrow"), "Scarecrow entity registry ID changed");
+        helper.assertValueEqual(BuiltInRegistries.MOB_EFFECT.getKey(ModEffects.FLATULENCE.value()),
+                id("flatulence"), "Flatulence effect registry ID changed");
+        helper.assertValueEqual(BuiltInRegistries.TRIGGER_TYPES.getKey(ModTrigger.EVENT),
+                id("mod_event"), "Mod event trigger registry ID changed");
+        helper.assertValueEqual(BuiltInRegistries.TRIGGER_TYPES.getKey(ModTrigger.FLATULENCE_FLY_HEIGHT),
+                id("flatulence_fly_height"), "Flatulence distance trigger registry ID changed");
         helper.assertValueEqual(
                 DefaultAttributes.getSupplier(ModEntities.SCARECROW).getBaseValue(Attributes.STEP_HEIGHT),
                 0.0, "Scarecrow-specific default attributes are not registered");
