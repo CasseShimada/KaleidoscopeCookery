@@ -187,6 +187,11 @@ def main() -> int:
         errors.append("MillstoneBlockEntity does not persist grinding progress each tick.")
     if "this.progress % 10 == 0) {\n                this.syncToClient();" not in millstone:
         errors.append("MillstoneBlockEntity does not retain its periodic client progress updates.")
+    stockpot = read(BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java")
+    if "private void setLidItem(ItemStack lidItem)" not in stockpot:
+        errors.append("StockpotBlockEntity still exposes direct lid item mutation.")
+    if "this.lidItem = lidItem.copyWithCount(1);\n        this.setChanged();" not in stockpot:
+        errors.append("StockpotBlockEntity does not own lid item copying and persistence.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

@@ -227,11 +227,11 @@ public class StockpotBlock extends HorizontalDirectionalBlock implements EntityB
         List<ItemStack> drops = new ArrayList<>(super.getDrops(state, lootParamsBuilder));
         BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (state.getValue(HAS_LID)) {
-            if (parameter instanceof StockpotBlockEntity stockpot && !stockpot.getLidItem().isEmpty()) {
-                drops.add(stockpot.getLidItem().copy());
-            } else {
-                drops.add(new ItemStack(ModItems.STOCKPOT_LID));
+            ItemStack lid = parameter instanceof StockpotBlockEntity stockpot ? stockpot.getLidItem() : ItemStack.EMPTY;
+            if (lid.isEmpty()) {
+                lid = new ItemStack(ModItems.STOCKPOT_LID);
             }
+            drops.add(lid);
         }
         if (parameter instanceof StockpotBlockEntity stockpotBlock && stockpotBlock.getStatus() == StockpotBlockEntity.PUT_INGREDIENT) {
             stockpotBlock.getInputs().forEach(stack -> {

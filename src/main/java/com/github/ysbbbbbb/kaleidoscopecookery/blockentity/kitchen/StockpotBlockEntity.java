@@ -314,7 +314,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         // 第一种情况，放上盖子
         if (!hasLid && stack.is(ModItems.STOCKPOT_LID)) {
             this.setLidItem(user.hasInfiniteMaterials() ? stack.copyWithCount(1) : stack.split(1));
-            this.setChanged();
             level.setBlockAndUpdate(worldPosition, blockState.setValue(StockpotBlock.HAS_LID, true));
             user.playSound(SoundEvents.LANTERN_PLACE, 0.5F, 0.5F);
             ModTrigger.EVENT.trigger(user, ModEventTriggerType.USE_LID_ON_STOCKPOT);
@@ -323,14 +322,16 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
 
         // 第二种情况，取下盖子
         if (hasLid) {
-            ItemStack lid = this.getLidItem().isEmpty() ? ModItems.STOCKPOT_LID.getDefaultInstance() : this.getLidItem().copy();
+            ItemStack lid = this.getLidItem();
+            if (lid.isEmpty()) {
+                lid = ModItems.STOCKPOT_LID.getDefaultInstance();
+            }
             this.setLidItem(ItemStack.EMPTY);
             if (stack.isEmpty()) {
                 user.setItemInHand(InteractionHand.MAIN_HAND, lid);
             } else {
                 BlockDrop.popResource(level, worldPosition, 0.5, lid);
             }
-            this.setChanged();
             level.setBlockAndUpdate(worldPosition, blockState.setValue(StockpotBlock.HAS_LID, false));
             user.playSound(SoundEvents.LANTERN_BREAK, 0.5F, 0.5F);
             return true;
@@ -684,10 +685,11 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     }
 
     public ItemStack getLidItem() {
-        return lidItem;
+        return this.lidItem.copy();
     }
 
-    public void setLidItem(ItemStack lidItem) {
-        this.lidItem = lidItem;
+    private void setLidItem(ItemStack lidItem) {
+        this.lidItem = lidItem.copyWithCount(1);
+        this.setChanged();
     }
 }
