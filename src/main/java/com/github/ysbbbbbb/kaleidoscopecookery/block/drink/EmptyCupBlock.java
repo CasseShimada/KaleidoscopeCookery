@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -76,16 +77,20 @@ public class EmptyCupBlock extends HorizontalDirectionalBlock {
             }
             int currentCount = state.getValue(CUP_COUNT);
             if (!level.isClientSide()) {
+                BlockState filledState = teacupBlock.defaultBlockState()
+                        .setValue(teacupBlock.getCupCountProperty(), Math.min(currentCount, teacupBlock.getMaxCount()))
+                        .setValue(teacupBlock.getTeaCountProperty(), 1)
+                        .setValue(FACING, state.getValue(FACING));
+                if (!level.setBlockAndUpdate(pos, filledState)) {
+                    return InteractionResult.FAIL;
+                }
                 if (currentCount > teacupBlock.getMaxCount()) {
                     ItemUtils.getItemToLivingEntity(player, new ItemStack(ModItems.EMPTY_CUP, currentCount - teacupBlock.getMaxCount()));
                 }
                 level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.0F);
                 TeapotItem.pourOut(itemInHand, level, player);
                 spawnPourParticles(level, pos);
-                level.setBlockAndUpdate(pos, teacupBlock.defaultBlockState()
-                        .setValue(teacupBlock.getCupCountProperty(), Math.min(currentCount, teacupBlock.getMaxCount()))
-                        .setValue(teacupBlock.getTeaCountProperty(), 1)
-                        .setValue(FACING, state.getValue(FACING)));
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
@@ -93,11 +98,14 @@ public class EmptyCupBlock extends HorizontalDirectionalBlock {
             int count = state.getValue(CUP_COUNT);
             if (count < MAX_COUNT) {
                 if (!level.isClientSide()) {
-                    level.setBlockAndUpdate(pos, state.setValue(CUP_COUNT, count + 1));
+                    if (!level.setBlockAndUpdate(pos, state.setValue(CUP_COUNT, count + 1))) {
+                        return InteractionResult.FAIL;
+                    }
                     level.playSound(null, pos, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
                     if (!player.hasInfiniteMaterials()) {
                         itemInHand.consume(1, player);
                     }
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
                 }
                 return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
             }
@@ -111,9 +119,14 @@ public class EmptyCupBlock extends HorizontalDirectionalBlock {
                                                        Player player, BlockHitResult hitResult) {
         int count = state.getValue(CUP_COUNT);
         if (!level.isClientSide()) {
+            BlockState updatedState = count == 1 ? Blocks.AIR.defaultBlockState() : state.setValue(CUP_COUNT, count - 1);
+            if (!level.setBlockAndUpdate(pos, updatedState)) {
+                return InteractionResult.FAIL;
+            }
             ItemUtils.getItemToLivingEntity(player, new ItemStack(ModItems.EMPTY_CUP));
-            level.setBlockAndUpdate(pos, count == 1 ? Blocks.AIR.defaultBlockState() : state.setValue(CUP_COUNT, count - 1));
             level.playSound(null, pos, state.getSoundType().getBreakSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.gameEvent(count == 1 ? GameEvent.BLOCK_DESTROY : GameEvent.BLOCK_CHANGE,
+                    pos, GameEvent.Context.of(player, state));
         }
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }

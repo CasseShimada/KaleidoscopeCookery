@@ -461,6 +461,20 @@ def main() -> int:
         if "itemInHand.shrink(" in drink_block_text:
             errors.append(f"{name} still manually shrinks cup stacks.")
 
+    for name, path, guarded_updates, block_changes, block_destroys in (
+        ("TeacupBlock", TEACUP_BLOCK, 5, 5, 2),
+        ("EmptyCupBlock", EMPTY_CUP_BLOCK, 3, 3, 1),
+    ):
+        drink_block_text = path.read_text(encoding="utf-8")
+        if drink_block_text.count("if (!level.setBlockAndUpdate(pos,") != guarded_updates:
+            errors.append(f"{name} does not guard every cup state update before moving items.")
+        if drink_block_text.count("GameEvent.BLOCK_CHANGE") != block_changes:
+            errors.append(f"{name} does not emit block-change game events for every retained cup update.")
+        if drink_block_text.count("GameEvent.BLOCK_DESTROY") != block_destroys:
+            errors.append(f"{name} does not emit block-destroy game events when the last cup is removed.")
+        if "GameEvent.Context.of(player, state)" not in drink_block_text:
+            errors.append(f"{name} game events do not include the interacting player and prior block state.")
+
     for name, path, consume_expression, expected_consumes, shrink_expression in (
         ("TableBlock", TABLE_BLOCK, "itemInHand.consume(1, player)", 3, "itemInHand.shrink("),
         ("ChairBlock", CHAIR_BLOCK, "itemInHand.consume(1, player)", 2, "itemInHand.shrink("),

@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -108,10 +109,13 @@ public class TeacupBlock extends HorizontalDirectionalBlock {
             int count = state.getValue(TEA_COUNT);
             if (count < state.getValue(CUP_COUNT)) {
                 if (!level.isClientSide()) {
-                    level.setBlockAndUpdate(pos, state.setValue(TEA_COUNT, count + 1));
+                    if (!level.setBlockAndUpdate(pos, state.setValue(TEA_COUNT, count + 1))) {
+                        return InteractionResult.FAIL;
+                    }
                     level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.0F);
                     TeapotItem.pourOut(itemInHand, level, player);
                     spawnPourParticles(level, pos);
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
                 }
                 return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
             }
@@ -121,11 +125,14 @@ public class TeacupBlock extends HorizontalDirectionalBlock {
             int count = state.getValue(CUP_COUNT);
             if (count < this.maxCount) {
                 if (!level.isClientSide()) {
-                    level.setBlockAndUpdate(pos, state.setValue(CUP_COUNT, count + 1));
+                    if (!level.setBlockAndUpdate(pos, state.setValue(CUP_COUNT, count + 1))) {
+                        return InteractionResult.FAIL;
+                    }
                     level.playSound(null, pos, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
                     if (!player.hasInfiniteMaterials()) {
                         itemInHand.consume(1, player);
                     }
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
                 }
                 return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
             }
@@ -139,13 +146,16 @@ public class TeacupBlock extends HorizontalDirectionalBlock {
             int teaCountNum = state.getValue(TEA_COUNT);
             if (cupCountNum < this.maxCount) {
                 if (!level.isClientSide()) {
-                    level.setBlockAndUpdate(pos, state
+                    if (!level.setBlockAndUpdate(pos, state
                             .setValue(CUP_COUNT, cupCountNum + 1)
-                            .setValue(TEA_COUNT, teaCountNum + 1));
+                            .setValue(TEA_COUNT, teaCountNum + 1))) {
+                        return InteractionResult.FAIL;
+                    }
                     level.playSound(null, pos, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
                     if (!player.hasInfiniteMaterials()) {
                         itemInHand.consume(1, player);
                     }
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
                 }
                 return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
             }
@@ -162,17 +172,30 @@ public class TeacupBlock extends HorizontalDirectionalBlock {
         int emptyCountNum = cupCountNum - teaCountNum;
         if (emptyCountNum > 0) {
             if (!level.isClientSide()) {
+                BlockState updatedState = cupCountNum == 1
+                        ? Blocks.AIR.defaultBlockState()
+                        : state.setValue(CUP_COUNT, cupCountNum - 1);
+                if (!level.setBlockAndUpdate(pos, updatedState)) {
+                    return InteractionResult.FAIL;
+                }
                 ItemUtils.getItemToLivingEntity(player, new ItemStack(ModItems.EMPTY_CUP));
-                level.setBlockAndUpdate(pos, cupCountNum == 1 ? Blocks.AIR.defaultBlockState() : state.setValue(CUP_COUNT, cupCountNum - 1));
                 level.playSound(null, pos, state.getSoundType().getBreakSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
+                level.gameEvent(cupCountNum == 1 ? GameEvent.BLOCK_DESTROY : GameEvent.BLOCK_CHANGE,
+                        pos, GameEvent.Context.of(player, state));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
         if (!level.isClientSide()) {
+            BlockState updatedState = cupCountNum == 1
+                    ? Blocks.AIR.defaultBlockState()
+                    : state.setValue(TEA_COUNT, teaCountNum - 1).setValue(CUP_COUNT, cupCountNum - 1);
+            if (!level.setBlockAndUpdate(pos, updatedState)) {
+                return InteractionResult.FAIL;
+            }
             ItemUtils.getItemToLivingEntity(player, new ItemStack(this));
-            level.setBlockAndUpdate(pos, cupCountNum == 1 ? Blocks.AIR.defaultBlockState()
-                    : state.setValue(TEA_COUNT, teaCountNum - 1).setValue(CUP_COUNT, cupCountNum - 1));
             level.playSound(null, pos, state.getSoundType().getBreakSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.gameEvent(cupCountNum == 1 ? GameEvent.BLOCK_DESTROY : GameEvent.BLOCK_CHANGE,
+                    pos, GameEvent.Context.of(player, state));
         }
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
