@@ -494,6 +494,10 @@ def main() -> int:
         errors.append("EnamelBasinBlock does not use vanilla ItemStack.consume() for bulk oil insertion.")
     if "mainHandItem.shrink(" in enamel_basin_text:
         errors.append("EnamelBasinBlock still manually shrinks inserted oil stacks.")
+    if enamel_basin_text.count("GameEvent.BLOCK_CHANGE") != 5:
+        errors.append("EnamelBasinBlock does not emit a block-change game event for every stateful interaction.")
+    if "GameEvent.Context.of(player, state)" not in enamel_basin_text:
+        errors.append("EnamelBasinBlock game events do not include the interacting player and prior block state.")
 
     recipe_block_text = RECIPE_BLOCK.read_text(encoding="utf-8")
     for required_reference in (

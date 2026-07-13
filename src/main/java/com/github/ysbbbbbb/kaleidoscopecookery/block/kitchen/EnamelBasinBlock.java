@@ -33,6 +33,7 @@ import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -96,6 +97,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             if (!level.isClientSide()) {
                 level.playSound(null, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
                 level.setBlockAndUpdate(pos, state.setValue(HAS_LID, false));
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
@@ -104,6 +106,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             if (!level.isClientSide()) {
                 level.playSound(null, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, 0.4f);
                 level.setBlockAndUpdate(pos, state.setValue(HAS_LID, true));
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
@@ -121,6 +124,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
                 level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
                 mainHandItem.consume(consumeCount, player);
                 level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value + consumeCount));
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
@@ -146,6 +150,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
                 level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
                 KitchenShovelItem.setHasOil(mainHandItem, false);
                 level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value + 1));
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
@@ -163,6 +168,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 1.2F);
             KitchenShovelItem.setHasOil(mainHandItem, true);
             level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value - 1));
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
         }
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
