@@ -140,7 +140,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
                     particleCount, 0, 0, 0, 0.05);
         }
         if (currentTick == 0) {
-            this.reset();
+            if (!this.reset(level)) {
+                return;
+            }
             level.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1F,
                     (random.nextFloat() - random.nextFloat()) * 0.8F);
             if (level instanceof ServerLevel serverLevel) {
@@ -208,7 +210,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         if (currentTick == 0) {
             if (this.isEmpty()) {
                 // 清空
-                this.reset();
+                if (!this.reset(level)) {
+                    return;
+                }
                 level.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1F,
                         (random.nextFloat() - random.nextFloat()) * 0.8F);
                 if (this.level instanceof ServerLevel serverLevel) {
@@ -383,11 +387,13 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
         // 迷之炒菜盖饭特判逻辑
         if (finallyResult.is(getItem(SUSPICIOUS_STIR_FRY)) && stack.is(TagCommon.COOKED_RICE)) {
+            if (!this.reset(level, user)) {
+                return false;
+            }
             if (!user.hasInfiniteMaterials()) {
                 stack.consume(1, user);
             }
             ItemUtils.getItemToLivingEntity(user, ModItems.SUSPICIOUS_STIR_FRY_RICE_BOWL.getDefaultInstance());
-            this.reset();
             return true;
         }
 
@@ -401,8 +407,10 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             if (user instanceof Player player && !player.isSecondaryUseActive()) {
                 return false;
             }
+            if (!this.reset(level, user)) {
+                return false;
+            }
             ItemUtils.getItemToLivingEntity(user, finallyResult);
-            this.reset();
             return true;
         } else {
             if (this.hasHeatSource(level) && level instanceof ServerLevel serverLevel) {
@@ -421,11 +429,13 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
                 this.sendActionBarMessage(user, "carrier_count_not_enough", finallyResult.getCount(), carrierName);
                 return false;
             } else {
+                if (!this.reset(level, user)) {
+                    return false;
+                }
                 if (!user.hasInfiniteMaterials()) {
                     mainHandItem.consume(finallyResult.getCount(), user);
                 }
                 ItemUtils.getItemToLivingEntity(user, finallyResult);
-                this.reset();
                 return true;
             }
         }
@@ -520,18 +530,33 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         return false;
     }
 
-    public void reset() {
+    private boolean reset(Level level) {
+        return this.reset(level, null);
+    }
+
+    private boolean reset(Level level, LivingEntity user) {
+        BlockState state = level.getBlockState(worldPosition);
+        if (!state.hasProperty(HAS_OIL) || !state.hasProperty(SHOW_OIL)) {
+            return false;
+        }
+        if (state.getValue(HAS_OIL) || state.getValue(SHOW_OIL)) {
+            BlockState resetState = state.setValue(HAS_OIL, false).setValue(SHOW_OIL, false);
+            if (!level.setBlockAndUpdate(worldPosition, resetState)) {
+                return false;
+            }
+            GameEvent.Context context = user == null
+                    ? GameEvent.Context.of(state)
+                    : GameEvent.Context.of(user, state);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, context);
+        }
         this.inputs = NonNullList.withSize(PotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
         this.carrier = Optional.empty();
         this.result = ItemStack.EMPTY;
         this.status = PUT_INGREDIENT;
         this.currentTick = 0;
         this.stirFryCount = 0;
-        this.setChanged();
-        if (level != null) {
-            BlockState state = level.getBlockState(worldPosition);
-            level.setBlockAndUpdate(worldPosition, state.setValue(HAS_OIL, false).setValue(SHOW_OIL, false));
-        }
+        this.setChangedAndSync();
+        return true;
     }
 
     @Override

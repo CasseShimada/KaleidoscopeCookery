@@ -210,6 +210,24 @@ def main() -> int:
     tick_finished = pot_block_entity[tick_finished_start:tick_finished_end]
     if "this.setChangedAndSync()" not in tick_finished:
         errors.append("PotBlockEntity does not immediately synchronize the finished-to-burnt transition.")
+    reset_start = pot_block_entity.find("private boolean reset(Level level, LivingEntity user)")
+    reset_end = pot_block_entity.find("protected void saveAdditional(", reset_start)
+    reset_method = pot_block_entity[reset_start:reset_end]
+    reset_state_update = "level.setBlockAndUpdate(worldPosition, resetState)"
+    if reset_start < 0 or reset_state_update not in reset_method:
+        errors.append("PotBlockEntity reset does not confirm the block-state update.")
+    if reset_method.find(reset_state_update) > reset_method.find("this.inputs ="):
+        errors.append("PotBlockEntity clears its contents before confirming the block-state reset.")
+    for required_reference in ("this.setChangedAndSync()", "GameEvent.BLOCK_CHANGE", "GameEvent.Context.of(user, state)"):
+        if required_reference not in reset_method:
+            errors.append(f"PotBlockEntity transactional reset is missing {required_reference}.")
+    takeout_start = pot_block_entity.find("public boolean takeOutProduct(")
+    takeout_end = pot_block_entity.find("private void sendActionBarMessage(", takeout_start)
+    takeout_methods = pot_block_entity[takeout_start:takeout_end]
+    if takeout_methods.count("if (!this.reset(level, user))") != 3:
+        errors.append("PotBlockEntity does not confirm reset before every product-delivery path.")
+    if "this.reset();" in pot_block_entity or "public void reset()" in pot_block_entity:
+        errors.append("PotBlockEntity still exposes or uses the non-transactional reset method.")
     pot_renderer = POT_RENDERER.read_text(encoding="utf-8")
     if "new WeakHashMap<>()" not in pot_renderer or "computeIfAbsent(pot" not in pot_renderer:
         errors.append("Pot renderer does not own weakly keyed per-block animation state.")
