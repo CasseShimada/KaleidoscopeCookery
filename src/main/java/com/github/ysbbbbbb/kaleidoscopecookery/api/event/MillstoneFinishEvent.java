@@ -4,7 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBloc
 import net.minecraft.world.entity.Mob;
 import org.jetbrains.annotations.Nullable;
 
-public class MillstoneFinishEvent extends ActionEvent {
+public class MillstoneFinishEvent {
     private final MillstoneBlockEntity millstone;
     private final @Nullable Mob bindEntity;
 

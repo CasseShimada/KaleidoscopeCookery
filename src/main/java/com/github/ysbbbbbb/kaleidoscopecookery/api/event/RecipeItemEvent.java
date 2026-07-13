@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 /**
  * 当菜谱进行物品放入时触发
  */
-public abstract class RecipeItemEvent extends ActionEvent {
+public abstract class RecipeItemEvent {
     private final ItemStack stack;
 
     public RecipeItemEvent(ItemStack stack) {

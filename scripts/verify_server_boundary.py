@@ -205,9 +205,15 @@ def main() -> int:
         if path.exists():
             errors.append(f"Unwired legacy event still exists: {path.relative_to(ROOT)}")
 
-    action_event_text = (SRC / "api/event/ActionEvent.java").read_text(encoding="utf-8")
-    if "isCanceled" in action_event_text:
-        errors.append("ActionEvent still stores legacy mutable cancellation state.")
+    action_event_path = SRC / "api/event/ActionEvent.java"
+    if action_event_path.exists():
+        errors.append("Legacy event-bus-style ActionEvent base class still exists.")
+    for event_path in (
+        SRC / "api/event/MillstoneFinishEvent.java",
+        SRC / "api/event/RecipeItemEvent.java",
+    ):
+        if "extends ActionEvent" in event_path.read_text(encoding="utf-8"):
+            errors.append(f"{event_path.name} still extends the legacy ActionEvent base class.")
 
     satiated_shield_text = (SRC / "event/server/effect/SatiatedShieldEvent.java").read_text(encoding="utf-8")
     for required_reference in (
