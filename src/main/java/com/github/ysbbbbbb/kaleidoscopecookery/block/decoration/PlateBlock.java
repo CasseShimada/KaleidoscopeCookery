@@ -108,7 +108,7 @@ public class PlateBlock extends HorizontalDirectionalBlock {
         if (!stack.isEmpty() && count < this.maxCount && canRefill(stack)) {
             if (!level.isClientSide()) {
                 if (!player.hasInfiniteMaterials()) {
-                    stack.shrink(1);
+                    stack.consume(1, player);
                 }
                 level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
                 level.setBlockAndUpdate(pos, state.setValue(servings, count + 1));

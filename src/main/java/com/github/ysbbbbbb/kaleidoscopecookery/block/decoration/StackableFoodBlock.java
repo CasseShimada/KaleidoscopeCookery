@@ -104,7 +104,7 @@ public class StackableFoodBlock extends HorizontalDirectionalBlock {
                     (soundType.getVolume() + 1.0F) / 2.0F,
                     soundType.getPitch() * 0.8F);
             if (!player.hasInfiniteMaterials()) {
-                stack.shrink(1);
+                stack.consume(1, player);
             }
         }
         return InteractionResult.SUCCESS;

@@ -108,7 +108,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
                 ItemStack split = itemInHand.copyWithCount(1);
                 if (table.addItem(split)) {
                     if (!player.hasInfiniteMaterials()) {
-                        itemInHand.shrink(1);
+                        itemInHand.consume(1, player);
                     }
                     level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
                 }
@@ -142,7 +142,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
                 level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
                 tableBlockEntity.setColor(dyeColor);
                 if (!player.hasInfiniteMaterials()) {
-                    itemInHand.shrink(1);
+                    itemInHand.consume(1, player);
                 }
                 return InteractionResult.CONSUME;
             }
@@ -162,7 +162,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             tableBlockEntity.setColor(dyeColor);
             level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true));
             if (!player.hasInfiniteMaterials()) {
-                itemInHand.shrink(1);
+                itemInHand.consume(1, player);
             }
             return InteractionResult.CONSUME;
         }

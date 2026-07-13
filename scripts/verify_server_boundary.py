@@ -100,6 +100,10 @@ TEAPOT_BLOCK_ENTITY = SRC / "blockentity/kitchen/TeapotBlockEntity.java"
 TEAPOT_RENDERER = CLIENT_SRC / "client/render/block/TeapotBlockEntityRender.java"
 TEACUP_BLOCK = SRC / "block/drink/TeacupBlock.java"
 EMPTY_CUP_BLOCK = SRC / "block/drink/EmptyCupBlock.java"
+TABLE_BLOCK = SRC / "block/decoration/TableBlock.java"
+CHAIR_BLOCK = SRC / "block/decoration/ChairBlock.java"
+PLATE_BLOCK = SRC / "block/decoration/PlateBlock.java"
+STACKABLE_FOOD_BLOCK = SRC / "block/decoration/StackableFoodBlock.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
 TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
 TRASH_CAN_RENDERER = CLIENT_SRC / "client/render/block/TrashCanBlockEntityRender.java"
@@ -451,6 +455,18 @@ def main() -> int:
             errors.append(f"{name} does not use vanilla ItemStack.consume() for cup stacking.")
         if "itemInHand.shrink(" in drink_block_text:
             errors.append(f"{name} still manually shrinks cup stacks.")
+
+    for name, path, consume_expression, expected_consumes, shrink_expression in (
+        ("TableBlock", TABLE_BLOCK, "itemInHand.consume(1, player)", 3, "itemInHand.shrink("),
+        ("ChairBlock", CHAIR_BLOCK, "itemInHand.consume(1, player)", 2, "itemInHand.shrink("),
+        ("PlateBlock", PLATE_BLOCK, "stack.consume(1, player)", 1, "stack.shrink("),
+        ("StackableFoodBlock", STACKABLE_FOOD_BLOCK, "stack.consume(1, player)", 1, "stack.shrink("),
+    ):
+        decoration_block_text = path.read_text(encoding="utf-8")
+        if decoration_block_text.count(consume_expression) < expected_consumes:
+            errors.append(f"{name} does not use vanilla ItemStack.consume() for player item consumption.")
+        if shrink_expression in decoration_block_text:
+            errors.append(f"{name} still manually shrinks player item stacks.")
 
     recipe_block_text = RECIPE_BLOCK.read_text(encoding="utf-8")
     for required_reference in (
