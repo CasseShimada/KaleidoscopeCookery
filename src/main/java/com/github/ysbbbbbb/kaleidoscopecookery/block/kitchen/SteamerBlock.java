@@ -35,6 +35,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
@@ -188,10 +189,14 @@ public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWat
     protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         boolean hasLid = state.getValue(HAS_LID);
         if (player.isSecondaryUseActive() && (hasLid || !level.getBlockState(pos.above()).is(this))) {
-            if (!level.isClientSide()) {
-                level.setBlock(pos, state.setValue(HAS_LID, !hasLid), Block.UPDATE_ALL);
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
             }
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+            if (!level.setBlockAndUpdate(pos, state.setValue(HAS_LID, !hasLid))) {
+                return InteractionResult.FAIL;
+            }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            return InteractionResult.CONSUME;
         }
 
         if (!(level.getBlockEntity(pos) instanceof ISteamer steamer)) {

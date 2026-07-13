@@ -218,6 +218,11 @@ def main() -> int:
         errors.append("SteamerBlockEntity still reprocesses completed cooking slots.")
     if "Block.UPDATE_ALL" in steamer:
         errors.append("SteamerBlockEntity still broadcasts neighbor updates for inventory changes.")
+    steamer_block = read(BLOCK_ROOT / "kitchen/SteamerBlock.java")
+    if "if (!level.setBlockAndUpdate(pos, state.setValue(HAS_LID, !hasLid)))" not in steamer_block:
+        errors.append("SteamerBlock does not confirm lid state changes.")
+    if "level.gameEvent(GameEvent.BLOCK_CHANGE, pos" not in steamer_block:
+        errors.append("SteamerBlock does not emit block-change events for lid interactions.")
     trash_can = read(BLOCK_ENTITY_ROOT / "misc/TrashCanBlockEntity.java")
     if "if (!(level instanceof ServerLevel serverLevel) || !(entity instanceof ItemEntity itemEntity))" not in trash_can:
         errors.append("TrashCanBlockEntity still mutates absorbed item entities on the client.")
