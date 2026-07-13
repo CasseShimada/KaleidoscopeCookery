@@ -371,11 +371,14 @@ def validate_millstone_datamap() -> tuple[list[str], int]:
 
 def validate_millstone_datamap_reloader() -> list[str]:
     errors: list[str] = []
+    data_type = strip_comments(read(JAVA_ROOT / "datamap/MillstoneBindableData.java"))
     listener = strip_comments(read(
         JAVA_ROOT / "datamap/resources/MillstoneBindableDataReloadListener.java"
     ))
     common_registry = strip_comments(read(JAVA_ROOT / "init/registry/CommonRegistry.java"))
 
+    if 'Codec.intRange(1, Integer.MAX_VALUE).fieldOf("rot_speed_tick")' not in data_type:
+        errors.append("Millstone bindable data codec does not reject non-positive rotation speeds.")
     if "extends SimplePreparableReloadListener<Map<EntityType<?>, MillstoneBindableData>>" not in listener:
         errors.append("Millstone datamap does not use the vanilla prepare/apply reload lifecycle.")
     if not re.search(r"static\s+volatile\s+Map<EntityType<\?>,\s*MillstoneBindableData>\s+data", listener):
