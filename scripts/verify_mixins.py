@@ -224,6 +224,11 @@ def validate_mixin_config() -> tuple[list[str], int, int]:
                     errors.append(f"{path.relative_to(ROOT)} common mixin contains client-only reference: {pattern.pattern}")
         if name in client_mixins and not path.relative_to(CLIENT_MIXIN_ROOT).as_posix().startswith("client/"):
             errors.append(f"{path.relative_to(ROOT)} is a client mixin but is not under mixin/client/.")
+        if name == "MobBucketItemMixin":
+            if "BlockPos.betweenClosed(" not in text:
+                errors.append("MobBucketItemMixin does not use a fixed vanilla block scan.")
+            if "mutable.offset(" in text:
+                errors.append("MobBucketItemMixin retains a cumulatively mutated scan position.")
 
     return errors, len(common_mixins), len(client_mixins)
 

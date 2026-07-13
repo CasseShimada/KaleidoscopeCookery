@@ -23,6 +23,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SimpleSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.effect.WarmthEffect;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
@@ -71,6 +72,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
@@ -656,6 +658,23 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertFalse(damaged, "Satiated shield did not cancel the original damage call");
         helper.assertValueEqual(player.getHealth(), initialHealth - 2.0F,
                 "Damage beyond the available hunger shield was not preserved");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void warmthEffectFindsHeatSourcesAtScanBoundary(GameTestHelper helper) {
+        BlockPos playerPos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, playerPos);
+        player.setHealth(player.getMaxHealth() - 2.0F);
+        helper.setBlock(playerPos.offset(2, 1, 2),
+                Blocks.FURNACE.defaultBlockState().setValue(BlockStateProperties.LIT, true));
+
+        float initialHealth = player.getHealth();
+        ((WarmthEffect) ModEffects.WARMTH.value()).applyEffectTick(helper.getLevel(), player, 0);
+
+        helper.assertValueEqual(player.getHealth(), initialHealth + 1.0F,
+                "Warmth effect did not find a lit block at the scan boundary");
         helper.succeed();
     }
 

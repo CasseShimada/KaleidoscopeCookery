@@ -28,12 +28,10 @@ public class MobBucketItemMixin {
     }
 
     private static boolean hasRiceCropNear(Level level, BlockPos pos) {
-        BlockPos.MutableBlockPos mutable = pos.mutable();
-        for (int x = -1; x <= 1; x++) {
-            for (int z = -1; z <= 1; z++) {
-                if (level.getBlockState(mutable.offset(x, 0, z)).is(ModBlocks.RICE_CROP)) {
-                    return true;
-                }
+        for (BlockPos candidate : BlockPos.betweenClosed(
+                pos.offset(-1, 0, -1), pos.offset(1, 0, 1))) {
+            if (level.getBlockState(candidate).is(ModBlocks.RICE_CROP)) {
+                return true;
             }
         }
         return false;

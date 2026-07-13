@@ -84,6 +84,7 @@ HINDER_EFFECT_EVENT = SRC / "event/server/effect/HinderEffectEvent.java"
 VITALITY_EFFECT_EVENT = SRC / "event/server/effect/VitalityEffectEvent.java"
 PROJECTILE_DODGE_HANDLER = SRC / "event/server/effect/ProjectileDodgeHandler.java"
 PROJECTILE_MIXIN = SRC / "mixin/ProjectileMixin.java"
+WARMTH_EFFECT = SRC / "effect/WarmthEffect.java"
 LEGACY_NEW_EFFECT_EVENTS = SRC / "event/server/effect/NewEffectEvents.java"
 WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
 CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeedEvent.java"
@@ -459,6 +460,12 @@ def main() -> int:
             errors.append("Projectile mixin still injects the overridable onHitEntity method.")
     if "ProjectileMixin" not in mixin_data.get("mixins", []):
         errors.append("ProjectileMixin is not registered as a common mixin.")
+
+    warmth_effect_text = WARMTH_EFFECT.read_text(encoding="utf-8")
+    if "BlockPos.betweenClosed(" not in warmth_effect_text:
+        errors.append("WarmthEffect does not use a fixed vanilla block scan.")
+    if "mutable.offset(" in warmth_effect_text:
+        errors.append("WarmthEffect retains a cumulatively mutated scan position.")
 
     if WET_FIELD_HOE_EVENT.exists():
         wet_field_text = WET_FIELD_HOE_EVENT.read_text(encoding="utf-8")

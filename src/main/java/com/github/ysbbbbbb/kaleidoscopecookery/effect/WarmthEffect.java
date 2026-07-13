@@ -25,18 +25,15 @@ public class WarmthEffect extends CookeryEffect {
             return true;
         }
         // 当玩家周围 5x5x3 范围内有热源时，恢复玩家生命值
-        BlockPos.MutableBlockPos mutable = livingEntity.blockPosition().mutable();
-        for (int x = -2; x <= 2; x++) {
-            for (int y = -1; y <= 1; y++) {
-                for (int z = -2; z <= 2; z++) {
-                    BlockState blockState = level.getBlockState(mutable.offset(x, y, z));
-                    boolean hasLit = blockState.hasProperty(BlockStateProperties.LIT) && blockState.getValue(BlockStateProperties.LIT);
-                    if (hasLit || blockState.is(TagMod.WARMTH_HEAT_SOURCE_BLOCKS)) {
-                        livingEntity.heal(1);
-                        // 找到热源后立即返回，避免重复恢复
-                        return true;
-                    }
-                }
+        BlockPos center = livingEntity.blockPosition();
+        for (BlockPos candidate : BlockPos.betweenClosed(
+                center.offset(-2, -1, -2), center.offset(2, 1, 2))) {
+            BlockState blockState = level.getBlockState(candidate);
+            boolean hasLit = blockState.hasProperty(BlockStateProperties.LIT) && blockState.getValue(BlockStateProperties.LIT);
+            if (hasLit || blockState.is(TagMod.WARMTH_HEAT_SOURCE_BLOCKS)) {
+                livingEntity.heal(1);
+                // 找到热源后立即返回，避免重复恢复
+                return true;
             }
         }
         // 如果玩家在下界，那么缓慢恢复
