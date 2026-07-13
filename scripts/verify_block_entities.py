@@ -21,6 +21,7 @@ BLOCK_ROOT = JAVA_ROOT / "block"
 BASE_BLOCK_ENTITY = BLOCK_ENTITY_ROOT / "BaseBlockEntity.java"
 
 EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
+    BLOCK_ENTITY_ROOT / "decoration/OilPotBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java",
@@ -133,6 +134,9 @@ def main() -> int:
             errors.append(f"{path.name} still uses the legacy combined refresh path.")
         if "this.setChangedAndSync();" not in block_entity_text:
             errors.append(f"{path.name} does not use the explicit dirty-and-client-sync path.")
+    oil_pot_block_entity = read(BLOCK_ENTITY_ROOT / "decoration/OilPotBlockEntity.java")
+    if "updateNeighbourForOutputSignal" not in oil_pot_block_entity:
+        errors.append("OilPotBlockEntity does not notify comparators after oil count changes.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

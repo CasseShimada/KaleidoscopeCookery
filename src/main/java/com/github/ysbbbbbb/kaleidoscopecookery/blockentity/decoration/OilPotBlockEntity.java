@@ -49,9 +49,9 @@ public class OilPotBlockEntity extends BaseBlockEntity {
 
     public void setOilCount(int count) {
         this.oilCount = Mth.clamp(count, 0, MAX_OIL_COUNT);
-        this.refresh();
+        this.setChangedAndSync();
 
-        if (this.level == null) {
+        if (this.level == null || this.level.isClientSide()) {
             return;
         }
 
@@ -61,5 +61,6 @@ public class OilPotBlockEntity extends BaseBlockEntity {
         if (hasOil != shouldHaveOil) {
             this.level.setBlock(this.worldPosition, state.setValue(OilPotBlock.HAS_OIL, shouldHaveOil), Block.UPDATE_ALL);
         }
+        this.level.updateNeighbourForOutputSignal(this.worldPosition, state.getBlock());
     }
 }
