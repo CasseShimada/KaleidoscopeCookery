@@ -49,6 +49,7 @@ FORBIDDEN_PATHS = (
     ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery/client/event/ModModelEvent.java",
     ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/init/ModPredicateRegistry.java",
     ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/util/RecipeMatcher.java",
+    ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/datagen/tag/TagItem.java",
     ROOT / ".github/workflows/gradle-publish-1.21.1.yml",
 )
 
