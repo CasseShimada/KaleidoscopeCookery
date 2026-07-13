@@ -198,6 +198,16 @@ def main() -> int:
     oil_pot_block_entity = read(BLOCK_ENTITY_ROOT / "decoration/OilPotBlockEntity.java")
     if "updateNeighbourForOutputSignal" not in oil_pot_block_entity:
         errors.append("OilPotBlockEntity does not notify comparators after oil count changes.")
+    if "public boolean setOilCount(" not in oil_pot_block_entity:
+        errors.append("OilPotBlockEntity oil mutations do not report whether the world-state update succeeded.")
+    oil_pot_load = oil_pot_block_entity.split("public void loadAdditional", 1)[-1].split("public int getOilCount", 1)[0]
+    if "setBlock(" in oil_pot_load:
+        errors.append("OilPotBlockEntity mutates the world while loading serialized data.")
+    oil_pot_block = read(BLOCK_ROOT / "kitchen/OilPotBlock.java")
+    if "if (oilPot.setOilCount(currentOilCount + addOilCount))" not in oil_pot_block:
+        errors.append("OilPotBlock consumes oil without confirming the storage mutation.")
+    if "if (oilPot.setOilCount(currentOilCount - takeCount))" not in oil_pot_block:
+        errors.append("OilPotBlock gives oil before confirming the storage mutation.")
     transmutation_lunch_bag = read(JAVA_ROOT / "item/TransmutationLunchBagItem.java")
     if "ItemStackContainer.wrap(fruitBasket.getItems())" in transmutation_lunch_bag:
         errors.append("TransmutationLunchBagItem still mutates the fruit basket inventory directly.")

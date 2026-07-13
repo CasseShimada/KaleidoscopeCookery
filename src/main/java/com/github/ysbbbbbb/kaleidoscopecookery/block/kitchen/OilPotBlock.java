@@ -179,11 +179,12 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
         }
         if (!level.isClientSide()) {
             int addOilCount = Math.min(needOilCount, stack.getCount());
-            oilPot.setOilCount(currentOilCount + addOilCount);
-            stack.consume(addOilCount, player);
-            level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
-                    0.4F + level.getRandom().nextFloat() * 0.2F);
-            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            if (oilPot.setOilCount(currentOilCount + addOilCount)) {
+                stack.consume(addOilCount, player);
+                level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
+                        0.4F + level.getRandom().nextFloat() * 0.2F);
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            }
         }
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }
@@ -205,11 +206,12 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
         }
         if (!level.isClientSide()) {
             int takeCount = Math.min(currentOilCount, 64);
-            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount));
-            oilPot.setOilCount(currentOilCount - takeCount);
-            level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
-                    0.8F + level.getRandom().nextFloat() * 0.2F);
-            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            if (oilPot.setOilCount(currentOilCount - takeCount)) {
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount));
+                level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
+                        0.8F + level.getRandom().nextFloat() * 0.2F);
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            }
         }
         return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
     }

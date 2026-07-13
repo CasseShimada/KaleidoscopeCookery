@@ -34,33 +34,36 @@ public class OilPotBlockEntity extends BaseBlockEntity {
         super.loadAdditional(input);
         int loaded = input.read(OIL_COUNT, Codec.INT).orElse(0);
         this.oilCount = Mth.clamp(loaded, 0, MAX_OIL_COUNT);
-        if (this.level != null) {
-            BlockState state = this.getBlockState();
-            boolean shouldHaveOil = this.oilCount > 0;
-            if (state.getValue(OilPotBlock.HAS_OIL) != shouldHaveOil) {
-                this.level.setBlock(this.worldPosition, state.setValue(OilPotBlock.HAS_OIL, shouldHaveOil), Block.UPDATE_ALL);
-            }
-        }
     }
 
     public int getOilCount() {
         return oilCount;
     }
 
-    public void setOilCount(int count) {
-        this.oilCount = Mth.clamp(count, 0, MAX_OIL_COUNT);
-        this.setChangedAndSync();
-
+    public boolean setOilCount(int count) {
         if (this.level == null || this.level.isClientSide()) {
-            return;
+            return false;
         }
 
-        BlockState state = this.getBlockState();
-        boolean hasOil = state.getValue(OilPotBlock.HAS_OIL);
-        boolean shouldHaveOil = this.oilCount > 0;
-        if (hasOil != shouldHaveOil) {
-            this.level.setBlock(this.worldPosition, state.setValue(OilPotBlock.HAS_OIL, shouldHaveOil), Block.UPDATE_ALL);
+        int updatedCount = Mth.clamp(count, 0, MAX_OIL_COUNT);
+        BlockState state = this.level.getBlockState(this.worldPosition);
+        if (!state.hasProperty(OilPotBlock.HAS_OIL)) {
+            return false;
         }
+
+        boolean shouldHaveOil = updatedCount > 0;
+        if (state.getValue(OilPotBlock.HAS_OIL) != shouldHaveOil
+                && !this.level.setBlock(this.worldPosition, state.setValue(OilPotBlock.HAS_OIL, shouldHaveOil), Block.UPDATE_ALL)) {
+            return false;
+        }
+
+        if (this.oilCount == updatedCount) {
+            return true;
+        }
+
+        this.oilCount = updatedCount;
+        this.setChangedAndSync();
         this.level.updateNeighbourForOutputSignal(this.worldPosition, state.getBlock());
+        return true;
     }
 }

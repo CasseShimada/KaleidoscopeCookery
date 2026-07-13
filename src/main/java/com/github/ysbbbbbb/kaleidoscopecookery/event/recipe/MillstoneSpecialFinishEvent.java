@@ -69,8 +69,8 @@ public final class MillstoneSpecialFinishEvent {
         }
         // 不足 8 个时，概率产出
         RandomSource random = level.getRandom();
-        if (random.nextInt(8) < output.getCount()) {
-            oilPot.setOilCount(oilCount + 1);
+        if (random.nextInt(8) < output.getCount() && !oilPot.setOilCount(oilCount + 1)) {
+            return;
         }
         millstone.resetWhenTakeout();
     }
