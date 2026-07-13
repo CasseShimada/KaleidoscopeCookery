@@ -28,6 +28,9 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class TrashCanBlockEntity extends BaseBlockEntity {
+    public static final int EVENT_PUT = 1;
+    public static final int EVENT_WITHDRAW = 2;
+    public static final int EVENT_ENTER = 3;
     private static final String STORAGE = "Storage";
     private final SimpleContainer storage = new SimpleContainer(3);
 
@@ -71,7 +74,7 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
     }
 
     public void entityInside(Level level, BlockPos pos, Entity entity) {
-        if (!(entity instanceof ItemEntity itemEntity)) {
+        if (!(level instanceof ServerLevel serverLevel) || !(entity instanceof ItemEntity itemEntity)) {
             return;
         }
         AABB entityBox = entity.getBoundingBox().move(-pos.getX(), -pos.getY(), -pos.getZ());
@@ -82,10 +85,8 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
         if (!absorbMatchingItem(itemEntity.getItem())) {
             return;
         }
-        if (level instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.CLOUD, entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(),
-                    1, 0.1, 0.1, 0.1, 0.01);
-        }
+        serverLevel.sendParticles(ParticleTypes.CLOUD, entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(),
+                1, 0.1, 0.1, 0.1, 0.01);
         if (itemEntity.getItem().isEmpty()) {
             entity.discard();
         }
@@ -101,9 +102,9 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
         }
         playActionEffects(SoundEvents.BARREL_OPEN, 0.5F);
         if (level != null) {
-            this.putState.start((int) level.getGameTime());
+            level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_PUT, 0);
         }
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     private int storeItem(ItemStack stack) {
@@ -133,9 +134,9 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
                 this.storage.setItem(i, ItemStack.EMPTY);
                 playActionEffects(SoundEvents.BARREL_CLOSE, 0.8F);
                 if (level != null) {
-                    this.withdrawState.start((int) level.getGameTime());
+                    level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_WITHDRAW, 0);
                 }
-                this.refresh();
+                this.setChangedAndSync();
                 return;
             }
         }
@@ -179,7 +180,7 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
                     return false;
                 }
                 itemStack.shrink(inserted);
-                this.refresh();
+                this.setChangedAndSync();
                 return true;
             }
         }
@@ -215,5 +216,22 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
             }
         }
         return items;
+    }
+
+    @Override
+    public boolean triggerEvent(int id, int type) {
+        if (this.level == null) {
+            return false;
+        }
+        int tick = (int) this.level.getGameTime();
+        switch (id) {
+            case EVENT_PUT -> this.putState.start(tick);
+            case EVENT_WITHDRAW -> this.withdrawState.start(tick);
+            case EVENT_ENTER -> this.enterState.start(tick);
+            default -> {
+                return super.triggerEvent(id, type);
+            }
+        }
+        return true;
     }
 }

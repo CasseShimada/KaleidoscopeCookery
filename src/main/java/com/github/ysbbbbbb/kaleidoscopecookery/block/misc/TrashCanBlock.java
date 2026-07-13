@@ -149,11 +149,9 @@ public class TrashCanBlock extends HorizontalDirectionalBlock implements SimpleW
             if (level.addFreshEntity(entitySit)) {
                 player.startRiding(entitySit, true, true);
             }
+            level.blockEvent(pos, state.getBlock(), TrashCanBlockEntity.EVENT_ENTER, 0);
         }
         TrashCanTargeting.clearTargetsAroundBlock(level, pos, player);
-        if (level.getBlockEntity(pos) instanceof TrashCanBlockEntity trashCan) {
-            trashCan.enterState.start((int) level.getGameTime());
-        }
     }
 
     @Override
@@ -170,6 +168,12 @@ public class TrashCanBlock extends HorizontalDirectionalBlock implements SimpleW
         if (powered != state.getValue(POWERED)) {
             level.setBlock(pos, state.setValue(POWERED, powered), Block.UPDATE_CLIENTS);
         }
+    }
+
+    @Override
+    protected boolean triggerEvent(BlockState state, Level level, BlockPos pos, int id, int type) {
+        super.triggerEvent(state, level, pos, id, type);
+        return level.getBlockEntity(pos) instanceof TrashCanBlockEntity trashCan && trashCan.triggerEvent(id, type);
     }
 
     @Override

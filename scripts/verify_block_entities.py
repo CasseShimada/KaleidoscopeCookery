@@ -29,6 +29,7 @@ EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
     BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/SteamerBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java",
+    BLOCK_ENTITY_ROOT / "misc/TrashCanBlockEntity.java",
 )
 
 EXPECTED_BLOCK_ENTITY_IDS = {
@@ -154,6 +155,11 @@ def main() -> int:
         errors.append("SteamerBlockEntity still reprocesses completed cooking slots.")
     if "Block.UPDATE_ALL" in steamer:
         errors.append("SteamerBlockEntity still broadcasts neighbor updates for inventory changes.")
+    trash_can = read(BLOCK_ENTITY_ROOT / "misc/TrashCanBlockEntity.java")
+    if "if (!(level instanceof ServerLevel serverLevel) || !(entity instanceof ItemEntity itemEntity))" not in trash_can:
+        errors.append("TrashCanBlockEntity still mutates absorbed item entities on the client.")
+    if "level.blockEvent" not in trash_can or "boolean triggerEvent" not in trash_can:
+        errors.append("TrashCanBlockEntity does not synchronize animations through block events.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)
