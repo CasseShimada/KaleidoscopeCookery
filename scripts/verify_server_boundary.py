@@ -433,11 +433,13 @@ def main() -> int:
             "UseEntityCallback.EVENT",
             "player.isSpectator()",
             "player.getItemInHand(hand)",
-            "player.hasInfiniteMaterials()",
+            "stack.consume(1, player)",
             "USE_CATERPILLAR_FEED_CHICKEN",
         ):
             if required_reference not in chicken_feed_text:
                 errors.append(f"Caterpillar chicken feed event is missing {required_reference}.")
+        if "stack.shrink(" in chicken_feed_text:
+            errors.append("Caterpillar chicken feed event still manually shrinks feed stacks.")
 
     fruit_basket_text = FRUIT_BASKET_BLOCK.read_text(encoding="utf-8")
     for required_reference in (

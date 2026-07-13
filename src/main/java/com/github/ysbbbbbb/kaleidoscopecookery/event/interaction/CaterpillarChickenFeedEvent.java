@@ -57,9 +57,7 @@ public final class CaterpillarChickenFeedEvent {
                 HEART_SPEED);
         level.playSound(null, chicken.getX(), chicken.getY(), chicken.getZ(),
                 SoundEvents.PARROT_EAT, chicken.getSoundSource(), 1.0F, getEatSoundPitch(level));
-        if (!player.hasInfiniteMaterials()) {
-            stack.shrink(1);
-        }
+        stack.consume(1, player);
         ModTrigger.EVENT.trigger(player, ModEventTriggerType.USE_CATERPILLAR_FEED_CHICKEN);
     }
 
