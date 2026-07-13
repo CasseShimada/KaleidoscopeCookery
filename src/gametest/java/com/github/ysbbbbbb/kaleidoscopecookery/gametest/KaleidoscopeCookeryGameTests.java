@@ -19,6 +19,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
@@ -45,6 +46,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -79,6 +82,11 @@ public final class KaleidoscopeCookeryGameTests {
                 "Pot recipe serializer registry does not contain the registered instance");
         helper.assertTrue(BuiltInRegistries.RECIPE_TYPE.getValue(potId) == ModRecipes.POT_RECIPE,
                 "Pot recipe type registry does not contain the registered instance");
+        helper.assertValueEqual(BuiltInRegistries.ENTITY_TYPE.getKey(ModEntities.SCARECROW),
+                id("scarecrow"), "Scarecrow entity registry ID changed");
+        helper.assertValueEqual(
+                DefaultAttributes.getSupplier(ModEntities.SCARECROW).getBaseValue(Attributes.STEP_HEIGHT),
+                0.0, "Scarecrow-specific default attributes are not registered");
         helper.assertTrue(ModEvents.MILLSTONE_FINISH == ActionEventCallback.MillstoneFinish.EVENT
                         && ModEvents.CHECK_SPECIAL_ITEM == ActionEventCallback.CheckSpecialItem.EVENT
                         && ModEvents.DEDUCT_SPECIAL_ITEM == ActionEventCallback.DeductSpecialItem.EVENT,
