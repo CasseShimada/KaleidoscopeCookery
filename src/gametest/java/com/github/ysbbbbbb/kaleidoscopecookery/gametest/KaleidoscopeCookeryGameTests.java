@@ -4,6 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
@@ -62,7 +63,10 @@ import net.minecraft.world.item.component.UseRemainder;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 
@@ -112,6 +116,34 @@ public final class KaleidoscopeCookeryGameTests {
         PotBlockEntity blockEntity = helper.getBlockEntity(pos, PotBlockEntity.class);
         helper.assertTrue(blockEntity.getType() == ModBlocks.POT_BE,
                 "Placed pot created an unexpected block entity type");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void shawarmaSpitCopiesUpperWaterlogging(GameTestHelper helper) {
+        BlockPos lowerPos = new BlockPos(1, 1, 1);
+        BlockPos upperPos = lowerPos.above();
+        BlockState lowerState = ModBlocks.SHAWARMA_SPIT.defaultBlockState()
+                .setValue(ShawarmaSpitBlock.HALF, DoubleBlockHalf.LOWER)
+                .setValue(ShawarmaSpitBlock.WATERLOGGED, false);
+        helper.setBlock(upperPos, Blocks.WATER);
+
+        BlockPos absoluteLowerPos = helper.absolutePos(lowerPos);
+        helper.getLevel().setBlock(absoluteLowerPos, lowerState, Block.UPDATE_CLIENTS);
+        ModBlocks.SHAWARMA_SPIT.setPlacedBy(
+                helper.getLevel(),
+                absoluteLowerPos,
+                lowerState,
+                helper.makeMockPlayer(GameType.SURVIVAL),
+                ItemStack.EMPTY);
+
+        BlockState upperState = helper.getBlockState(upperPos);
+        helper.assertTrue(upperState.is(ModBlocks.SHAWARMA_SPIT),
+                "Shawarma spit did not place its upper half");
+        helper.assertValueEqual(upperState.getValue(ShawarmaSpitBlock.HALF),
+                DoubleBlockHalf.UPPER, "Shawarma spit placed an invalid upper-half state");
+        helper.assertTrue(upperState.getValue(ShawarmaSpitBlock.WATERLOGGED),
+                "Shawarma spit did not preserve water at its upper position");
         helper.succeed();
     }
 

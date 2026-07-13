@@ -225,6 +225,13 @@ def main() -> int:
     if "public ItemStack cookingItem" in shawarma_spit or "public ItemStack cookedItem" in shawarma_spit or "public int cookTime" in shawarma_spit:
         errors.append("ShawarmaSpitBlockEntity still exposes mutable cooking state.")
     shawarma_block = read(BLOCK_ROOT / "kitchen/ShawarmaSpitBlock.java")
+    set_placed_start = shawarma_block.find("public void setPlacedBy(")
+    set_placed_end = shawarma_block.find("public @NotNull FluidState getFluidState(", set_placed_start)
+    set_placed_by = shawarma_block[set_placed_start:set_placed_end]
+    if "level.getFluidState(upperPos)" not in set_placed_by:
+        errors.append("ShawarmaSpitBlock does not copy waterlogging from the upper placement position.")
+    if "level.isClientSide()" in set_placed_by:
+        errors.append("ShawarmaSpitBlock suppresses vanilla client-side placement of its upper half.")
     shawarma_renderer = read(ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery/client/render/block/ShawarmaSpitBlockEntityRender.java")
     shawarma_jade = read(ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery/compat/jade/block/ShawarmaSpitComponentProvider.java")
     if any("shawarmaSpit.cookingItem" in text or "shawarmaSpit.cookedItem" in text for text in (shawarma_block, shawarma_renderer, shawarma_jade)):

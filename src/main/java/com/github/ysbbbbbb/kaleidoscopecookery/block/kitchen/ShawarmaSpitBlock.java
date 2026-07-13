@@ -201,13 +201,11 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (level.isClientSide()) {
-            return;
-        }
-        FluidState fluidState = level.getFluidState(pos);
+        BlockPos upperPos = pos.above();
+        FluidState fluidState = level.getFluidState(upperPos);
         BlockState blockState = state.setValue(HALF, DoubleBlockHalf.UPPER)
                 .setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
-        level.setBlockAndUpdate(pos.above(), blockState);
+        level.setBlockAndUpdate(upperPos, blockState);
     }
 
     @Override
