@@ -41,7 +41,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -327,29 +326,11 @@ public class RecipeItem extends CookeryTooltipBlockItem {
                 Identifier.CODEC.fieldOf("type").forGetter(RecipeRecord::type)
         ).apply(instance, RecipeRecord::new));
 
-        public static final StreamCodec<RegistryFriendlyByteBuf, RecipeRecord> STREAM_CODEC = new StreamCodec<>() {
-            @Override
-            public @NotNull RecipeRecord decode(RegistryFriendlyByteBuf buffer) {
-                int size = buffer.readVarInt();
-                List<ItemStack> inputs = new ArrayList<>();
-                for (int i = 0; i < size; i++) {
-                    inputs.add(ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer));
-                }
-                ItemStack output = ItemStack.STREAM_CODEC.decode(buffer);
-                Identifier type = buffer.readIdentifier();
-                return new RecipeRecord(inputs, output, type);
-            }
-
-            @Override
-            public void encode(RegistryFriendlyByteBuf buffer, RecipeRecord value) {
-                buffer.writeVarInt(value.input().size());
-                for (ItemStack s : value.input()) {
-                    ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, s);
-                }
-                ItemStack.STREAM_CODEC.encode(buffer, value.output());
-                buffer.writeIdentifier(value.type());
-            }
-        };
+        public static final StreamCodec<RegistryFriendlyByteBuf, RecipeRecord> STREAM_CODEC = StreamCodec.composite(
+                ItemStack.OPTIONAL_LIST_STREAM_CODEC, RecipeRecord::input,
+                ItemStack.STREAM_CODEC, RecipeRecord::output,
+                Identifier.STREAM_CODEC, RecipeRecord::type,
+                RecipeRecord::new);
 
         public static RecipeRecord pot(ItemLike output, ItemLike... input) {
             List<ItemStack> inputList = Arrays.stream(input).map(ItemStack::new).toList();
