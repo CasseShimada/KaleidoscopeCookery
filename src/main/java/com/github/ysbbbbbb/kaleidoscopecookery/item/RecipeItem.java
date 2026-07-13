@@ -3,13 +3,13 @@ package com.github.ysbbbbbb.kaleidoscopecookery.item;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IPot;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IStockpot;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.RecipeItemEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.tooltip.RecipeItemTooltip;
@@ -177,7 +177,7 @@ public class RecipeItem extends CookeryTooltipBlockItem {
 
             // 触发特殊计数
             var event = new RecipeItemEvent.CheckItem(s, supply);
-            ModEvents.CHECK_SPECIAL_ITEM.invoker().onCheckItemEvent(event);
+            ActionEventCallback.CheckSpecialItem.EVENT.invoker().onCheckItemEvent(event);
 
             // 正常计数
             Item item = s.getItem();
@@ -222,7 +222,7 @@ public class RecipeItem extends CookeryTooltipBlockItem {
 
                 // 触发特殊扣除
                 var event = new RecipeItemEvent.DeductItem(inSlot, item, needCount);
-                ModEvents.DEDUCT_SPECIAL_ITEM.invoker().onDeductItemEvent(event);
+                ActionEventCallback.DeductSpecialItem.EVENT.invoker().onDeductItemEvent(event);
                 needCount = event.getNeedCount();
                 if (needCount <= 0) {
                     break;

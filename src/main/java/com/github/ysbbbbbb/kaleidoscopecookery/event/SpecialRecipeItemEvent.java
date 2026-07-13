@@ -1,7 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.event;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.RecipeItemEvent;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.FruitBasketItem;
@@ -20,11 +20,11 @@ public final class SpecialRecipeItemEvent {
     }
 
     private static void registerCheckItemEvent() {
-        ModEvents.CHECK_SPECIAL_ITEM.register(SpecialRecipeItemEvent::onCheckSpecialItem);
+        ActionEventCallback.CheckSpecialItem.EVENT.register(SpecialRecipeItemEvent::onCheckSpecialItem);
     }
 
     private static void registerDeductItemEvent() {
-        ModEvents.DEDUCT_SPECIAL_ITEM.register(SpecialRecipeItemEvent::onDeductSpecialItem);
+        ActionEventCallback.DeductSpecialItem.EVENT.register(SpecialRecipeItemEvent::onDeductSpecialItem);
     }
 
     private static void onCheckSpecialItem(RecipeItemEvent.CheckItem event) {

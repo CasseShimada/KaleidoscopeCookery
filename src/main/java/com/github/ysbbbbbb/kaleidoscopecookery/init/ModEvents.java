@@ -19,33 +19,26 @@ import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.SatiatedShiel
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.VitalityEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.loot.ExtraLootTableDrop;
 import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.event.EventFactory;
 
 // 所有的自定义事件
 public final class ModEvents {
     private ModEvents() {
     }
 
+    /** @deprecated Register through {@link ActionEventCallback.MillstoneFinish#EVENT}. */
+    @Deprecated(forRemoval = false)
     public static final Event<ActionEventCallback.MillstoneFinish> MILLSTONE_FINISH =
-            EventFactory.createArrayBacked(ActionEventCallback.MillstoneFinish.class, call -> (millstone, bindEntity) -> {
-                for (ActionEventCallback.MillstoneFinish listener : call) {
-                    listener.onMillstoneFinish(millstone, bindEntity);
-                }
-            });
+            ActionEventCallback.MillstoneFinish.EVENT;
 
+    /** @deprecated Register through {@link ActionEventCallback.CheckSpecialItem#EVENT}. */
+    @Deprecated(forRemoval = false)
     public static final Event<ActionEventCallback.CheckSpecialItem> CHECK_SPECIAL_ITEM =
-            EventFactory.createArrayBacked(ActionEventCallback.CheckSpecialItem.class, call -> action -> {
-                for (ActionEventCallback.CheckSpecialItem listener : call) {
-                    listener.onCheckItemEvent(action);
-                }
-            });
+            ActionEventCallback.CheckSpecialItem.EVENT;
 
+    /** @deprecated Register through {@link ActionEventCallback.DeductSpecialItem#EVENT}. */
+    @Deprecated(forRemoval = false)
     public static final Event<ActionEventCallback.DeductSpecialItem> DEDUCT_SPECIAL_ITEM =
-            EventFactory.createArrayBacked(ActionEventCallback.DeductSpecialItem.class, call -> action -> {
-                for (ActionEventCallback.DeductSpecialItem listener : call) {
-                    listener.onDeductItemEvent(action);
-                }
-            });
+            ActionEventCallback.DeductSpecialItem.EVENT;
 
     public static void init() {
         registerEffectEvents();

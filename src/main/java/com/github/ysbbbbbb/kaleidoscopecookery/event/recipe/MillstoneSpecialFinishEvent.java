@@ -2,7 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.event.recipe;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -17,7 +17,7 @@ public final class MillstoneSpecialFinishEvent {
     }
 
     public static void register() {
-        ModEvents.MILLSTONE_FINISH.register((millstone, bindEntity) -> {
+        ActionEventCallback.MillstoneFinish.EVENT.register((millstone, bindEntity) -> {
             ItemStack output = millstone.getOutput();
             Level level = millstone.getLevel();
             if (level == null) {

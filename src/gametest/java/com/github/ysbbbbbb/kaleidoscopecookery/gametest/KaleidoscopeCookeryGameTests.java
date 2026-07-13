@@ -1,6 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.gametest;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
@@ -16,8 +17,9 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
@@ -63,6 +65,7 @@ import java.util.Map;
 
 public final class KaleidoscopeCookeryGameTests {
     @GameTest
+    @SuppressWarnings("deprecation")
     public void registrationsKeepStableIds(GameTestHelper helper) {
         Identifier potId = id("pot");
 
@@ -76,6 +79,10 @@ public final class KaleidoscopeCookeryGameTests {
                 "Pot recipe serializer registry does not contain the registered instance");
         helper.assertTrue(BuiltInRegistries.RECIPE_TYPE.getValue(potId) == ModRecipes.POT_RECIPE,
                 "Pot recipe type registry does not contain the registered instance");
+        helper.assertTrue(ModEvents.MILLSTONE_FINISH == ActionEventCallback.MillstoneFinish.EVENT
+                        && ModEvents.CHECK_SPECIAL_ITEM == ActionEventCallback.CheckSpecialItem.EVENT
+                        && ModEvents.DEDUCT_SPECIAL_ITEM == ActionEventCallback.DeductSpecialItem.EVENT,
+                "Legacy event fields do not bridge to the Fabric-style callback events");
         helper.succeed();
     }
 
