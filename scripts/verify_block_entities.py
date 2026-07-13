@@ -209,6 +209,11 @@ def main() -> int:
         errors.append("FruitBasketBlockEntity does not report whether inventory interactions changed state.")
     if fruit_basket_block.count("level.gameEvent(GameEvent.BLOCK_CHANGE, pos") < 3:
         errors.append("FruitBasketBlock does not emit block-change events for successful inventory interactions.")
+    kitchenware_racks = read(BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java")
+    if "if (this.level == null || this.level.isClientSide())" not in kitchenware_racks:
+        errors.append("KitchenwareRacksBlockEntity mutates detached or client-side state.")
+    if kitchenware_racks.count("this.level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 2:
+        errors.append("KitchenwareRacksBlockEntity does not emit block-change events for rack mutations.")
     shawarma_spit = read(BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java")
     if "cookTime--;\n            this.setChanged();" not in shawarma_spit:
         errors.append("ShawarmaSpitBlockEntity does not mark cooking progress dirty.")

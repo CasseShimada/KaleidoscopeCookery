@@ -9,6 +9,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,24 +27,25 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
 
     @Override
     public boolean onClick(LivingEntity user, ItemStack stack, boolean isLeft) {
-        if (this.level != null && this.level.isClientSide()) {
+        if (this.level == null || this.level.isClientSide()) {
             return false;
         }
         ItemStack stackInRacks = isLeft ? itemLeft : itemRight;
         // 取出物品
         if (stack.isEmpty() && !stackInRacks.isEmpty()) {
-            if (user instanceof Player player) {
-                ItemUtils.giveItemToPlayer(player, stackInRacks.copy(), player.getInventory().getSelectedSlot());
-            } else {
-                ItemUtils.getItemToLivingEntity(user, stackInRacks.copy());
-            }
             if (isLeft) {
                 itemLeft = ItemStack.EMPTY;
             } else {
                 itemRight = ItemStack.EMPTY;
             }
-            user.playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1.0F, 1.0F);
             this.setChangedAndSync();
+            if (user instanceof Player player) {
+                ItemUtils.giveItemToPlayer(player, stackInRacks.copy(), player.getInventory().getSelectedSlot());
+            } else {
+                ItemUtils.getItemToLivingEntity(user, stackInRacks.copy());
+            }
+            user.playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 1.0F, 1.0F);
+            this.level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             return true;
         }
         // 放入物品
@@ -58,6 +60,7 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
             }
             user.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
             this.setChangedAndSync();
+            this.level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             return true;
         }
         return false;
