@@ -501,11 +501,19 @@ def main() -> int:
     plate_block_text = PLATE_BLOCK.read_text(encoding="utf-8")
     if plate_block_text.count("GameEvent.BLOCK_CHANGE") != 2:
         errors.append("PlateBlock does not emit block-change game events for serving updates.")
+    if plate_block_text.count("if (!level.setBlockAndUpdate(pos,") != 2:
+        errors.append("PlateBlock does not guard every serving state update before moving items.")
+    if "if (!level.destroyBlock(pos, true, player))" not in plate_block_text:
+        errors.append("PlateBlock does not confirm empty plate removal.")
+    if "GameEvent.BLOCK_DESTROY" not in plate_block_text:
+        errors.append("PlateBlock does not emit a block-destroy event when the empty plate is removed.")
     if "GameEvent.Context.of(player, state)" not in plate_block_text:
         errors.append("PlateBlock game events do not include the interacting player and prior block state.")
 
     stackable_food_text = STACKABLE_FOOD_BLOCK.read_text(encoding="utf-8")
     for required_reference in (
+        "if (!level.setBlockAndUpdate(pos, state.setValue(COUNT, count + 1)))",
+        "if (!level.setBlockAndUpdate(pos, state.setValue(COUNT, count - 1)))",
         "if (!level.removeBlock(pos, false))",
         "GameEvent.BLOCK_CHANGE",
         "GameEvent.BLOCK_DESTROY",

@@ -107,15 +107,16 @@ public class PlateBlock extends HorizontalDirectionalBlock {
         IntegerProperty servings = this.getServingsProperty();
         int count = state.getValue(servings);
         if (!stack.isEmpty() && count < this.maxCount && canRefill(stack)) {
-            if (!level.isClientSide()) {
-                if (!player.hasInfiniteMaterials()) {
-                    stack.consume(1, player);
-                }
-                level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
-                level.setBlockAndUpdate(pos, state.setValue(servings, count + 1));
-                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
             }
-            return InteractionResult.SUCCESS;
+            if (!level.setBlockAndUpdate(pos, state.setValue(servings, count + 1))) {
+                return InteractionResult.FAIL;
+            }
+            stack.consume(1, player);
+            level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            return InteractionResult.CONSUME;
         }
 
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -125,17 +126,23 @@ public class PlateBlock extends HorizontalDirectionalBlock {
     public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         IntegerProperty servings = this.getServingsProperty();
         int count = state.getValue(servings);
-        if (!level.isClientSide()) {
-            if (count > 0) {
-                giveServing(player);
-                level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
-                level.setBlockAndUpdate(pos, state.setValue(servings, count - 1));
-                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            } else {
-                level.destroyBlock(pos, true, player);
-            }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
-        return InteractionResult.SUCCESS;
+        if (count > 0) {
+            if (!level.setBlockAndUpdate(pos, state.setValue(servings, count - 1))) {
+                return InteractionResult.FAIL;
+            }
+            giveServing(player);
+            level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        } else {
+            if (!level.destroyBlock(pos, true, player)) {
+                return InteractionResult.FAIL;
+            }
+            level.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(player, state));
+        }
+        return InteractionResult.CONSUME;
     }
 
     private boolean canRefill(ItemStack itemStack) {

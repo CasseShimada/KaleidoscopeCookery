@@ -97,37 +97,41 @@ public class StackableFoodBlock extends HorizontalDirectionalBlock {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
 
-        if (!level.isClientSide()) {
-            level.setBlockAndUpdate(pos, state.setValue(COUNT, count + 1));
-            SoundType soundType = state.getSoundType();
-            SoundEvent sound = soundType.getPlaceSound();
-            level.playSound(null, pos, sound, SoundSource.BLOCKS,
-                    (soundType.getVolume() + 1.0F) / 2.0F,
-                    soundType.getPitch() * 0.8F);
-            if (!player.hasInfiniteMaterials()) {
-                stack.consume(1, player);
-            }
-            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
-        return InteractionResult.SUCCESS;
+        if (!level.setBlockAndUpdate(pos, state.setValue(COUNT, count + 1))) {
+            return InteractionResult.FAIL;
+        }
+        SoundType soundType = state.getSoundType();
+        SoundEvent sound = soundType.getPlaceSound();
+        level.playSound(null, pos, sound, SoundSource.BLOCKS,
+                (soundType.getVolume() + 1.0F) / 2.0F,
+                soundType.getPitch() * 0.8F);
+        stack.consume(1, player);
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        return InteractionResult.CONSUME;
     }
 
     @Override
     public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         int count = state.getValue(COUNT);
-        if (!level.isClientSide()) {
-            if (count > 1) {
-                level.setBlockAndUpdate(pos, state.setValue(COUNT, count - 1));
-                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            } else {
-                if (!level.removeBlock(pos, false)) {
-                    return InteractionResult.FAIL;
-                }
-                level.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(player, state));
-            }
-            ItemUtils.getItemToLivingEntity(player, this.item.get().getDefaultInstance(), player.getInventory().getSelectedSlot());
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
-        return InteractionResult.SUCCESS;
+        if (count > 1) {
+            if (!level.setBlockAndUpdate(pos, state.setValue(COUNT, count - 1))) {
+                return InteractionResult.FAIL;
+            }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        } else {
+            if (!level.removeBlock(pos, false)) {
+                return InteractionResult.FAIL;
+            }
+            level.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(player, state));
+        }
+        ItemUtils.getItemToLivingEntity(player, this.item.get().getDefaultInstance(), player.getInventory().getSelectedSlot());
+        return InteractionResult.CONSUME;
     }
 
     @Override
