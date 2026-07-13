@@ -31,6 +31,7 @@ EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
     BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/SteamerBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java",
+    BLOCK_ENTITY_ROOT / "kitchen/TeapotBlockEntity.java",
     BLOCK_ENTITY_ROOT / "misc/TrashCanBlockEntity.java",
 )
 
@@ -168,6 +169,9 @@ def main() -> int:
         errors.append("Furniture blocks still call the legacy block entity refresh API.")
     if "tableItems.set(" in table_block:
         errors.append("TableBlock still mutates the table block entity inventory directly.")
+    teapot = read(BLOCK_ENTITY_ROOT / "kitchen/TeapotBlockEntity.java")
+    if teapot.count("this.setChanged();") < 2:
+        errors.append("TeapotBlockEntity does not persist both cooking progress phases.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

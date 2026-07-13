@@ -87,7 +87,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
             }
             if (this.currentTick > 0) {
                 this.currentTick = Math.max(-1, this.currentTick - 23);
-                this.refresh();
+                this.setChanged();
                 return;
             }
             if (!(level instanceof ServerLevel serverLevel)) {
@@ -100,14 +100,14 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
                 this.result = recipe.assemble(container);
                 this.currentTick = recipe.time();
                 this.status = PROCESSING;
-                this.refresh();
+                this.setChangedAndSync();
                 return;
             }
             Block.popResource(level, worldPosition, this.input);
             this.input = ItemStack.EMPTY;
             this.result = ItemStack.EMPTY;
             this.currentTick = -1;
-            this.refresh();
+            this.setChangedAndSync();
             return;
         }
         if (this.status == PROCESSING && Math.floorMod(offset, 23) == 0) {
@@ -117,12 +117,12 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
             this.onProcessingEffects(level);
             if (this.currentTick > 0) {
                 this.currentTick = Math.max(-1, this.currentTick - 23);
-                this.refresh();
+                this.setChanged();
                 return;
             }
             this.status = FINISHED;
             this.currentTick = -1;
-            this.refresh();
+            this.setChangedAndSync();
             return;
         }
         if (this.status == FINISHED && Math.floorMod(offset, 11) == 0) {
@@ -187,7 +187,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
             ItemUtils.getItemToLivingEntity(user, remainder);
         }
         level.playSound(null, worldPosition, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-        this.refresh();
+        this.setChangedAndSync();
         return true;
     }
 
@@ -219,7 +219,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
         level.playSound(null, worldPosition, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
         this.teaFluidId = TeapotRecipeSerializer.EMPTY_TEA_FLUID;
         this.currentTick = -1;
-        this.refresh();
+        this.setChangedAndSync();
         return true;
     }
 
@@ -252,7 +252,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
             if (!user.hasInfiniteMaterials()) {
                 stack.shrink(count);
             }
-            this.refresh();
+            this.setChangedAndSync();
             return true;
         }
         this.sendActionBarMessage(user, "tooltip.kaleidoscope_cookery.teapot.add_ingredient.recipe_incorrect");
@@ -268,7 +268,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
             return true;
         }
         ItemUtils.getItemToLivingEntity(user, this.input.copyAndClear());
-        this.refresh();
+        this.setChangedAndSync();
         return true;
     }
 
