@@ -89,6 +89,8 @@ WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
 CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeedEvent.java"
 CHOPPING_BOARD_BLOCK_ENTITY = SRC / "blockentity/kitchen/ChoppingBoardBlockEntity.java"
 CHOPPING_BOARD_RENDERER = CLIENT_SRC / "client/render/block/ChoppingBoardBlockEntityRender.java"
+POT_BLOCK_ENTITY = SRC / "blockentity/kitchen/PotBlockEntity.java"
+POT_RENDERER = CLIENT_SRC / "client/render/block/PotBlockEntityRender.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
 OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
@@ -168,6 +170,12 @@ def main() -> int:
         errors.append("Chopping board renderer does not clamp its derived model stage.")
     if '"chopping_board/" + modelId.getPath() + "/" + index' not in chopping_board_renderer:
         errors.append("Chopping board renderer does not derive the stage model from synchronized state.")
+    pot_block_entity = POT_BLOCK_ENTITY.read_text(encoding="utf-8")
+    if "StirFryAnimationData" in pot_block_entity or "animationData" in pot_block_entity:
+        errors.append("PotBlockEntity still stores client-only stir-fry animation state.")
+    pot_renderer = POT_RENDERER.read_text(encoding="utf-8")
+    if "new WeakHashMap<>()" not in pot_renderer or "computeIfAbsent(pot" not in pot_renderer:
+        errors.append("Pot renderer does not own weakly keyed per-block animation state.")
 
     entrypoints = json.loads(FABRIC_MOD.read_text(encoding="utf-8"))["entrypoints"]
     expected_optional_entrypoints = {

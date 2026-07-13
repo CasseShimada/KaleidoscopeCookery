@@ -71,11 +71,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     private int currentTick = 0;
     private int stirFryCount = 0;
 
-    /**
-     * 用于渲染动画时数据
-     */
     public long seed;
-    public StirFryAnimationData animationData = new StirFryAnimationData();
 
     public PotBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(ModBlocks.POT_BE, pPos, pBlockState);
@@ -614,9 +610,4 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         return currentTick;
     }
 
-    public static class StirFryAnimationData {
-        public long preSeed = -1L;
-        public long timestamp = -1L;
-        public float[] randomHeights = new float[]{};
-    }
 }

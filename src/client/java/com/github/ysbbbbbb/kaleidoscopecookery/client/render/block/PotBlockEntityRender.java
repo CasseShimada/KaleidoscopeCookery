@@ -19,9 +19,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity, PotBlockEntityRender.RenderState> {
     private final ItemModelResolver itemModelResolver;
+    private final Map<PotBlockEntity, StirFryAnimationData> animationData = new WeakHashMap<>();
 
     public PotBlockEntityRender(BlockEntityRendererProvider.Context context) {
         this.itemModelResolver = context.itemModelResolver();
@@ -37,8 +40,9 @@ public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity,
                                    net.minecraft.world.phys.Vec3 cameraPos,
                                    net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderState.extractBase(pot, state, crumblingOverlay);
-        PotBlockEntity.StirFryAnimationData data = pot.animationData;
-        long time = System.currentTimeMillis() - data.timestamp;
+        StirFryAnimationData data = this.animationData.computeIfAbsent(pot, ignored -> new StirFryAnimationData());
+        long now = System.currentTimeMillis();
+        long time = now - data.timestamp;
 
         if (data.preSeed == -1L) {
             data.preSeed = pot.getSeed();
@@ -46,7 +50,7 @@ public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity,
         if (data.preSeed != pot.getSeed()) {
             data.preSeed = pot.getSeed();
             if (time > 1000) {
-                data.timestamp = System.currentTimeMillis();
+                data.timestamp = now;
                 data.randomHeights = new float[9];
                 RandomSource source = RandomSource.create(pot.getSeed());
                 for (int i = 0; i < 9; i++) {
@@ -124,6 +128,12 @@ public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity,
         state.itemStates[index].submit(poseStack, collector, state.lightCoords, overlay, 0);
 
         poseStack.popPose();
+    }
+
+    private static final class StirFryAnimationData {
+        private long preSeed = -1L;
+        private long timestamp = -1L;
+        private float[] randomHeights = new float[]{};
     }
 
     public static class RenderState extends BlockEntityRenderState {
