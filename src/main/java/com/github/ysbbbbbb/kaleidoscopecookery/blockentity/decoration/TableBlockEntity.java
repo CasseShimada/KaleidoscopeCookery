@@ -42,9 +42,56 @@ public class TableBlockEntity extends BaseBlockEntity {
 
     public void setColor(DyeColor color) {
         this.color = color;
+        this.setChangedAndSync();
     }
 
     public NonNullList<ItemStack> getItems() {
-        return items;
+        NonNullList<ItemStack> copy = NonNullList.withSize(this.items.size(), ItemStack.EMPTY);
+        for (int i = 0; i < this.items.size(); i++) {
+            copy.set(i, this.items.get(i).copy());
+        }
+        return copy;
+    }
+
+    public ItemStack getLastItem() {
+        int index = this.getLastItemIndex();
+        return index < 0 ? ItemStack.EMPTY : this.items.get(index).copy();
+    }
+
+    public boolean canAddItem() {
+        return this.getLastItemIndex() < this.items.size() - 1;
+    }
+
+    public boolean addItem(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        int index = this.getLastItemIndex() + 1;
+        if (index >= this.items.size()) {
+            return false;
+        }
+        this.items.set(index, stack.copyWithCount(1));
+        this.setChangedAndSync();
+        return true;
+    }
+
+    public ItemStack removeLastItem() {
+        int index = this.getLastItemIndex();
+        if (index < 0) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack removed = this.items.get(index).copy();
+        this.items.set(index, ItemStack.EMPTY);
+        this.setChangedAndSync();
+        return removed;
+    }
+
+    private int getLastItemIndex() {
+        for (int i = this.items.size() - 1; i >= 0; i--) {
+            if (!this.items.get(i).isEmpty()) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

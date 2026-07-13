@@ -34,5 +34,6 @@ public class ChairBlockEntity extends BaseBlockEntity {
 
     public void setColor(DyeColor color) {
         this.color = color;
+        this.setChangedAndSync();
     }
 }

@@ -21,8 +21,10 @@ BLOCK_ROOT = JAVA_ROOT / "block"
 BASE_BLOCK_ENTITY = BLOCK_ENTITY_ROOT / "BaseBlockEntity.java"
 
 EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
+    BLOCK_ENTITY_ROOT / "decoration/ChairBlockEntity.java",
     BLOCK_ENTITY_ROOT / "decoration/FruitBasketBlockEntity.java",
     BLOCK_ENTITY_ROOT / "decoration/OilPotBlockEntity.java",
+    BLOCK_ENTITY_ROOT / "decoration/TableBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java",
@@ -160,6 +162,12 @@ def main() -> int:
         errors.append("TrashCanBlockEntity still mutates absorbed item entities on the client.")
     if "level.blockEvent" not in trash_can or "boolean triggerEvent" not in trash_can:
         errors.append("TrashCanBlockEntity does not synchronize animations through block events.")
+    chair_block = read(BLOCK_ROOT / "decoration/ChairBlock.java")
+    table_block = read(BLOCK_ROOT / "decoration/TableBlock.java")
+    if ".refresh()" in chair_block or ".refresh()" in table_block:
+        errors.append("Furniture blocks still call the legacy block entity refresh API.")
+    if "tableItems.set(" in table_block:
+        errors.append("TableBlock still mutates the table block entity inventory directly.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

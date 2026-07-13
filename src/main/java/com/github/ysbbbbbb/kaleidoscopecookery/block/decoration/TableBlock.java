@@ -37,7 +37,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,10 +89,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
     @NotNull
     private InteractionResult useWithOther(Level level, BlockPos pos, Player player, InteractionHand hand, TableBlockEntity table, ItemStack itemInHand) {
-        NonNullList<ItemStack> tableItems = table.getItems();
-        Pair<Integer, ItemStack> lastStack = ItemUtils.getLastStack(tableItems);
-        Integer tableIndex = lastStack.getLeft();
-        ItemStack tableItem = lastStack.getRight();
+        ItemStack tableItem = table.getLastItem();
 
         boolean handEmpty = itemInHand.isEmpty();
 
@@ -101,33 +97,27 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         if (handEmpty && !tableItem.isEmpty()) {
             if (!level.isClientSide()) {
                 level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, player.getSoundSource(), 1.0F, 1.0F);
-                ItemUtils.getItemToLivingEntity(player, tableItem.copy(), player.getInventory().getSelectedSlot());
-                tableItems.set(tableIndex, ItemStack.EMPTY);
-                table.refresh();
+                ItemUtils.getItemToLivingEntity(player, table.removeLastItem(), player.getInventory().getSelectedSlot());
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
 
         // 玩家手有物品，并且可以放入物品时
-        if (!handEmpty && tableIndex < (tableItems.size() - 1)) {
+        if (!handEmpty && table.canAddItem()) {
             if (!level.isClientSide()) {
                 ItemStack split = itemInHand.copyWithCount(1);
-                if (!player.hasInfiniteMaterials()) {
-                    itemInHand.shrink(1);
+                if (table.addItem(split)) {
+                    if (!player.hasInfiniteMaterials()) {
+                        itemInHand.shrink(1);
+                    }
+                    level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
                 }
-                if (tableItem.isEmpty()) {
-                    tableItems.set(tableIndex, split);
-                } else {
-                    tableItems.set(tableIndex + 1, split);
-                }
-                table.refresh();
-                level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
 
         // 桌子已满时，拦截后续物品交互，避免物品直接放到桌面上方
-        if (!handEmpty && tableIndex >= (tableItems.size() - 1) && !tableItem.isEmpty()) {
+        if (!handEmpty && !table.canAddItem() && !tableItem.isEmpty()) {
             return InteractionResult.CONSUME.withoutItem();
         }
 
@@ -151,7 +141,6 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             if (level.getBlockEntity(pos) instanceof TableBlockEntity tableBlockEntity) {
                 level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
                 tableBlockEntity.setColor(dyeColor);
-                tableBlockEntity.refresh();
                 if (!player.hasInfiniteMaterials()) {
                     itemInHand.shrink(1);
                 }
@@ -171,7 +160,6 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
 
             tableBlockEntity.setColor(dyeColor);
-            tableBlockEntity.refresh();
             level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true));
             if (!player.hasInfiniteMaterials()) {
                 itemInHand.shrink(1);
