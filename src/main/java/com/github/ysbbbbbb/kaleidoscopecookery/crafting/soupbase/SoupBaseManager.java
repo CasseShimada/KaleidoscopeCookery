@@ -8,6 +8,7 @@ import net.minecraft.world.item.Item;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public final class SoupBaseManager {
     private static final Map<Identifier, ISoupBase> ALL_SOUP_BASES = new LinkedHashMap<>();
@@ -17,10 +18,16 @@ public final class SoupBaseManager {
     }
 
     public static void registerSoupBase(ISoupBase soupBase) {
-        if (ALL_SOUP_BASES.containsKey(soupBase.getName())) {
-            throw new IllegalArgumentException("Soup base with name " + soupBase.getName() + " already exists!");
+        Objects.requireNonNull(soupBase, "soupBase");
+        Identifier name = Objects.requireNonNull(soupBase.getName(), "soupBase name");
+        Identifier normalizedName = SoupBaseIds.normalize(name);
+        if (!name.equals(normalizedName)) {
+            throw new IllegalArgumentException(
+                    "Soup base id " + name + " is a legacy alias; register " + normalizedName + " instead");
         }
-        ALL_SOUP_BASES.put(soupBase.getName(), soupBase);
+        if (ALL_SOUP_BASES.putIfAbsent(name, soupBase) != null) {
+            throw new IllegalArgumentException("Soup base with name " + name + " already exists!");
+        }
     }
 
     public static void registerFluidSoupBase(Identifier name, Item bucketItem, int bubbleColor) {

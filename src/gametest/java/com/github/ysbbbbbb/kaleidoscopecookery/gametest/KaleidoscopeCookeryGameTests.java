@@ -447,6 +447,18 @@ public final class KaleidoscopeCookeryGameTests {
         }
         helper.assertTrue(mutationRejected, "Soup-base registry exposed mutable internal state");
 
+        int registeredSoupBases = soupBases.size();
+        boolean legacyRegistrationRejected = false;
+        try {
+            SoupBaseManager.registerFluidSoupBase(vanillaId("water_bucket"), Items.WATER_BUCKET, 0x3F76E4);
+        } catch (IllegalArgumentException expected) {
+            legacyRegistrationRejected = true;
+        }
+        helper.assertTrue(legacyRegistrationRejected,
+                "Soup-base registry accepted an unreachable legacy alias");
+        helper.assertValueEqual(soupBases.size(), registeredSoupBases,
+                "Rejected soup-base alias polluted the live registry view");
+
         ResourceKey<Recipe<?>> recipeKey = ResourceKey.create(
                 Registries.RECIPE, id("stockpot/four_joy_meatball_soup"));
         RecipeHolder<?> holder = helper.getLevel().recipeAccess().byKey(recipeKey)
