@@ -259,9 +259,19 @@ def validate_equipment_assets() -> list[str]:
 
 def validate_particles() -> list[str]:
     errors: list[str] = []
+    mod_particles = strip_comments(read(JAVA_ROOT / "init/ModParticles.java"))
     particles = collect_string_calls(JAVA_ROOT / "init/ModParticles.java", "register")
     factory_text = strip_comments(read(CLIENT_ROOT / "init/ModParticleFactoryRegistry.java"))
     factory_consts = set(re.findall(r"ParticleProviderRegistry\.getInstance\(\)\.register\(\s*ModParticles\.(\w+)", factory_text))
+
+    if "class ModParticleType" in mod_particles:
+        errors.append("ModParticles still reimplements FabricParticleTypes.complex.")
+    if not re.search(
+        r"FabricParticleTypes\.complex\(\s*false\s*,\s*StockpotParticleOptions\.CODEC\s*,\s*"
+        r"StockpotParticleOptions\.STREAM_CODEC\s*\)",
+        mod_particles,
+    ):
+        errors.append("Stockpot particle type does not use the Fabric complex particle factory.")
 
     missing_factories = set(particles) - factory_consts
     extra_factories = factory_consts - set(particles)

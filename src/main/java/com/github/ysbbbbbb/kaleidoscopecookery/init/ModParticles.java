@@ -2,21 +2,18 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.particle.StockpotParticleOptions;
-import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.NotNull;
 
 public final class ModParticles {
     public static final SimpleParticleType COOKING = FabricParticleTypes.simple();
-    public static final ModParticleType<StockpotParticleOptions> STOCKPOT = new ModParticleType<>(false, StockpotParticleOptions.CODEC, StockpotParticleOptions.STREAM_CODEC);
+    public static final ParticleType<StockpotParticleOptions> STOCKPOT = FabricParticleTypes.complex(
+            false, StockpotParticleOptions.CODEC, StockpotParticleOptions.STREAM_CODEC);
 
     private ModParticles() {
     }
@@ -32,26 +29,5 @@ public final class ModParticles {
 
     private static <T extends ParticleOptions> void register(String path, ParticleType<T> particleType) {
         Registry.register(BuiltInRegistries.PARTICLE_TYPE, id(path), particleType);
-    }
-
-    public static final class ModParticleType<T extends ParticleOptions> extends ParticleType<T> {
-        private final MapCodec<T> codec;
-        private final StreamCodec<? super RegistryFriendlyByteBuf, T> streamCodec;
-
-        public ModParticleType(boolean overrideLimiter, MapCodec<T> codec, StreamCodec<? super RegistryFriendlyByteBuf, T> streamCodec) {
-            super(overrideLimiter);
-            this.codec = codec;
-            this.streamCodec = streamCodec;
-        }
-
-        @Override
-        public @NotNull MapCodec<T> codec() {
-            return this.codec;
-        }
-
-        @Override
-        public StreamCodec<? super RegistryFriendlyByteBuf, T> streamCodec() {
-            return this.streamCodec;
-        }
     }
 }
