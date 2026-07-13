@@ -57,6 +57,9 @@ public class BaseCropBlock extends CropBlock {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (state.getValue(AGE) >= this.getMaxAge() && this.harvestLootTable != null) {
             if (level instanceof ServerLevel serverLevel) {
+                if (!this.onUseBreakCrop(state, serverLevel, pos, player)) {
+                    return InteractionResult.FAIL;
+                }
                 dropFromBlockInteractLootTable(
                         serverLevel,
                         this.harvestLootTable,
@@ -65,17 +68,19 @@ public class BaseCropBlock extends CropBlock {
                         null,
                         player,
                         (dropLevel, stack) -> Block.popResource(dropLevel, pos, stack));
-                this.onUseBreakCrop(state, serverLevel, pos, player);
             }
             return InteractionResult.SUCCESS;
         }
         return super.useWithoutItem(state, level, pos, player, hitResult);
     }
 
-    protected void onUseBreakCrop(BlockState state, ServerLevel level, BlockPos pos, Player player) {
+    protected boolean onUseBreakCrop(BlockState state, ServerLevel level, BlockPos pos, Player player) {
         // 默认右键收割后为第五阶段
         int ageAfterUse = 5;
         BlockState harvestedState = state.setValue(AGE, ageAfterUse);
+        if (!level.setBlock(pos, harvestedState, Block.UPDATE_CLIENTS)) {
+            return false;
+        }
         level.playSound(null,
                 pos.getX() + 0.5,
                 pos.getY() + 0.5,
@@ -83,8 +88,8 @@ public class BaseCropBlock extends CropBlock {
                 SoundEvents.CROP_BREAK,
                 SoundSource.BLOCKS,
                 1.0F, 1.0F);
-        level.setBlock(pos, harvestedState, Block.UPDATE_CLIENTS);
-        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, harvestedState));
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        return true;
     }
 
     @Override

@@ -798,15 +798,16 @@ def main() -> int:
         "level.getBlockEntity(pos)",
         "this.onUseBreakCrop(state, serverLevel, pos, player)",
         "state.setValue(AGE, ageAfterUse)",
+        "if (!level.setBlock(pos, harvestedState, Block.UPDATE_CLIENTS))",
         "GameEvent.BLOCK_CHANGE",
-        "GameEvent.Context.of(player, harvestedState)",
+        "GameEvent.Context.of(player, state)",
     ):
         if required_reference not in base_crop_text:
             errors.append(f"BaseCropBlock native interaction harvest is missing {required_reference}.")
     loot_drop_index = base_crop_text.find("dropFromBlockInteractLootTable(")
     reset_crop_index = base_crop_text.find("this.onUseBreakCrop(state, serverLevel, pos, player)")
-    if loot_drop_index > reset_crop_index:
-        errors.append("BaseCropBlock resets the crop before evaluating its interaction loot table.")
+    if reset_crop_index > loot_drop_index:
+        errors.append("BaseCropBlock drops harvest loot before confirming the crop-state reset.")
     if "this.result" in base_crop_text:
         errors.append("BaseCropBlock still retains the legacy manual harvest result supplier.")
 
