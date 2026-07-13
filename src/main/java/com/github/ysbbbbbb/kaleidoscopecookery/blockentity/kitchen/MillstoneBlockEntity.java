@@ -1,7 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IMillstone;
-import com.github.ysbbbbbb.kaleidoscopecookery.api.event.MillstoneFinishEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.MillstoneTakeItemCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe;
@@ -93,9 +92,9 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
             return;
         }
 
-        // 每秒额外检查一次输出，强制触发 MillstoneFinishEvent 事件
+        // 每秒额外检查一次输出，强制触发磨盘完成回调
         if (serverLevel.getGameTime() % 20 == 0 && this.input.isEmpty() && !this.output.isEmpty()) {
-            ModEvents.MILLSTONE_FINISH.invoker().onMillstoneFinish(new MillstoneFinishEvent(this, this.bindEntity));
+            ModEvents.MILLSTONE_FINISH.invoker().onMillstoneFinish(this, this.bindEntity);
         }
 
         // 旋转一圈的时间 (ticks)
@@ -219,7 +218,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
             });
 
             // 触发完成事件，用于特殊情况判断（比如油壶自动化）
-            ModEvents.MILLSTONE_FINISH.invoker().onMillstoneFinish(new MillstoneFinishEvent(this, this.bindEntity));
+            ModEvents.MILLSTONE_FINISH.invoker().onMillstoneFinish(this, this.bindEntity);
 
         }
     }

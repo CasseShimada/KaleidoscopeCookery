@@ -27,9 +27,9 @@ public final class ModEvents {
     }
 
     public static final Event<ActionEventCallback.MillstoneFinish> MILLSTONE_FINISH =
-            EventFactory.createArrayBacked(ActionEventCallback.MillstoneFinish.class, call -> action -> {
+            EventFactory.createArrayBacked(ActionEventCallback.MillstoneFinish.class, call -> (millstone, bindEntity) -> {
                 for (ActionEventCallback.MillstoneFinish listener : call) {
-                    listener.onMillstoneFinish(action);
+                    listener.onMillstoneFinish(millstone, bindEntity);
                 }
             });
 

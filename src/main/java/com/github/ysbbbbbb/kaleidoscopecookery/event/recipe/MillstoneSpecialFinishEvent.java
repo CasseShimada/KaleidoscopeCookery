@@ -17,8 +17,7 @@ public final class MillstoneSpecialFinishEvent {
     }
 
     public static void register() {
-        ModEvents.MILLSTONE_FINISH.register(event -> {
-            MillstoneBlockEntity millstone = event.getMillstone();
+        ModEvents.MILLSTONE_FINISH.register((millstone, bindEntity) -> {
             ItemStack output = millstone.getOutput();
             Level level = millstone.getLevel();
             if (level == null) {

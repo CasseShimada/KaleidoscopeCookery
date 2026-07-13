@@ -208,12 +208,15 @@ def main() -> int:
     action_event_path = SRC / "api/event/ActionEvent.java"
     if action_event_path.exists():
         errors.append("Legacy event-bus-style ActionEvent base class still exists.")
-    for event_path in (
-        SRC / "api/event/MillstoneFinishEvent.java",
-        SRC / "api/event/RecipeItemEvent.java",
-    ):
-        if "extends ActionEvent" in event_path.read_text(encoding="utf-8"):
-            errors.append(f"{event_path.name} still extends the legacy ActionEvent base class.")
+    recipe_item_event_path = SRC / "api/event/RecipeItemEvent.java"
+    if "extends ActionEvent" in recipe_item_event_path.read_text(encoding="utf-8"):
+        errors.append("RecipeItemEvent still extends the legacy ActionEvent base class.")
+    millstone_finish_event_path = SRC / "api/event/MillstoneFinishEvent.java"
+    if millstone_finish_event_path.exists():
+        errors.append("Millstone finish callbacks still allocate a legacy event wrapper.")
+    action_event_callback = (SRC / "api/event/ActionEventCallback.java").read_text(encoding="utf-8")
+    if "onMillstoneFinish(MillstoneBlockEntity millstone, @Nullable Mob bindEntity)" not in action_event_callback:
+        errors.append("Millstone finish callback does not expose direct Fabric-style parameters.")
 
     satiated_shield_text = (SRC / "event/server/effect/SatiatedShieldEvent.java").read_text(encoding="utf-8")
     for required_reference in (
