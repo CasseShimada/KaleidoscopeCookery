@@ -78,7 +78,7 @@ public class TeapotBlock extends HorizontalDirectionalBlock implements SimpleWat
     @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (blockEntityType != ModBlocks.TEAPOT_BE) {
+        if (level.isClientSide() || blockEntityType != ModBlocks.TEAPOT_BE) {
             return null;
         }
         return (levelIn, blockPos, blockState, blockEntity) -> ((TeapotBlockEntity) blockEntity).tick(levelIn);

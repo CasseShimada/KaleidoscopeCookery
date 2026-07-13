@@ -25,7 +25,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -65,17 +64,11 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
     private int status = PUT_INGREDIENT;
     private int currentTick = -1;
 
-    public final AnimationState boilingState = new AnimationState();
-
     public TeapotBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.TEAPOT_BE, pos, state);
     }
 
     public void tick(Level level) {
-        if (level.isClientSide()) {
-            this.clientTick(level);
-            return;
-        }
         long offset = level.getGameTime() + worldPosition.hashCode();
         if (this.status == PUT_INGREDIENT && Math.floorMod(offset, 23) == 0) {
             if (this.teaFluidId.equals(TeapotRecipeSerializer.EMPTY_TEA_FLUID) || !hasHeatSource(level)) {
@@ -127,22 +120,9 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
         }
         if (this.status == FINISHED && Math.floorMod(offset, 11) == 0) {
             if (!hasHeatSource(level)) {
-                this.boilingState.stop();
                 this.onFinishEffects(level);
             } else {
-                this.boilingState.start((int) level.getGameTime());
                 this.onBoilingEffects(level);
-            }
-        }
-    }
-
-    private void clientTick(Level level) {
-        long offset = level.getGameTime() + worldPosition.hashCode();
-        if (this.status == FINISHED && Math.floorMod(offset, 11) == 0) {
-            if (!hasHeatSource(level)) {
-                this.boilingState.stop();
-            } else {
-                this.boilingState.start((int) level.getGameTime());
             }
         }
     }

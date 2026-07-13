@@ -95,6 +95,9 @@ STOCKPOT_BLOCK = SRC / "block/kitchen/StockpotBlock.java"
 STOCKPOT_BLOCK_ENTITY = SRC / "blockentity/kitchen/StockpotBlockEntity.java"
 STOCKPOT_RENDERER = CLIENT_SRC / "client/render/block/StockpotBlockEntityRender.java"
 MOB_SOUP_BASE_RENDERER = CLIENT_SRC / "client/render/soupbase/MobSoupBaseRender.java"
+TEAPOT_BLOCK = SRC / "block/kitchen/TeapotBlock.java"
+TEAPOT_BLOCK_ENTITY = SRC / "blockentity/kitchen/TeapotBlockEntity.java"
+TEAPOT_RENDERER = CLIENT_SRC / "client/render/block/TeapotBlockEntityRender.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
 OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
@@ -196,6 +199,15 @@ def main() -> int:
     stockpot_renderer = STOCKPOT_RENDERER.read_text(encoding="utf-8")
     if "stockpot.getVisuals()" not in stockpot_renderer or "stockpot.recipe" in stockpot_renderer:
         errors.append("Stockpot renderer does not use the block entity's immutable visual snapshot.")
+    teapot_block_entity = TEAPOT_BLOCK_ENTITY.read_text(encoding="utf-8")
+    if "AnimationState" in teapot_block_entity or "clientTick(" in teapot_block_entity:
+        errors.append("TeapotBlockEntity still stores or updates client-only animation state.")
+    teapot_block = TEAPOT_BLOCK.read_text(encoding="utf-8")
+    if "level.isClientSide() || blockEntityType != ModBlocks.TEAPOT_BE" not in teapot_block:
+        errors.append("TeapotBlock still installs its block entity ticker on the client.")
+    teapot_renderer = TEAPOT_RENDERER.read_text(encoding="utf-8")
+    if "new WeakHashMap<>()" not in teapot_renderer or "boilingStates.computeIfAbsent(teapot" not in teapot_renderer:
+        errors.append("Teapot renderer does not own weakly keyed boiling animation state.")
 
     entrypoints = json.loads(FABRIC_MOD.read_text(encoding="utf-8"))["entrypoints"]
     expected_optional_entrypoints = {

@@ -23,6 +23,8 @@ import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public class TeapotBlockEntityRender implements BlockEntityRenderer<TeapotBlockEntity, TeapotBlockEntityRender.RenderState> {
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/block/teapot.png");
@@ -30,6 +32,7 @@ public class TeapotBlockEntityRender implements BlockEntityRenderer<TeapotBlockE
 
     private final TeapotModel model;
     private final KeyframeAnimation boilingAnimation;
+    private final Map<TeapotBlockEntity, AnimationState> boilingStates = new WeakHashMap<>();
 
     public TeapotBlockEntityRender(BlockEntityRendererProvider.Context context) {
         this.model = new TeapotModel(context.bakeLayer(TeapotModel.LAYER_LOCATION));
@@ -50,9 +53,16 @@ public class TeapotBlockEntityRender implements BlockEntityRenderer<TeapotBlockE
         state.facingDeg = facing.get2DDataValue() * 90;
         state.variant = teapot.getBlockState().getValue(TeapotBlock.VARIANT);
         state.ageInTicks = teapot.getLevel() == null ? partialTick : teapot.getLevel().getGameTime() + partialTick;
-        state.boilingState.copyFrom(teapot.boilingState);
         state.statusText = teapot.getStatusText();
         state.status = teapot.getStatus();
+        AnimationState boilingState = this.boilingStates.computeIfAbsent(teapot, ignored -> new AnimationState());
+        if (teapot.getLevel() == null) {
+            boilingState.stop();
+        } else {
+            boilingState.animateWhen(state.status == TeapotBlockEntity.FINISHED && teapot.hasHeatSource(teapot.getLevel()),
+                    (int) teapot.getLevel().getGameTime());
+        }
+        state.boilingState.copyFrom(boilingState);
         state.input = teapot.getInput().copy();
         state.result = teapot.getResult().copy();
         state.teaFluidId = teapot.getTeaFluidId();
