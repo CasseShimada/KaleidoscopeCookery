@@ -2,7 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.FlexStockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
@@ -57,7 +57,7 @@ public class FlexStockpotRecipeCategory implements IRecipeCategory<RecipeHolder<
     }
 
     public static List<RecipeHolder<FlexStockpotRecipe>> getRecipes() {
-        return RecipeJsonLoader.getRecipes(ModRecipes.FLEX_STOCKPOT_RECIPE, ModRecipes.FLEX_STOCKPOT_SERIALIZER);
+        return ClientRecipeLookup.getRecipes(ModRecipes.FLEX_STOCKPOT_RECIPE);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
@@ -46,7 +46,7 @@ public class MillstoneRecipeCategory implements IRecipeCategory<RecipeHolder<Mil
     }
 
     public static List<RecipeHolder<MillstoneRecipe>> getRecipes() {
-        return RecipeJsonLoader.getRecipes(ModRecipes.MILLSTONE_RECIPE, ModRecipes.MILLSTONE_SERIALIZER);
+        return ClientRecipeLookup.getRecipes(ModRecipes.MILLSTONE_RECIPE);
     }
 
     @Override

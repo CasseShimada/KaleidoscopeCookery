@@ -2,7 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.farmersdelight.FarmersDelightCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
@@ -61,7 +61,7 @@ public class StockpotRecipeCategory implements IRecipeCategory<RecipeHolder<Stoc
     }
 
     public static List<RecipeHolder<StockpotRecipe>> getRecipes() {
-        List<RecipeHolder<StockpotRecipe>> recipes = RecipeJsonLoader.getRecipes(ModRecipes.STOCKPOT_RECIPE, ModRecipes.STOCKPOT_SERIALIZER);
+        List<RecipeHolder<StockpotRecipe>> recipes = ClientRecipeLookup.getRecipes(ModRecipes.STOCKPOT_RECIPE);
         FarmersDelightCompat.appendStockpotRecipes(Minecraft.getInstance().level, recipes);
         recipes.sort(RECIPE_ORDER);
         return recipes;

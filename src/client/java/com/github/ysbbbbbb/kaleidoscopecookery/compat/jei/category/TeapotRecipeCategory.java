@@ -1,7 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.TeapotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.TeapotRecipeSerializer;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
@@ -54,7 +54,7 @@ public class TeapotRecipeCategory implements IRecipeCategory<RecipeHolder<Teapot
     }
 
     public static List<RecipeHolder<TeapotRecipe>> getRecipes() {
-        return RecipeJsonLoader.getRecipes(ModRecipes.TEAPOT_RECIPE, ModRecipes.TEAPOT_SERIALIZER);
+        return ClientRecipeLookup.getRecipes(ModRecipes.TEAPOT_RECIPE);
     }
 
     @Override

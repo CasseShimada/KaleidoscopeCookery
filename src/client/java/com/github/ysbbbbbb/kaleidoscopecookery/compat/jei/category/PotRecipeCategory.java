@@ -1,7 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
@@ -57,7 +57,7 @@ public class PotRecipeCategory implements IRecipeCategory<RecipeHolder<PotRecipe
     }
 
     public static List<RecipeHolder<PotRecipe>> getRecipes() {
-        List<RecipeHolder<PotRecipe>> recipes = RecipeJsonLoader.getRecipes(ModRecipes.POT_RECIPE, ModRecipes.POT_SERIALIZER);
+        List<RecipeHolder<PotRecipe>> recipes = ClientRecipeLookup.getRecipes(ModRecipes.POT_RECIPE);
         recipes.sort(RECIPE_ORDER);
         return recipes;
     }

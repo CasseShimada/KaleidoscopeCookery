@@ -1,7 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.FlexPotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
@@ -55,7 +55,7 @@ public class FlexPotRecipeCategory implements IRecipeCategory<RecipeHolder<FlexP
     }
 
     public static List<RecipeHolder<FlexPotRecipe>> getRecipes() {
-        return RecipeJsonLoader.getRecipes(ModRecipes.FLEX_POT_RECIPE, ModRecipes.FLEX_POT_SERIALIZER);
+        return ClientRecipeLookup.getRecipes(ModRecipes.FLEX_POT_RECIPE);
     }
 
     @Override

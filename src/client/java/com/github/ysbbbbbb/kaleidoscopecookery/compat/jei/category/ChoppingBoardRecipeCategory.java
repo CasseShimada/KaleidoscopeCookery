@@ -1,7 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.ChoppingBoardRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
@@ -46,7 +46,7 @@ public class ChoppingBoardRecipeCategory implements IRecipeCategory<RecipeHolder
     }
 
     public static List<RecipeHolder<ChoppingBoardRecipe>> getRecipes() {
-        return RecipeJsonLoader.getRecipes(ModRecipes.CHOPPING_BOARD_RECIPE, ModRecipes.CHOPPING_BOARD_SERIALIZER);
+        return ClientRecipeLookup.getRecipes(ModRecipes.CHOPPING_BOARD_RECIPE);
     }
 
     @Override

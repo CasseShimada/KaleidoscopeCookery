@@ -18,7 +18,7 @@ public final class RiceBowlRecipeMaker {
     }
 
     public static List<RecipeHolder<CraftingRecipe>> createRecipes() {
-        return RecipeJsonLoader.getRecipes(ModRecipes.RICE_BOWL_SERIALIZER).stream()
+        return ClientRecipeLookup.getRecipes(ModRecipes.RICE_BOWL_SERIALIZER).stream()
                 .flatMap(holder -> createRecipe(holder).stream())
                 .toList();
     }

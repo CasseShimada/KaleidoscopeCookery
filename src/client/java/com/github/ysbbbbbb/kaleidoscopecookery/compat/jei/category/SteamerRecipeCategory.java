@@ -1,7 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.client.util.RecipeJsonLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.SteamerRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
@@ -46,7 +46,7 @@ public class SteamerRecipeCategory implements IRecipeCategory<RecipeHolder<Steam
     }
 
     public static List<RecipeHolder<SteamerRecipe>> getRecipes() {
-        return RecipeJsonLoader.getRecipes(ModRecipes.STEAMER_RECIPE, ModRecipes.STEAMER_SERIALIZER);
+        return ClientRecipeLookup.getRecipes(ModRecipes.STEAMER_RECIPE);
     }
 
     @Override
