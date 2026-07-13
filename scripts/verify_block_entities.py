@@ -256,6 +256,14 @@ def main() -> int:
         errors.append("Furniture blocks still call the legacy block entity refresh API.")
     if "tableItems.set(" in table_block:
         errors.append("TableBlock still mutates the table block entity inventory directly.")
+    if table_block.count("setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true))") != 1:
+        errors.append("TableBlock does not reserve block-state updates for initial carpet placement.")
+    if chair_block.count("setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true))") != 1:
+        errors.append("ChairBlock does not reserve block-state updates for initial carpet placement.")
+    if "if (!level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true)))" not in table_block:
+        errors.append("TableBlock does not confirm initial carpet placement.")
+    if "if (!level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true)))" not in chair_block:
+        errors.append("ChairBlock does not confirm initial carpet placement.")
     recipe_block = read(BLOCK_ROOT / "misc/RecipeBlock.java")
     if "getItems()" in recipe_block:
         errors.append("RecipeBlock still accesses the recipe block entity container directly.")

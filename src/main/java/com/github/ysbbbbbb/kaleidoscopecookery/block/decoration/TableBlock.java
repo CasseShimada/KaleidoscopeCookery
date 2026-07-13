@@ -141,16 +141,17 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true));
-            if (level.getBlockEntity(pos) instanceof TableBlockEntity tableBlockEntity) {
-                level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
-                tableBlockEntity.setColor(dyeColor);
-                if (!player.hasInfiniteMaterials()) {
-                    itemInHand.consume(1, player);
-                }
-                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-                return InteractionResult.CONSUME;
+            if (!(level.getBlockEntity(pos) instanceof TableBlockEntity tableBlockEntity)) {
+                return InteractionResult.TRY_WITH_EMPTY_HAND;
             }
+            if (!level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true))) {
+                return InteractionResult.FAIL;
+            }
+            tableBlockEntity.setColor(dyeColor);
+            itemInHand.consume(1, player);
+            level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            return InteractionResult.CONSUME;
         }
 
         // 第二种情况：有地毯，但是颜色不一致
@@ -158,17 +159,12 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            // 掉落原地毯
             DyeColor originalColor = tableBlockEntity.getColor();
             ItemStack carpetItem = getCarpetByColor(originalColor).getDefaultInstance();
+            tableBlockEntity.setColor(dyeColor);
+            itemInHand.consume(1, player);
             BlockDrop.popResource(level, pos, 0.75, carpetItem);
             level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
-
-            tableBlockEntity.setColor(dyeColor);
-            level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true));
-            if (!player.hasInfiniteMaterials()) {
-                itemInHand.consume(1, player);
-            }
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
         }
