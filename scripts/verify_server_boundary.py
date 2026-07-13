@@ -793,6 +793,8 @@ def main() -> int:
     first_replant_write_index = rice_crop_text.find("level.setBlock(basePos, getReplantedState")
     if last_replant_guard_index > first_replant_write_index:
         errors.append("RiceCropBlock writes replanted sections before validating all harvested positions.")
+    if "|| !levelAccessor.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, false), Block.UPDATE_ALL)" not in rice_crop_text:
+        errors.append("RiceCropBlock returns picked-up water without confirming the fluid-state update.")
 
     base_crop_text = BASE_CROP_BLOCK.read_text(encoding="utf-8")
     for required_reference in (
