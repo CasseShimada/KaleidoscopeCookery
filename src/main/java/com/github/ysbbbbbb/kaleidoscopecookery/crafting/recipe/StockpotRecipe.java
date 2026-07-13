@@ -41,10 +41,10 @@ public record StockpotRecipe(NonNullList<Ingredient> ingredients,
 
     @Override
     public boolean matches(StockpotInput container, Level level) {
-        List<ItemStack> inputs = container.getInputs().stream()
+        List<ItemStack> inputs = container.items().stream()
                 .filter(stack -> !stack.isEmpty())
                 .toList();
-        return container.getSoupBase().equals(this.soupBase)
+        return container.soupBase().equals(this.soupBase)
                && BaseRecipe.matchesIngredients(inputs, ingredients);
     }
 

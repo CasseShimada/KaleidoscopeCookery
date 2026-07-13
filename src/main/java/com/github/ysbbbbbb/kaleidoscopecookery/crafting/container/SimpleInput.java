@@ -2,28 +2,26 @@ package com.github.ysbbbbbb.kaleidoscopecookery.crafting.container;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class SimpleInput implements RecipeInput {
-    protected final List<ItemStack> inputs;
-
-    public SimpleInput(List<ItemStack> inputs) {
-        this.inputs = inputs;
+public record SimpleInput(List<ItemStack> items) implements RecipeInput {
+    public SimpleInput {
+        items = List.copyOf(items);
     }
 
     @Override
-    public @NotNull ItemStack getItem(int index) {
-        return this.inputs.get(index);
+    public ItemStack getItem(int index) {
+        return this.items.get(index);
     }
 
     @Override
     public int size() {
-        return this.inputs.size();
+        return this.items.size();
     }
 
+    @Deprecated(forRemoval = true)
     public List<ItemStack> getInputs() {
-        return inputs;
+        return this.items;
     }
 }

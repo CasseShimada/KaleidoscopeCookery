@@ -7,6 +7,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntit
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.StockpotInput;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.TeapotInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
@@ -92,6 +94,33 @@ public final class KaleidoscopeCookeryGameTests {
                 "Generated baked potato recipe rejected its declared ingredient");
         helper.assertFalse(recipe.matches(new SimpleInput(List.of(new ItemStack(Items.CARROT))), helper.getLevel()),
                 "Generated baked potato recipe accepted an unrelated ingredient");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void recipeInputsFollowVanillaValueSemantics(GameTestHelper helper) {
+        List<ItemStack> mutableItems = new ArrayList<>();
+        mutableItems.add(new ItemStack(Items.POTATO));
+        SimpleInput simpleInput = new SimpleInput(mutableItems);
+        StockpotInput stockpotInput = new StockpotInput(mutableItems, vanillaId("water_bucket"));
+        mutableItems.clear();
+
+        helper.assertTrue(simpleInput.size() == 1 && simpleInput.getItem(0).is(Items.POTATO),
+                "Simple recipe input retained a mutable list structure");
+        helper.assertTrue(stockpotInput.size() == 1 && stockpotInput.getItem(0).is(Items.POTATO),
+                "Stockpot recipe input retained a mutable list structure");
+        helper.assertValueEqual(stockpotInput.soupBase(), vanillaId("water"),
+                "Stockpot recipe input did not normalize its soup-base ID");
+
+        TeapotInput teapotInput = new TeapotInput(new ItemStack(Items.APPLE), vanillaId("water"));
+        boolean invalidSlotRejected = false;
+        try {
+            teapotInput.getItem(1);
+        } catch (IllegalArgumentException expected) {
+            invalidSlotRejected = true;
+        }
+        helper.assertTrue(invalidSlotRejected,
+                "Single-slot teapot input accepted an invalid slot index");
         helper.succeed();
     }
 

@@ -121,7 +121,7 @@ public final class FarmersDelightCompat {
         if (input == null || !isLoaded() || !initRecipeWrapper()) {
             return null;
         }
-        List<ItemStack> items = input.getInputs();
+        List<ItemStack> items = input.items();
         IntArrayList inputSlots = new IntArrayList(items.size());
         for (int i = 0; i < items.size(); i++) {
             inputSlots.add(i);

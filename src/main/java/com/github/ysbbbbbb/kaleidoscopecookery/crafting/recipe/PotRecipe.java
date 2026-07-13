@@ -27,7 +27,7 @@ public record PotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier
 
     @Override
     public boolean matches(SimpleInput simpleInput, Level level) {
-        List<ItemStack> inputs = simpleInput.getInputs().stream()
+        List<ItemStack> inputs = simpleInput.items().stream()
                 .filter(stack -> !stack.isEmpty())
                 .toList();
         return BaseRecipe.matchesIngredients(inputs, ingredients);

@@ -61,10 +61,10 @@ public record FlexStockpotRecipe(NonNullList<Ingredient> ingredients,
 
     @Override
     public boolean matches(StockpotInput container, Level level) {
-        if (!container.getSoupBase().equals(this.soupBase)) {
+        if (!container.soupBase().equals(this.soupBase)) {
             return false;
         }
-        List<ItemStack> merged = mergedInputs(container.getInputs());
+        List<ItemStack> merged = mergedInputs(container.items());
         return BaseRecipe.matchesIngredients(merged, ingredients);
     }
 

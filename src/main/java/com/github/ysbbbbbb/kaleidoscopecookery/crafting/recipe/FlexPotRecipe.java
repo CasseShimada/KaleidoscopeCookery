@@ -30,7 +30,7 @@ public record FlexPotRecipe(int time, int stirFryCount, Ingredient carrier,
 
     @Override
     public boolean matches(SimpleInput simpleInput, Level level) {
-        List<ItemStack> merged = mergedInputs(simpleInput.getInputs());
+        List<ItemStack> merged = mergedInputs(simpleInput.items());
         return BaseRecipe.matchesIngredients(merged, ingredients);
     }
 

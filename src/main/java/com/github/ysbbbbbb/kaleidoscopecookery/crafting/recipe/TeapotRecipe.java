@@ -20,8 +20,8 @@ public record TeapotRecipe(Identifier teaFluid, Ingredient ingredient, int ingre
 
     @Override
     public boolean matches(TeapotInput container, Level level) {
-        ItemStack stack = container.getItemStack();
-        return this.teaFluid.equals(container.getTeaFluid()) && this.ingredient.test(stack) && stack.getCount() >= this.ingredientCount;
+        ItemStack stack = container.item();
+        return this.teaFluid.equals(container.teaFluid()) && this.ingredient.test(stack) && stack.getCount() >= this.ingredientCount;
     }
 
     @Override
