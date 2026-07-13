@@ -40,7 +40,6 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -92,16 +91,9 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
      */
     public RecipeHolder<StockpotRecipe> recipe = StockpotRecipeSerializer.getEmptyRecipe();
     public StockpotVisuals visuals = StockpotVisuals.DEFAULT;
-    public @Nullable Entity renderEntity = null;
 
     public StockpotBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(ModBlocks.STOCKPOT_BE, pPos, pBlockState);
-    }
-
-    public void clientTick() {
-        if (this.renderEntity != null) {
-            this.renderEntity.tickCount++;
-        }
     }
 
     public StockpotInput getInput() {
@@ -436,7 +428,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             if (soupBase == null || !soupBase.isContainer(bucket)) {
                 return false;
             }
-            this.renderEntity = null;
             this.soupBaseId = ModSoupBases.WATER;
             this.status = PUT_SOUP_BASE;
             this.setChangedAndSync();
@@ -563,7 +554,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             this.soupBaseId = ModSoupBases.WATER;
             this.result = ItemStack.EMPTY;
             this.currentTick = -1;
-            this.renderEntity = null;
         }
         this.setChangedAndSync();
         return true;
