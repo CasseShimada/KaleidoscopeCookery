@@ -106,6 +106,8 @@ PLATE_BLOCK = SRC / "block/decoration/PlateBlock.java"
 STACKABLE_FOOD_BLOCK = SRC / "block/decoration/StackableFoodBlock.java"
 FOOD_BITE_BLOCK = SRC / "block/food/FoodBiteBlock.java"
 FOOD_BITE_ONE_BY_TWO_BLOCK = SRC / "block/food/FoodBiteOneByTwoBlock.java"
+FOOD_BITE_THREE_BY_THREE_BLOCK = SRC / "block/food/FoodBiteThreeByThreeBlock.java"
+MILLSTONE_BLOCK = SRC / "block/kitchen/MillstoneBlock.java"
 STOVE_BLOCK = SRC / "block/kitchen/StoveBlock.java"
 ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
@@ -585,6 +587,15 @@ def main() -> int:
     confirmed_pair_removal = "if (level.setBlock(right, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL))"
     if confirmed_pair_removal not in two_block_food_text:
         errors.append("FoodBiteOneByTwoBlock does not confirm creative paired-half removal.")
+
+    for path in (FOOD_BITE_THREE_BY_THREE_BLOCK, MILLSTONE_BLOCK):
+        nine_part_text = path.read_text(encoding="utf-8")
+        set_placed_start = nine_part_text.find("public void setPlacedBy(")
+        set_placed_end = nine_part_text.find("protected void createBlockStateDefinition(", set_placed_start)
+        if "isClientSide()" in nine_part_text[set_placed_start:set_placed_end]:
+            errors.append(f"{path.name} suppresses client-side placement of its nine-part structure.")
+        if "&& !world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL)" not in nine_part_text:
+            errors.append(f"{path.name} does not confirm matching satellite removal.")
 
     stove_block_text = STOVE_BLOCK.read_text(encoding="utf-8")
     if "itemInHand.consume(1, player)" not in stove_block_text:

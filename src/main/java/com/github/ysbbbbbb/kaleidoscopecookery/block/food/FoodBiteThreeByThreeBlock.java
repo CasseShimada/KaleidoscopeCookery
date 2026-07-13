@@ -68,25 +68,32 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
         return pos.subtract(new Vec3i(part.getPosX(), 0, part.getPosY()));
     }
 
-    private static void handleRemove(Level world, BlockPos pos, BlockState state, @Nullable Player player) {
+    private static boolean handleRemove(Level world, BlockPos pos, BlockState state, @Nullable Player player) {
         if (world.isClientSide()) {
-            return;
+            return false;
         }
         BlockPos centerPos = getCenterPos(pos, state);
         BlockEntity blockEntity = world.getBlockEntity(centerPos);
         if (!(blockEntity instanceof FoodBiteThreeByThreeBlockEntity)) {
-            return;
+            return false;
         }
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
-                BlockPos offsetPos = centerPos.offset(i, 0, j);
                 if (i == 0 && j == 0) {
-                    world.destroyBlock(offsetPos, true, player);
-                } else {
-                    world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
+                    continue;
+                }
+                BlockPos offsetPos = centerPos.offset(i, 0, j);
+                BlockState offsetState = world.getBlockState(offsetPos);
+                if (offsetState.is(state.getBlock()) && getCenterPos(offsetPos, offsetState).equals(centerPos)
+                        && !world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL)) {
+                    return false;
                 }
             }
         }
+
+        BlockState centerState = world.getBlockState(centerPos);
+        return centerState.is(state.getBlock()) && centerState.getValue(PART).isCenter()
+                && world.destroyBlock(centerPos, true, player);
     }
 
     @Override
@@ -99,8 +106,12 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
 
         int bites = centerState.getValue(getBites());
         if (bites >= getMaxBites()) {
-            handleRemove(level, centerPos, centerState, player);
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
+            return handleRemove(level, centerPos, centerState, player)
+                    ? InteractionResult.CONSUME
+                    : InteractionResult.FAIL;
         }
 
         return super.useWithoutItem(centerState, level, centerPos, player, hit);
@@ -139,9 +150,6 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(worldIn, pos, state, placer, stack);
-        if (worldIn.isClientSide()) {
-            return;
-        }
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
                 BlockPos searchPos = pos.offset(i, 0, j);

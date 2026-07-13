@@ -4,6 +4,9 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.NinePart;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
@@ -178,6 +181,44 @@ public final class KaleidoscopeCookeryGameTests {
         inputSnapshot.shrink(1);
         helper.assertValueEqual(millstone.getInput().getCount(), 3,
                 "Mutating a millstone input snapshot changed the stored stack");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void millstoneRemovalPreservesUnrelatedBlocks(GameTestHelper helper) {
+        BlockPos centerPos = new BlockPos(2, 1, 2);
+        for (NinePart part : NinePart.values()) {
+            helper.setBlock(centerPos.offset(part.getPosX(), 0, part.getPosY()),
+                    ModBlocks.MILLSTONE.defaultBlockState().setValue(MillstoneBlock.PART, part));
+        }
+        BlockPos replacedPartPos = centerPos.offset(NinePart.LEFT_UP.getPosX(), 0, NinePart.LEFT_UP.getPosY());
+        helper.setBlock(replacedPartPos, Blocks.DIAMOND_BLOCK);
+
+        BlockState centerState = helper.getBlockState(centerPos);
+        centerState.getBlock().playerWillDestroy(helper.getLevel(), helper.absolutePos(centerPos), centerState,
+                helper.makeMockPlayer(GameType.SURVIVAL));
+
+        helper.assertBlockPresent(Blocks.DIAMOND_BLOCK, replacedPartPos);
+        helper.assertBlockNotPresent(ModBlocks.MILLSTONE, centerPos);
+        helper.succeed();
+    }
+
+    @GameTest
+    public void largeFoodRemovalPreservesUnrelatedBlocks(GameTestHelper helper) {
+        BlockPos centerPos = new BlockPos(2, 1, 2);
+        for (NinePart part : NinePart.values()) {
+            helper.setBlock(centerPos.offset(part.getPosX(), 0, part.getPosY()),
+                    ModBlocks.COLD_CUT_HAM_SLICES.defaultBlockState().setValue(FoodBiteThreeByThreeBlock.PART, part));
+        }
+        BlockPos replacedPartPos = centerPos.offset(NinePart.RIGHT_DOWN.getPosX(), 0, NinePart.RIGHT_DOWN.getPosY());
+        helper.setBlock(replacedPartPos, Blocks.GOLD_BLOCK);
+
+        BlockState centerState = helper.getBlockState(centerPos);
+        centerState.getBlock().playerWillDestroy(helper.getLevel(), helper.absolutePos(centerPos), centerState,
+                helper.makeMockPlayer(GameType.SURVIVAL));
+
+        helper.assertBlockPresent(Blocks.GOLD_BLOCK, replacedPartPos);
+        helper.assertBlockNotPresent(ModBlocks.COLD_CUT_HAM_SLICES, centerPos);
         helper.succeed();
     }
 

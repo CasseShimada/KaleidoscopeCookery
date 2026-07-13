@@ -132,20 +132,43 @@ public class MillstoneBlock extends HorizontalDirectionalBlock implements Entity
         if (!(te instanceof MillstoneBlockEntity millstone)) {
             return false;
         }
+        ItemStack output = millstone.getOutput();
+        ItemStack input = millstone.getInput();
+        boolean dropOutput = !output.isEmpty() && millstone.getCarrier().isEmpty();
+
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                }
                 BlockPos offsetPos = centerPos.offset(i, 0, j);
-                world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
+                BlockState offsetState = world.getBlockState(offsetPos);
+                if (offsetState.is(ModBlocks.MILLSTONE) && offsetState.hasProperty(PART)) {
+                    NinePart offsetPart = offsetState.getValue(PART);
+                    BlockPos offsetCenter = offsetPos.subtract(new Vec3i(offsetPart.getPosX(), 0, offsetPart.getPosY()));
+                    if (offsetCenter.equals(centerPos)
+                            && !world.setBlock(offsetPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL)) {
+                        return false;
+                    }
+                }
             }
         }
+
+        BlockState centerState = world.getBlockState(centerPos);
+        if (!centerState.is(ModBlocks.MILLSTONE) || !centerState.hasProperty(PART)
+                || !centerState.getValue(PART).isCenter()
+                || !world.setBlock(centerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL)) {
+            return false;
+        }
+
         if (player != null && !player.hasInfiniteMaterials()) {
             Block.popResource(world, dropPos, ModItems.MILLSTONE.getDefaultInstance());
         }
-        if (!millstone.getOutput().isEmpty() && millstone.getCarrier().isEmpty()) {
-            Block.popResource(world, dropPos, millstone.getOutput());
+        if (dropOutput) {
+            Block.popResource(world, dropPos, output);
         }
-        if (!millstone.getInput().isEmpty()) {
-            Block.popResource(world, dropPos, millstone.getInput());
+        if (!input.isEmpty()) {
+            Block.popResource(world, dropPos, input);
         }
         return true;
     }
@@ -246,9 +269,6 @@ public class MillstoneBlock extends HorizontalDirectionalBlock implements Entity
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(worldIn, pos, state, placer, stack);
-        if (worldIn.isClientSide()) {
-            return;
-        }
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
                 BlockPos searchPos = pos.offset(i, 0, j);
