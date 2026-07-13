@@ -195,6 +195,10 @@ def main() -> int:
         errors.append("StockpotBlockEntity still stores or ticks a client-only render entity.")
     if "public StockpotVisuals visuals" in stockpot_block_entity or "RecipeHolder<StockpotRecipe> recipe =" in stockpot_block_entity:
         errors.append("StockpotBlockEntity exposes or redundantly caches recipe rendering state.")
+    if stockpot_block_entity.count("bucket.consume(1, user)") < 2:
+        errors.append("Stockpot soup-base transfers do not use vanilla ItemStack.consume().")
+    if "bucket.shrink(1)" in stockpot_block_entity:
+        errors.append("Stockpot soup-base transfers still manually shrink bucket stacks.")
     stockpot_block = STOCKPOT_BLOCK.read_text(encoding="utf-8")
     if "level.isClientSide() || blockEntityType != ModBlocks.STOCKPOT_BE" not in stockpot_block:
         errors.append("StockpotBlock still installs a common block entity ticker on the client.")

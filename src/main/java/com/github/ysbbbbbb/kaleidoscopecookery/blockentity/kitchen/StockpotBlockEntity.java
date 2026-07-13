@@ -387,7 +387,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
 
                 ItemStack container = soupBase.getReturnContainer(level, user, bucket);
                 if (!user.hasInfiniteMaterials()) {
-                    bucket.shrink(1);
+                    bucket.consume(1, user);
                     ItemUtils.getItemToLivingEntity(user, container);
                 }
                 return true;
@@ -410,7 +410,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
 
             ItemStack container = soupBase.getReturnSoupBase(level, user, bucket);
             if (!user.hasInfiniteMaterials()) {
-                bucket.shrink(1);
+                bucket.consume(1, user);
                 ItemUtils.getItemToLivingEntity(user, container);
             }
             return true;
