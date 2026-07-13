@@ -59,6 +59,7 @@ jobs:
             exit 1
           fi
           ./gradlew build --warning-mode all
+          python3 scripts/verify_pack_metadata.py
           python3 scripts/verify_resources.py
           python3 scripts/verify_server_boundary.py
           python3 scripts/verify_mixins.py
