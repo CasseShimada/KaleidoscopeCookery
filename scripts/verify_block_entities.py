@@ -19,7 +19,11 @@ MOD_BLOCKS = JAVA_ROOT / "init/ModBlocks.java"
 BLOCK_ENTITY_ROOT = JAVA_ROOT / "blockentity"
 BLOCK_ROOT = JAVA_ROOT / "block"
 BASE_BLOCK_ENTITY = BLOCK_ENTITY_ROOT / "BaseBlockEntity.java"
-POT_BLOCK_ENTITY = BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java"
+
+EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
+    BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java",
+    BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java",
+)
 
 EXPECTED_BLOCK_ENTITY_IDS = {
     "POT_BE": "pot",
@@ -118,15 +122,16 @@ def main() -> int:
     block_entity_registrations = collect_block_entity_registrations(mod_blocks)
 
     base_block_entity = read(BASE_BLOCK_ENTITY)
-    pot_block_entity = read(POT_BLOCK_ENTITY)
     if "protected final void setChangedAndSync()" not in base_block_entity:
         errors.append("BaseBlockEntity is missing an explicit dirty-and-client-sync path.")
     if "Block.UPDATE_CLIENTS" not in base_block_entity:
         errors.append("BaseBlockEntity client synchronization still requires neighbor updates.")
-    if "this.refresh();" in pot_block_entity:
-        errors.append("PotBlockEntity still uses the legacy combined refresh path.")
-    if "this.setChangedAndSync();" not in pot_block_entity:
-        errors.append("PotBlockEntity does not use the explicit dirty-and-client-sync path.")
+    for path in EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES:
+        block_entity_text = read(path)
+        if "this.refresh();" in block_entity_text:
+            errors.append(f"{path.name} still uses the legacy combined refresh path.")
+        if "this.setChangedAndSync();" not in block_entity_text:
+            errors.append(f"{path.name} does not use the explicit dirty-and-client-sync path.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

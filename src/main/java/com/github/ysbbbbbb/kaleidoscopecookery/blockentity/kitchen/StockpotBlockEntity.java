@@ -161,7 +161,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         if (status == PUT_INGREDIENT && level.getGameTime() % 5 == 0 && !this.isEmpty()) {
             this.setRecipe(level);
             status = COOKING;
-            this.refresh();
+            this.setChangedAndSync();
             return;
         }
 
@@ -174,7 +174,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             status = FINISHED;
             currentTick = -1;
             this.inputs = NonNullList.withSize(StockpotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
-            this.refresh();
+            this.setChangedAndSync();
         }
     }
 
@@ -214,7 +214,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         level.playSound(null, this.worldPosition,
                 SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
                 ((level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     private void spawnParticleWithoutLid(Level level) {
@@ -414,7 +414,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             if (soupBase.isSoupBase(bucket)) {
                 this.soupBaseId = key;
                 this.status = PUT_INGREDIENT;
-                this.refresh();
+                this.setChangedAndSync();
 
                 ItemStack container = soupBase.getReturnContainer(level, user, bucket);
                 if (!user.hasInfiniteMaterials()) {
@@ -438,7 +438,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             this.renderEntity = null;
             this.soupBaseId = ModSoupBases.WATER;
             this.status = PUT_SOUP_BASE;
-            this.refresh();
+            this.setChangedAndSync();
 
             ItemStack container = soupBase.getReturnSoupBase(level, user, bucket);
             if (!user.hasInfiniteMaterials()) {
@@ -477,7 +477,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             level.playSound(null, user.getX(), user.getY() + 0.5, user.getZ(),
                     SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
                     ((level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
-            this.refresh();
+            this.setChangedAndSync();
             return true;
         }
         return false;
@@ -509,7 +509,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 user.hurtServer(serverLevel, level.damageSources().inFire(), 1.0F);
                 ModTrigger.EVENT.trigger(user, ModEventTriggerType.HURT_WHEN_TAKEOUT_FROM_STOCKPOT);
             }
-            this.refresh();
+            this.setChangedAndSync();
             return true;
         }
         return false;
@@ -564,7 +564,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             this.currentTick = -1;
             this.renderEntity = null;
         }
-        this.refresh();
+        this.setChangedAndSync();
         return true;
     }
 
