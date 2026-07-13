@@ -78,7 +78,10 @@ def collect_registered_blocks() -> set[str]:
 
 
 def collect_registered_entities() -> set[str]:
-    return collect_string_calls(JAVA_ROOT / "init/ModEntities.java", "register")
+    return set(re.findall(
+        r'ResourceKey<EntityType<\?>>\s+\w+_KEY\s*=\s*key\("([a-z0-9_./-]+)"\)',
+        read(JAVA_ROOT / "init/ModEntities.java"),
+    ))
 
 
 def collect_registered_pois() -> set[str]:
@@ -366,6 +369,26 @@ def validate_millstone_datamap() -> tuple[list[str], int]:
     return errors, len(data)
 
 
+def validate_millstone_datamap_reloader() -> list[str]:
+    errors: list[str] = []
+    listener = strip_comments(read(
+        JAVA_ROOT / "datamap/resources/MillstoneBindableDataReloadListener.java"
+    ))
+    common_registry = strip_comments(read(JAVA_ROOT / "init/registry/CommonRegistry.java"))
+
+    if "extends SimplePreparableReloadListener<Map<EntityType<?>, MillstoneBindableData>>" not in listener:
+        errors.append("Millstone datamap does not use the vanilla prepare/apply reload lifecycle.")
+    if not re.search(r"static\s+volatile\s+Map<EntityType<\?>,\s*MillstoneBindableData>\s+data", listener):
+        errors.append("Millstone datamap is not published as an atomic reload snapshot.")
+    if "DATA.clear()" in listener:
+        errors.append("Millstone datamap reload still clears live mutable state.")
+    if "return Map.copyOf(prepared)" not in listener or "data = prepared" not in listener:
+        errors.append("Millstone datamap reload does not publish an immutable prepared snapshot.")
+    if "registerReloadListener(MillstoneBindableDataReloadListener.ID" not in common_registry:
+        errors.append("Millstone datamap reload listener is not registered through Fabric ResourceLoader.")
+    return errors
+
+
 def validate_village_structures() -> tuple[list[str], int]:
     errors: list[str] = []
     event_text = strip_comments(read(JAVA_ROOT / "event/server/AddVillageStructuresEvent.java"))
@@ -405,6 +428,7 @@ def main() -> int:
     errors.extend(trade_errors)
     datamap_errors, datamap_entries = validate_millstone_datamap()
     errors.extend(datamap_errors)
+    errors.extend(validate_millstone_datamap_reloader())
     village_errors, village_structures = validate_village_structures()
     errors.extend(village_errors)
 
