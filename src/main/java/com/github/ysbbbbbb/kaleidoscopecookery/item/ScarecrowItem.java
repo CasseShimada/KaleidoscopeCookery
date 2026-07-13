@@ -62,11 +62,9 @@ public class ScarecrowItem extends CookeryTooltipItem {
                 level.playSound(null, scarecrow.getX(), scarecrow.getY(), scarecrow.getZ(), SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 0.75F, 0.8F);
                 scarecrow.gameEvent(GameEvent.ENTITY_PLACE, context.getPlayer());
                 ModTrigger.EVENT.trigger(context.getPlayer(), ModEventTriggerType.PLACE_SCARECROW);
-            }
-            if (!level.isClientSide()) {
                 stack.consume(1, context.getPlayer());
             }
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+            return InteractionResult.SUCCESS;
         }
         return InteractionResult.FAIL;
     }

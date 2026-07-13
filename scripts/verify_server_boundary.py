@@ -691,12 +691,15 @@ def main() -> int:
 
     scarecrow_item_text = SCARECROW_ITEM.read_text(encoding="utf-8")
     for required_reference in (
-        "if (!level.isClientSide())",
+        "if (level instanceof ServerLevel serverLevel)",
         "if (!serverLevel.tryAddFreshEntityWithPassengers(scarecrow))",
         "stack.consume(1, context.getPlayer())",
+        "return InteractionResult.SUCCESS;",
     ):
         if required_reference not in scarecrow_item_text:
             errors.append(f"ScarecrowItem placement consumption is missing {required_reference}.")
+    if "level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME" in scarecrow_item_text:
+        errors.append("ScarecrowItem placement still uses legacy sided interaction results.")
     if "stack.shrink(" in scarecrow_item_text:
         errors.append("ScarecrowItem still manually shrinks the placement stack.")
     confirmed_spawn = scarecrow_item_text.find("if (!serverLevel.tryAddFreshEntityWithPassengers(scarecrow))")

@@ -312,8 +312,8 @@ public final class KaleidoscopeCookeryGameTests {
         InteractionResult result = ModItems.SCARECROW.useOn(
                 new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult));
 
-        helper.assertValueEqual(result, InteractionResult.CONSUME,
-                "Successful scarecrow placement did not consume the interaction");
+        helper.assertValueEqual(result, InteractionResult.SUCCESS,
+                "Successful scarecrow placement did not use the vanilla placement result");
         helper.assertValueEqual(stack.getCount(), 1,
                 "Successful scarecrow placement consumed the wrong item count");
         helper.assertEntityPresent(ModEntities.SCARECROW, scarecrowPos);
