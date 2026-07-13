@@ -531,17 +531,28 @@ def main() -> int:
         errors.append("StoveBlock does not use vanilla ItemStack.consume() for fire charges.")
     if "itemInHand.shrink(" in stove_block_text:
         errors.append("StoveBlock still manually shrinks fire charges.")
-    if stove_block_text.count("GameEvent.BLOCK_CHANGE") != 5:
-        errors.append("StoveBlock does not emit a block-change game event for every lit-state transition.")
+    if stove_block_text.count("GameEvent.BLOCK_CHANGE") != 4:
+        errors.append("StoveBlock does not emit a block-change game event for every distinct lit-state update path.")
     if "if (!level.setBlockAndUpdate(pos, state.setValue(LIT, true)))" not in stove_block_text:
         errors.append("StoveBlock consumes ignition items before confirming the lit-state update.")
     if "if (!level.setBlockAndUpdate(pos, state.setValue(LIT, false)))" not in stove_block_text:
         errors.append("StoveBlock mutates extinguishing tools before confirming the lit-state update.")
     if "if (!level.setBlock(hitBlockPos, state.setValue(BlockStateProperties.LIT, true), Block.UPDATE_ALL_IMMEDIATE))" not in stove_block_text:
         errors.append("StoveBlock triggers projectile ignition effects without confirming the state update.")
+    for required_reference in (
+        "extinguish(level, pos, blockState)",
+        "extinguish(level, pos, state)",
+        "tickAccess.scheduleTick(pos, this, 1)",
+    ):
+        if required_reference not in stove_block_text:
+            errors.append(f"StoveBlock automatic extinguishing is missing {required_reference}.")
+    update_shape_start = stove_block_text.find("BlockState updateShape(")
+    update_shape_end = stove_block_text.find("InteractionResult useItemOn(", update_shape_start)
+    update_shape_text = stove_block_text[update_shape_start:update_shape_end]
+    if "setBlock" in update_shape_text:
+        errors.append("StoveBlock still mutates the world directly during updateShape().")
     for required_context in (
         "GameEvent.Context.of(state)",
-        "GameEvent.Context.of(blockState)",
         "GameEvent.Context.of(player, state)",
         "GameEvent.Context.of(projectile, state)",
     ):

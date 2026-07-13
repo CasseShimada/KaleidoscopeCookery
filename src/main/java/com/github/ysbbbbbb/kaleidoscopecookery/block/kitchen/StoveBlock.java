@@ -111,10 +111,24 @@ public class StoveBlock extends HorizontalDirectionalBlock {
     @Override
     public void randomTick(BlockState blockState, ServerLevel level, BlockPos pos, RandomSource random) {
         if (blockState.getValue(LIT) && level.isRainingAt(pos.above())) {
-            level.setBlockAndUpdate(pos, blockState.setValue(LIT, false));
-            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
-            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(blockState));
+            extinguish(level, pos, blockState);
         }
+    }
+
+    @Override
+    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (state.getValue(LIT) && level.getFluidState(pos.above()).is(FluidTags.WATER)) {
+            extinguish(level, pos, state);
+        }
+    }
+
+    private static boolean extinguish(Level level, BlockPos pos, BlockState state) {
+        if (!level.setBlockAndUpdate(pos, state.setValue(LIT, false))) {
+            return false;
+        }
+        level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(state));
+        return true;
     }
 
     @Override
@@ -138,10 +152,8 @@ public class StoveBlock extends HorizontalDirectionalBlock {
     @Override
     public @NotNull BlockState updateShape(BlockState state, LevelReader levelReader, ScheduledTickAccess tickAccess, BlockPos pos,
                                            Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
-        if (state.getValue(LIT) && levelReader.getFluidState(pos.above()).is(FluidTags.WATER) && levelReader instanceof ServerLevel serverLevel) {
-            serverLevel.setBlockAndUpdate(pos, state.setValue(LIT, false));
-            serverLevel.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
-            serverLevel.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(state));
+        if (state.getValue(LIT) && direction == Direction.UP && neighborState.getFluidState().is(FluidTags.WATER)) {
+            tickAccess.scheduleTick(pos, this, 1);
         }
         return super.updateShape(state, levelReader, tickAccess, pos, direction, neighborPos, neighborState, random);
     }
