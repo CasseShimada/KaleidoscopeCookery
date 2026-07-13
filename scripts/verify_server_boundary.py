@@ -478,6 +478,16 @@ def main() -> int:
         errors.append("StoveBlock does not use vanilla ItemStack.consume() for fire charges.")
     if "itemInHand.shrink(" in stove_block_text:
         errors.append("StoveBlock still manually shrinks fire charges.")
+    if stove_block_text.count("GameEvent.BLOCK_CHANGE") != 5:
+        errors.append("StoveBlock does not emit a block-change game event for every lit-state transition.")
+    for required_context in (
+        "GameEvent.Context.of(state)",
+        "GameEvent.Context.of(blockState)",
+        "GameEvent.Context.of(player, state)",
+        "GameEvent.Context.of(projectile, state)",
+    ):
+        if required_context not in stove_block_text:
+            errors.append(f"StoveBlock game event handling is missing {required_context}.")
 
     scarecrow_item_text = SCARECROW_ITEM.read_text(encoding="utf-8")
     for required_reference in (

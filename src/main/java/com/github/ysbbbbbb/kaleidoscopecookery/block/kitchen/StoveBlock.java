@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.tags.FluidTags;
@@ -112,6 +113,7 @@ public class StoveBlock extends HorizontalDirectionalBlock {
         if (blockState.getValue(LIT) && level.isRainingAt(pos.above())) {
             level.setBlockAndUpdate(pos, blockState.setValue(LIT, false));
             level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(blockState));
         }
     }
 
@@ -139,6 +141,7 @@ public class StoveBlock extends HorizontalDirectionalBlock {
         if (state.getValue(LIT) && levelReader.getFluidState(pos.above()).is(FluidTags.WATER) && levelReader instanceof ServerLevel serverLevel) {
             serverLevel.setBlockAndUpdate(pos, state.setValue(LIT, false));
             serverLevel.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
+            serverLevel.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(state));
         }
         return super.updateShape(state, levelReader, tickAccess, pos, direction, neighborPos, neighborState, random);
     }
@@ -170,6 +173,7 @@ public class StoveBlock extends HorizontalDirectionalBlock {
                 }
             }
             ModTrigger.EVENT.trigger(player, ModEventTriggerType.LIT_THE_STOVE);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
         }
         // 熄灭
@@ -188,6 +192,7 @@ public class StoveBlock extends HorizontalDirectionalBlock {
             if (!player.hasInfiniteMaterials()) {
                 itemInHand.hurtAndBreak(1, player, hand);
             }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
@@ -199,6 +204,7 @@ public class StoveBlock extends HorizontalDirectionalBlock {
         if (!level.isClientSide() && level instanceof ServerLevel serverLevel && projectile.isOnFire()
                 && projectile.mayInteract(serverLevel, hitBlockPos) && !state.getValue(LIT)) {
             level.setBlock(hitBlockPos, state.setValue(BlockStateProperties.LIT, true), Block.UPDATE_ALL_IMMEDIATE);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, hitBlockPos, GameEvent.Context.of(projectile, state));
             if (projectile.getOwner() instanceof Player player) {
                 ModTrigger.EVENT.trigger(player, ModEventTriggerType.LIT_THE_STOVE);
             }
