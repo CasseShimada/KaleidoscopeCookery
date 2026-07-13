@@ -12,10 +12,13 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -35,6 +38,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -80,6 +84,30 @@ public final class KaleidoscopeCookeryGameTests {
                 "Generated baked potato recipe rejected its declared ingredient");
         helper.assertFalse(recipe.matches(new SimpleInput(List.of(new ItemStack(Items.CARROT))), helper.getLevel()),
                 "Generated baked potato recipe accepted an unrelated ingredient");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void foodContainersUseVanillaRemainderComponents(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+
+        ItemStack bambooRemainder = new ItemStack(ModItems.BAMBOO_TUBE_RICE)
+                .finishUsingItem(helper.getLevel(), player);
+        helper.assertTrue(bambooRemainder.is(Items.BAMBOO),
+                "Bamboo tube rice did not convert into bamboo through USE_REMAINDER");
+
+        ItemStack tea = new ItemStack(TeacupRegistry.getItem(TeacupRegistry.BARLEY_TEA), 2);
+        var useRemainder = tea.get(DataComponents.USE_REMAINDER);
+        helper.assertTrue(useRemainder != null, "Tea did not register a USE_REMAINDER component");
+        List<ItemStack> extraRemainders = new ArrayList<>();
+        ItemStack remainingTea = useRemainder.convertIntoRemainder(
+                tea.copyWithCount(1), tea.getCount(), false, extraRemainders::add);
+        helper.assertTrue(remainingTea.is(TeacupRegistry.getItem(TeacupRegistry.BARLEY_TEA))
+                        && remainingTea.getCount() == 1,
+                "Stacked tea did not preserve the remaining drink stack");
+        helper.assertTrue(extraRemainders.stream()
+                        .anyMatch(stack -> stack.is(ModItems.EMPTY_CUP)),
+                "Stacked tea did not return the empty cup through vanilla use handling");
         helper.succeed();
     }
 

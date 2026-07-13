@@ -1,8 +1,5 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.item.IHasContainer;
-import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
-import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.triggers.CriteriaTriggers;
@@ -17,7 +14,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.TooltipFlag;
@@ -33,7 +29,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class TeacupItem extends CookeryTooltipBlockItem implements IHasContainer {
+public class TeacupItem extends CookeryTooltipBlockItem {
     private final List<Pair<Supplier<MobEffectInstance>, Float>> effects;
     private final List<MobEffectInstance> showEffects = new ArrayList<>();
 
@@ -80,20 +76,6 @@ public class TeacupItem extends CookeryTooltipBlockItem implements IHasContainer
         }
         this.addTeaEffect(level, entity);
         stack.consume(1, entity);
-        if (entity.hasInfiniteMaterials()) {
-            return stack;
-        }
-        ItemStack cup = new ItemStack(this.getContainerItem());
-        if (stack.isEmpty()) {
-            return cup;
-        }
-        if (!level.isClientSide()) {
-            if (entity instanceof Player player) {
-                ItemUtils.giveItemToPlayer(player, cup);
-            } else {
-                ItemUtils.getItemToLivingEntity(entity, cup);
-            }
-        }
         return stack;
     }
 
@@ -107,12 +89,6 @@ public class TeacupItem extends CookeryTooltipBlockItem implements IHasContainer
             }
         }
     }
-
-    @Override
-    public Item getContainerItem() {
-        return ModItems.EMPTY_CUP;
-    }
-
     @Override
     protected void appendCookeryTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {

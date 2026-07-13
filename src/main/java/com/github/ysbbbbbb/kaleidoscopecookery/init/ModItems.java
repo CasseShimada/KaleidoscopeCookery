@@ -124,7 +124,7 @@ public final class ModItems {
     public static final Item RAW_ZONGZI = new Item(itemProperties("raw_zongzi"));
     public static final Item RAW_BAMBOO_TUBE_RICE = new Item(ModFoods.applyFood(itemProperties("raw_bamboo_tube_rice"), ModFoods.RAW_BAMBOO_TUBE_RICE));
     public static final Item BAMBOO_TUBE_RICE = new BambooTubeRiceBlockItem(
-            ModBlocks.BAMBOO_TUBE_RICE_BLOCK, blockItemProperties("bamboo_tube_rice"), ModFoods.BAMBOO_TUBE_RICE);
+            ModBlocks.BAMBOO_TUBE_RICE_BLOCK, blockItemProperties("bamboo_tube_rice").usingConvertsTo(Items.BAMBOO), ModFoods.BAMBOO_TUBE_RICE);
     public static final Item RAW_DOUGH = new RawDoughItem(itemProperties("raw_dough"));
     public static final Item FLOUR = new FlourItem(itemProperties("flour"));
     public static final Item RAW_NOODLES = new Item(itemProperties("raw_noodles"));
@@ -239,7 +239,8 @@ public final class ModItems {
             if (!(block instanceof TeacupBlock teacupBlock)) {
                 throw new IllegalStateException("Registered teacup block has unexpected type: " + id);
             }
-            register(id, new TeacupItem(teacupBlock, blockItemProperties(id.getPath()).stacksTo(16), data.getEffects()));
+            register(id, new TeacupItem(teacupBlock,
+                    blockItemProperties(id.getPath()).stacksTo(16).usingConvertsTo(EMPTY_CUP), data.getEffects()));
         });
 
 

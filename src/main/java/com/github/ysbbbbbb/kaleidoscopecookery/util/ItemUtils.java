@@ -1,6 +1,5 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.util;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.item.IHasContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import net.minecraft.core.NonNullList;
@@ -260,9 +259,7 @@ public final class ItemUtils {
         if (!remainingItem.isEmpty()) {
             return remainingItem.getItem();
         }
-        if (item instanceof IHasContainer hasContainer) {
-            return hasContainer.getContainerItem();
-        } else if (stack.is(TagMod.BOWL_CONTAINER)) {
+        if (stack.is(TagMod.BOWL_CONTAINER)) {
             return Items.BOWL;
         } else if (stack.is(TagMod.GLASS_BOTTLE_CONTAINER)) {
             return Items.GLASS_BOTTLE;

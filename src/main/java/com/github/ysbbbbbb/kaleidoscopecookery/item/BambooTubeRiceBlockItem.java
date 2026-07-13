@@ -1,17 +1,13 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.item.IHasContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModFoods;
-import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
@@ -19,7 +15,7 @@ import net.minecraft.world.level.block.Block;
 
 import java.util.function.Consumer;
 
-public class BambooTubeRiceBlockItem extends CookeryTooltipBlockItem implements IHasContainer {
+public class BambooTubeRiceBlockItem extends CookeryTooltipBlockItem {
     public BambooTubeRiceBlockItem(Block block, Properties properties, FoodProperties foodProperties) {
         super(block, ModFoods.applyFood(properties, foodProperties));
     }
@@ -30,20 +26,6 @@ public class BambooTubeRiceBlockItem extends CookeryTooltipBlockItem implements 
         ItemStack result = super.finishUsingItem(stack, level, entity);
         if (entity instanceof Player player) {
             FoodQualityHelper.applyQualityAfterConsume(consumed, player);
-        }
-        if (entity.hasInfiniteMaterials()) {
-            return result;
-        }
-        ItemStack container = new ItemStack(this.getContainerItem());
-        if (result.isEmpty()) {
-            return container;
-        }
-        if (!level.isClientSide()) {
-            if (entity instanceof Player player) {
-                ItemUtils.giveItemToPlayer(player, container);
-            } else {
-                ItemUtils.getItemToLivingEntity(entity, container);
-            }
         }
         return result;
     }
@@ -61,10 +43,5 @@ public class BambooTubeRiceBlockItem extends CookeryTooltipBlockItem implements 
             }
         }
         FoodQualityHelper.addQualityAndEffects(stack, java.util.Collections.emptyList(), context, tooltip, false);
-    }
-
-    @Override
-    public Item getContainerItem() {
-        return Items.BAMBOO;
     }
 }
