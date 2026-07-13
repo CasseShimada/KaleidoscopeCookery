@@ -413,7 +413,9 @@ public final class KaleidoscopeCookeryGameTests {
 
     @GameTest
     public void foodContainersUseVanillaRemainderComponents(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        player.getActiveEffectsMap().put(ModEffects.VITALITY,
+                new MobEffectInstance(ModEffects.VITALITY, Integer.MAX_VALUE));
 
         ItemStack bambooRemainder = new ItemStack(ModItems.BAMBOO_TUBE_RICE)
                 .finishUsingItem(helper.getLevel(), player);
@@ -421,17 +423,19 @@ public final class KaleidoscopeCookeryGameTests {
                 "Bamboo tube rice did not convert into bamboo through USE_REMAINDER");
 
         ItemStack tea = new ItemStack(TeacupRegistry.getItem(TeacupRegistry.BARLEY_TEA), 2);
-        var useRemainder = tea.get(DataComponents.USE_REMAINDER);
-        helper.assertTrue(useRemainder != null, "Tea did not register a USE_REMAINDER component");
-        List<ItemStack> extraRemainders = new ArrayList<>();
-        ItemStack remainingTea = useRemainder.convertIntoRemainder(
-                tea.copyWithCount(1), tea.getCount(), false, extraRemainders::add);
+        helper.assertTrue(tea.has(DataComponents.USE_REMAINDER),
+                "Tea did not register a USE_REMAINDER component");
+        ItemStack remainingTea = tea.finishUsingItem(helper.getLevel(), player);
         helper.assertTrue(remainingTea.is(TeacupRegistry.getItem(TeacupRegistry.BARLEY_TEA))
                         && remainingTea.getCount() == 1,
-                "Stacked tea did not preserve the remaining drink stack");
-        helper.assertTrue(extraRemainders.stream()
-                        .anyMatch(stack -> stack.is(ModItems.EMPTY_CUP)),
-                "Stacked tea did not return the empty cup through vanilla use handling");
+                "Drinking stacked tea did not preserve the remaining drink stack");
+        helper.assertValueEqual(countItem(player, ModItems.EMPTY_CUP), 1,
+                "Drinking stacked tea did not insert the empty cup through vanilla use handling");
+
+        ItemStack lastTea = new ItemStack(TeacupRegistry.getItem(TeacupRegistry.BARLEY_TEA));
+        ItemStack emptyCup = lastTea.finishUsingItem(helper.getLevel(), player);
+        helper.assertTrue(emptyCup.is(ModItems.EMPTY_CUP),
+                "Drinking the last tea did not replace it with an empty cup");
 
         ItemStack namedBowl = Items.BOWL.getDefaultInstance();
         namedBowl.set(DataComponents.CUSTOM_NAME, Component.literal("Preserved remainder"));
