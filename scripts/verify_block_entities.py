@@ -27,6 +27,7 @@ EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
     BLOCK_ENTITY_ROOT / "decoration/TableBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java",
+    BLOCK_ENTITY_ROOT / "kitchen/MillstoneBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/SteamerBlockEntity.java",
@@ -172,6 +173,11 @@ def main() -> int:
     teapot = read(BLOCK_ENTITY_ROOT / "kitchen/TeapotBlockEntity.java")
     if teapot.count("this.setChanged();") < 2:
         errors.append("TeapotBlockEntity does not persist both cooking progress phases.")
+    millstone = read(BLOCK_ENTITY_ROOT / "kitchen/MillstoneBlockEntity.java")
+    if "this.progress--;\n            this.setChanged();" not in millstone:
+        errors.append("MillstoneBlockEntity does not persist grinding progress each tick.")
+    if "this.progress % 10 == 0) {\n                this.syncToClient();" not in millstone:
+        errors.append("MillstoneBlockEntity does not retain its periodic client progress updates.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

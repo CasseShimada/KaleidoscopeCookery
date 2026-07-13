@@ -113,7 +113,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
                 this.entityId = Util.NIL_UUID;
                 this.cacheRot = 0f;
                 this.liftAngle = 0f;
-                this.refresh();
+                this.setChangedAndSync();
                 return;
             }
         } else if (!bindEntity.isAlive()
@@ -125,7 +125,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
             this.bindEntity = null;
             this.cacheRot = rot;
             this.liftAngle = 0f;
-            this.refresh();
+            this.setChangedAndSync();
             return;
         }
 
@@ -193,9 +193,10 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
         // 输出栏为空才能进行研磨
         if (this.progress > 0 && this.output.isEmpty()) {
             this.progress--;
-            // 每 10 tick 保存一次
+            this.setChanged();
+            // 每 10 tick 同步一次客户端进度
             if (this.progress % 10 == 0) {
-                this.refresh();
+                this.syncToClient();
             }
         }
 
@@ -208,13 +209,13 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
                 this.output.setCount(this.output.getCount() * this.input.getCount());
                 this.input = ItemStack.EMPTY;
                 this.carrier = recipe.value().getCarrier();
-                this.refresh();
+                this.setChangedAndSync();
             }, () -> {
                 // 几乎不太可能，但是此时把输入转向输出
                 this.output = this.input.copyAndClear();
                 this.input = ItemStack.EMPTY;
                 this.carrier = Optional.empty();
-                this.refresh();
+                this.setChangedAndSync();
             });
 
             // 触发完成事件，用于特殊情况判断（比如油壶自动化）
@@ -253,7 +254,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
                     ? putOnItem.copyWithCount(Math.min(MAX_INPUT_COUNT, putOnItem.getCount()))
                     : putOnItem.split(MAX_INPUT_COUNT);
             this.progress = Math.max(Math.round(this.rotSpeedTick), 1);
-            this.refresh();
+            this.setChangedAndSync();
             level.playSound(null, this.worldPosition,
                     SoundEvents.STONE_HIT, SoundSource.BLOCKS, 0.8f,
                     level.getRandom().nextFloat() * 0.2f + 0.9f);
@@ -325,7 +326,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
             ItemUtils.getItemToLivingEntity(user, this.input.copyAndClear());
             this.input = ItemStack.EMPTY;
             this.progress = 0;
-            this.refresh();
+            this.setChangedAndSync();
             return true;
         }
         return false;
@@ -342,7 +343,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
         this.output = ItemStack.EMPTY;
         this.carrier = Optional.empty();
         this.progress = 0;
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     public boolean saddleEntityIsControlling(Mob mob) {
@@ -398,7 +399,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
         this.rotSpeedTick = data.rotSpeedTick();
         this.liftAngle = data.liftAngle();
         this.offset = data.offset();
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     public void sendActionBarMessage(LivingEntity user, String key, Object... args) {
