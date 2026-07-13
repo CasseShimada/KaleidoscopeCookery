@@ -187,6 +187,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         if (this.status != PUT_INGREDIENT) {
             return;
         }
+        boolean changed = false;
         for (int i = 0; i < Math.min(ingredients.size(), this.inputs.size()); i++) {
             ItemStack stack = ingredients.get(i);
             if (stack.isEmpty()) {
@@ -198,11 +199,16 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 ItemUtils.getItemToLivingEntity(user, container);
             }
             this.inputs.set(i, stack.copyWithCount(1));
+            changed = true;
+        }
+        if (!changed) {
+            return;
         }
         level.playSound(null, this.worldPosition,
                 SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
                 ((level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
         this.setChangedAndSync();
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
     }
 
     private void spawnParticleWithoutLid(Level level) {
@@ -401,6 +407,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                     bucket.consume(1, user);
                     ItemUtils.getItemToLivingEntity(user, container);
                 }
+                level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
                 return true;
             }
         }
@@ -424,6 +431,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 bucket.consume(1, user);
                 ItemUtils.getItemToLivingEntity(user, container);
             }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             return true;
         }
         return false;
@@ -449,14 +457,15 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 continue;
             }
             ItemStack container = ItemUtils.getContainerStack(itemStack);
+            this.inputs.set(i, user.hasInfiniteMaterials() ? itemStack.copyWithCount(1) : itemStack.split(1));
+            this.setChangedAndSync();
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             if (!user.hasInfiniteMaterials() && !container.isEmpty()) {
                 ItemUtils.getItemToLivingEntity(user, container);
             }
-            this.inputs.set(i, user.hasInfiniteMaterials() ? itemStack.copyWithCount(1) : itemStack.split(1));
             level.playSound(null, user.getX(), user.getY() + 0.5, user.getZ(),
                     SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
                     ((level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
-            this.setChangedAndSync();
             return true;
         }
         return false;
@@ -478,8 +487,10 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             if (!containerIsMatch(user, stack)) {
                 return false;
             }
-            ItemUtils.getItemToLivingEntity(user, stack.copy());
             this.inputs.set(i, ItemStack.EMPTY);
+            this.setChangedAndSync();
+            ItemUtils.getItemToLivingEntity(user, stack.copy());
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             // 如果是流体汤底，且温度过高，玩家会受到伤害
             ISoupBase soupBase = this.getSoupBase();
             if (soupBase instanceof FluidSoupBase fluidSoupBase
@@ -488,7 +499,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 user.hurtServer(serverLevel, level.damageSources().inFire(), 1.0F);
                 ModTrigger.EVENT.trigger(user, ModEventTriggerType.HURT_WHEN_TAKEOUT_FROM_STOCKPOT);
             }
-            this.setChangedAndSync();
             return true;
         }
         return false;
@@ -542,6 +552,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             this.currentTick = -1;
         }
         this.setChangedAndSync();
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
         return true;
     }
 

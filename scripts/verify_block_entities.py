@@ -254,8 +254,8 @@ def main() -> int:
         errors.append("StockpotBlockEntity does not own lid item copying, persistence, and synchronization.")
     if stockpot.count("if (!level.setBlockAndUpdate(worldPosition, updatedState))") < 2:
         errors.append("StockpotBlockEntity transfers lid items before confirming block-state updates.")
-    if stockpot.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 2:
-        errors.append("StockpotBlockEntity does not emit block-change events for lid interactions.")
+    if stockpot.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 8:
+        errors.append("StockpotBlockEntity does not emit block-change events for all interactive mutations.")
     pot = read(BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java")
     if "if (!level.setBlockAndUpdate(worldPosition, updatedState))" not in pot:
         errors.append("PotBlockEntity consumes oil without confirming the block-state update.")
