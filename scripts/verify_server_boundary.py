@@ -98,6 +98,8 @@ MOB_SOUP_BASE_RENDERER = CLIENT_SRC / "client/render/soupbase/MobSoupBaseRender.
 TEAPOT_BLOCK = SRC / "block/kitchen/TeapotBlock.java"
 TEAPOT_BLOCK_ENTITY = SRC / "blockentity/kitchen/TeapotBlockEntity.java"
 TEAPOT_RENDERER = CLIENT_SRC / "client/render/block/TeapotBlockEntityRender.java"
+TEACUP_BLOCK = SRC / "block/drink/TeacupBlock.java"
+EMPTY_CUP_BLOCK = SRC / "block/drink/EmptyCupBlock.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
 TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
 TRASH_CAN_RENDERER = CLIENT_SRC / "client/render/block/TrashCanBlockEntityRender.java"
@@ -439,6 +441,16 @@ def main() -> int:
     ):
         if required_reference not in fruit_basket_text:
             errors.append(f"Fruit basket native interaction is missing {required_reference}.")
+
+    for name, path, expected_consumes in (
+        ("TeacupBlock", TEACUP_BLOCK, 2),
+        ("EmptyCupBlock", EMPTY_CUP_BLOCK, 1),
+    ):
+        drink_block_text = path.read_text(encoding="utf-8")
+        if drink_block_text.count("itemInHand.consume(1, player)") < expected_consumes:
+            errors.append(f"{name} does not use vanilla ItemStack.consume() for cup stacking.")
+        if "itemInHand.shrink(" in drink_block_text:
+            errors.append(f"{name} still manually shrinks cup stacks.")
 
     recipe_block_text = RECIPE_BLOCK.read_text(encoding="utf-8")
     for required_reference in (

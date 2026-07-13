@@ -124,7 +124,7 @@ public class TeacupBlock extends HorizontalDirectionalBlock {
                     level.setBlockAndUpdate(pos, state.setValue(CUP_COUNT, count + 1));
                     level.playSound(null, pos, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
                     if (!player.hasInfiniteMaterials()) {
-                        itemInHand.shrink(1);
+                        itemInHand.consume(1, player);
                     }
                 }
                 return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
@@ -144,7 +144,7 @@ public class TeacupBlock extends HorizontalDirectionalBlock {
                             .setValue(TEA_COUNT, teaCountNum + 1));
                     level.playSound(null, pos, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
                     if (!player.hasInfiniteMaterials()) {
-                        itemInHand.shrink(1);
+                        itemInHand.consume(1, player);
                     }
                 }
                 return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
