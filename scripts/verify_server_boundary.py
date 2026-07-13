@@ -93,6 +93,7 @@ POT_BLOCK_ENTITY = SRC / "blockentity/kitchen/PotBlockEntity.java"
 POT_RENDERER = CLIENT_SRC / "client/render/block/PotBlockEntityRender.java"
 STOCKPOT_BLOCK = SRC / "block/kitchen/StockpotBlock.java"
 STOCKPOT_BLOCK_ENTITY = SRC / "blockentity/kitchen/StockpotBlockEntity.java"
+STOCKPOT_RENDERER = CLIENT_SRC / "client/render/block/StockpotBlockEntityRender.java"
 MOB_SOUP_BASE_RENDERER = CLIENT_SRC / "client/render/soupbase/MobSoupBaseRender.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
@@ -182,6 +183,8 @@ def main() -> int:
     stockpot_block_entity = STOCKPOT_BLOCK_ENTITY.read_text(encoding="utf-8")
     if "renderEntity" in stockpot_block_entity or "clientTick()" in stockpot_block_entity:
         errors.append("StockpotBlockEntity still stores or ticks a client-only render entity.")
+    if "public StockpotVisuals visuals" in stockpot_block_entity or "RecipeHolder<StockpotRecipe> recipe =" in stockpot_block_entity:
+        errors.append("StockpotBlockEntity exposes or redundantly caches recipe rendering state.")
     stockpot_block = STOCKPOT_BLOCK.read_text(encoding="utf-8")
     if "level.isClientSide() || blockEntityType != ModBlocks.STOCKPOT_BE" not in stockpot_block:
         errors.append("StockpotBlock still installs a common block entity ticker on the client.")
@@ -190,6 +193,9 @@ def main() -> int:
         errors.append("Mob soup rendering does not own a weakly keyed entity cache.")
     if "renderEntity.tickCount = (int) world.getGameTime();" not in mob_soup_renderer:
         errors.append("Mob soup render entities do not follow client world time.")
+    stockpot_renderer = STOCKPOT_RENDERER.read_text(encoding="utf-8")
+    if "stockpot.getVisuals()" not in stockpot_renderer or "stockpot.recipe" in stockpot_renderer:
+        errors.append("Stockpot renderer does not use the block entity's immutable visual snapshot.")
 
     entrypoints = json.loads(FABRIC_MOD.read_text(encoding="utf-8"))["entrypoints"]
     expected_optional_entrypoints = {

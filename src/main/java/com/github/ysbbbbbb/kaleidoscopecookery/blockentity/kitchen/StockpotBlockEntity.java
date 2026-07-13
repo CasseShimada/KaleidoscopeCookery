@@ -56,7 +56,6 @@ import org.joml.Vector3f;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
@@ -86,11 +85,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
      */
     private ItemStack lidItem = ItemStack.EMPTY;
 
-    /**
-     * 主要用于客户端渲染的字段，recipe 里缓存了数据包中定义的部分客户端渲染需要的东西
-     */
-    public RecipeHolder<StockpotRecipe> recipe = StockpotRecipeSerializer.getEmptyRecipe();
-    public StockpotVisuals visuals = StockpotVisuals.DEFAULT;
+    private StockpotVisuals visuals = StockpotVisuals.DEFAULT;
 
     public StockpotBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(ModBlocks.STOCKPOT_BE, pPos, pBlockState);
@@ -232,19 +227,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     }
 
     @Nullable
-    private RecipeHolder<StockpotRecipe> getStockpotRecipeById(RecipeManager recipeManager, Level level, Identifier id) {
-        Optional<RecipeHolder<?>> holder = recipeManager.byKey(ResourceKey.create(Registries.RECIPE, id));
-        if (holder.isEmpty()) {
-            return null;
-        }
-        RecipeHolder<?> rawHolder = holder.get();
-        if (!(rawHolder.value() instanceof StockpotRecipe stockpotRecipe)) {
-            return FarmersDelightCompat.tryTransformRecipeHolder(rawHolder, level);
-        }
-        return new RecipeHolder<>(rawHolder.id(), stockpotRecipe);
-    }
-
-    @Nullable
     private RecipeHolder<?> getRecipeById(RecipeManager recipeManager, Level level, Identifier id) {
         Optional<RecipeHolder<?>> holder = recipeManager.byKey(ResourceKey.create(Registries.RECIPE, id));
         if (holder.isEmpty()) {
@@ -260,21 +242,18 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     private void refreshVisualsFromRecipeId(RecipeManager recipeManager, Level level) {
         RecipeHolder<?> holder = getRecipeById(recipeManager, level, this.recipeId);
         if (holder == null) {
-            this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
             this.visuals = StockpotVisuals.DEFAULT;
             return;
         }
         if (holder.value() instanceof StockpotRecipe stockpotRecipe) {
-            this.recipe = new RecipeHolder<>(holder.id(), stockpotRecipe);
             this.visuals = StockpotVisuals.from(stockpotRecipe);
         } else if (holder.value() instanceof FlexStockpotRecipe flexStockpotRecipe) {
-            this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
             this.visuals = flexStockpotRecipe.visuals();
         }
     }
 
     private int getBubbleColor() {
-        // 需要检查下 recipe 是否更新
+        // Resolve visuals lazily if recipe access was unavailable while the block entity loaded.
         if (this.level != null && !this.recipeId.equals(StockpotRecipeSerializer.EMPTY_ID)
             && this.visuals.equals(StockpotVisuals.DEFAULT)) {
             if (this.level instanceof ServerLevel serverLevel) {
@@ -361,7 +340,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
 
     private void applySuspiciousRecipe() {
         this.recipeId = StockpotRecipeSerializer.EMPTY_ID;
-        this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
         this.visuals = StockpotVisuals.DEFAULT;
         this.result = Items.SUSPICIOUS_STEW.getDefaultInstance();
         this.currentTick = StockpotRecipeSerializer.DEFAULT_TIME;
@@ -371,7 +349,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     private void applyRecipe(StockpotInput input, RecipeHolder<StockpotRecipe> recipe) {
         StockpotRecipe value = recipe.value();
         this.recipeId = recipe.id().identifier();
-        this.recipe = recipe;
         this.visuals = StockpotVisuals.from(value);
         this.result = value.assemble(input);
         this.currentTick = value.time();
@@ -381,7 +358,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     private void applyFlexRecipe(ServerLevel level, StockpotInput input, RecipeHolder<FlexStockpotRecipe> recipe) {
         FlexStockpotRecipe value = recipe.value();
         this.recipeId = recipe.id().identifier();
-        this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
         this.visuals = value.visuals();
         this.result = value.assemble(input);
         this.currentTick = value.time();
@@ -549,7 +525,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             this.status = PUT_SOUP_BASE;
             this.inputs = NonNullList.withSize(StockpotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
             this.recipeId = StockpotRecipeSerializer.EMPTY_ID;
-            this.recipe = StockpotRecipeSerializer.getEmptyRecipe();
             this.visuals = StockpotVisuals.DEFAULT;
             this.soupBaseId = ModSoupBases.WATER;
             this.result = ItemStack.EMPTY;
@@ -619,13 +594,9 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 .orElse(StockpotRecipeSerializer.EMPTY_ID);
         if (this.level instanceof ServerLevel serverLevel) {
             if (serverLevel.recipeAccess() instanceof RecipeManager recipeManager) {
-                RecipeHolder<StockpotRecipe> stockpotRecipe = getStockpotRecipeById(recipeManager, serverLevel, this.recipeId);
-                this.recipe = Objects.requireNonNullElseGet(stockpotRecipe, StockpotRecipeSerializer::getEmptyRecipe);
                 this.refreshVisualsFromRecipeId(recipeManager, serverLevel);
             }
         } else if (this.level != null && this.level.recipeAccess() instanceof RecipeManager recipeManager) {
-            RecipeHolder<StockpotRecipe> stockpotRecipe = getStockpotRecipeById(recipeManager, this.level, this.recipeId);
-            this.recipe = Objects.requireNonNullElseGet(stockpotRecipe, StockpotRecipeSerializer::getEmptyRecipe);
             this.refreshVisualsFromRecipeId(recipeManager, this.level);
         }
         this.soupBaseId = input.getString(SOUP_BASE_ID)
@@ -663,6 +634,10 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
 
     public ItemStack getResult() {
         return this.result.copy();
+    }
+
+    public StockpotVisuals getVisuals() {
+        return this.visuals;
     }
 
     public Identifier getSoupBaseId() {

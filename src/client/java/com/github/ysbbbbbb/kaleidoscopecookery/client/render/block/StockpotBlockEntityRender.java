@@ -8,6 +8,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.FluidSoupB
 import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.MobSoupBaseRender;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.render.soupbase.SimpleSoupBaseRender;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.resources.ItemRenderReplacerReloadListener;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotVisuals;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.FluidSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.MobSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SimpleSoupBase;
@@ -70,17 +71,18 @@ public class StockpotBlockEntityRender implements BlockEntityRenderer<StockpotBl
         state.finishedTexture = null;
         state.soupHeight = 0.38f;
         state.renderCount = 0;
+        StockpotVisuals visuals = stockpot.getVisuals();
 
         if (state.status == StockpotBlockEntity.FINISHED) {
             int takeoutCount = stockpot.getTakeoutCount();
             int maxCount = Math.min(stockpot.getResult().getCount(), StockpotBlockEntity.MAX_TAKEOUT_COUNT);
             state.soupHeight = 0.065f + 0.315f / maxCount * takeoutCount;
-            state.finishedTexture = stockpot.recipe.value().finishedTexture();
+            state.finishedTexture = visuals.finishedTexture();
             return;
         }
 
         if (state.status == StockpotBlockEntity.COOKING) {
-            state.cookingTexture = stockpot.recipe.value().cookingTexture();
+            state.cookingTexture = visuals.cookingTexture();
         }
 
         NonNullList<ItemStack> items = stockpot.getInputs();
