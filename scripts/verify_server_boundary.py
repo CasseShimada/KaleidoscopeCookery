@@ -84,6 +84,8 @@ HINDER_EFFECT_EVENT = SRC / "event/server/effect/HinderEffectEvent.java"
 VITALITY_EFFECT_EVENT = SRC / "event/server/effect/VitalityEffectEvent.java"
 PROJECTILE_DODGE_HANDLER = SRC / "event/server/effect/ProjectileDodgeHandler.java"
 PROJECTILE_MIXIN = SRC / "mixin/ProjectileMixin.java"
+VIGOR_EFFECT = SRC / "effect/VigorEffect.java"
+SERVER_PLAYER_MIXIN = SRC / "mixin/ServerPlayerMixin.java"
 WARMTH_EFFECT = SRC / "effect/WarmthEffect.java"
 LEGACY_NEW_EFFECT_EVENTS = SRC / "event/server/effect/NewEffectEvents.java"
 WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
@@ -460,6 +462,22 @@ def main() -> int:
             errors.append("Projectile mixin still injects the overridable onHitEntity method.")
     if "ProjectileMixin" not in mixin_data.get("mixins", []):
         errors.append("ProjectileMixin is not registered as a common mixin.")
+
+    vigor_effect_text = VIGOR_EFFECT.read_text(encoding="utf-8")
+    if "addExhaustion(" in vigor_effect_text:
+        errors.append("VigorEffect still creates negative exhaustion during effect ticks.")
+    server_player_mixin_text = SERVER_PLAYER_MIXIN.read_text(encoding="utf-8")
+    for required_reference in (
+        'method = "checkMovementStatistics"',
+        "ServerPlayer;causeFoodExhaustion(F)V",
+        "ordinal = 3",
+        "player.hasEffect(ModEffects.VIGOR)",
+        "player.causeFoodExhaustion(exhaustion)",
+    ):
+        if required_reference not in server_player_mixin_text:
+            errors.append(f"Vigor sprint exhaustion handling is missing {required_reference}.")
+    if "ServerPlayerMixin" not in mixin_data.get("mixins", []):
+        errors.append("ServerPlayerMixin is not registered as a common mixin.")
 
     warmth_effect_text = WARMTH_EFFECT.read_text(encoding="utf-8")
     if "BlockPos.betweenClosed(" not in warmth_effect_text:

@@ -662,6 +662,35 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
+    public void vigorOnlySuppressesSprintMovementExhaustion(GameTestHelper helper) {
+        float initialExhaustion = 3.95F;
+        ServerPlayer vigorPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        vigorPlayer.setOnGround(true);
+        vigorPlayer.setSprinting(true);
+        vigorPlayer.getActiveEffectsMap().put(ModEffects.VIGOR,
+                new MobEffectInstance(ModEffects.VIGOR, 200));
+        vigorPlayer.causeFoodExhaustion(initialExhaustion);
+
+        vigorPlayer.checkMovementStatistics(1.0, 0.0, 0.0);
+
+        float vigorExhaustion = foodDataTag(vigorPlayer).getFloatOr("foodExhaustionLevel", -1.0F);
+        helper.assertValueEqual(vigorExhaustion, initialExhaustion,
+                "Vigor did not suppress sprint movement exhaustion");
+
+        ServerPlayer controlPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        controlPlayer.setOnGround(true);
+        controlPlayer.setSprinting(true);
+        controlPlayer.causeFoodExhaustion(initialExhaustion);
+
+        controlPlayer.checkMovementStatistics(1.0, 0.0, 0.0);
+
+        float controlExhaustion = foodDataTag(controlPlayer).getFloatOr("foodExhaustionLevel", -1.0F);
+        helper.assertTrue(controlExhaustion > initialExhaustion,
+                "Sprint movement no longer adds vanilla exhaustion without Vigor");
+        helper.succeed();
+    }
+
+    @GameTest
     public void warmthEffectFindsHeatSourcesAtScanBoundary(GameTestHelper helper) {
         BlockPos playerPos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);

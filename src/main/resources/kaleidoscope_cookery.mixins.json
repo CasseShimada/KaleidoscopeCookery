@@ -11,7 +11,8 @@
     "MobBucketItemMixin",
     "PistonStructureResolverMixin",
     "PowderSnowBlockMixin",
-    "ProjectileMixin"
+    "ProjectileMixin",
+    "ServerPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

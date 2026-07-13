@@ -229,6 +229,11 @@ def validate_mixin_config() -> tuple[list[str], int, int]:
                 errors.append("MobBucketItemMixin does not use a fixed vanilla block scan.")
             if "mutable.offset(" in text:
                 errors.append("MobBucketItemMixin retains a cumulatively mutated scan position.")
+        if name == "ServerPlayerMixin":
+            if "checkMovementStatistics" not in text or "ordinal = 3" not in text:
+                errors.append("ServerPlayerMixin does not target the vanilla sprint exhaustion call.")
+            if "@Redirect" not in text:
+                errors.append("ServerPlayerMixin does not isolate sprint exhaustion at its call site.")
 
     return errors, len(common_mixins), len(client_mixins)
 
