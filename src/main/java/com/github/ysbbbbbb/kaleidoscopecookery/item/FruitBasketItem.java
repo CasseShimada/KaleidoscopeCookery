@@ -35,11 +35,19 @@ public class FruitBasketItem extends CookeryTooltipBlockItem {
     }
 
     public static void saveItems(ItemStack stack, ItemStackContainer items) {
-        stack.set(ModDataComponents.FRUIT_BASKET_ITEMS, items.toContents());
+        saveContents(stack, items.toContents());
     }
 
     public static void saveItems(ItemStack stack, NonNullList<ItemStack> items) {
-        stack.set(ModDataComponents.FRUIT_BASKET_ITEMS, ItemContainerContents.fromItems(items));
+        saveContents(stack, ItemContainerContents.fromItems(items));
+    }
+
+    private static void saveContents(ItemStack stack, ItemContainerContents contents) {
+        if (contents.equals(ItemContainerContents.EMPTY)) {
+            stack.remove(ModDataComponents.FRUIT_BASKET_ITEMS);
+        } else {
+            stack.set(ModDataComponents.FRUIT_BASKET_ITEMS, contents);
+        }
     }
 
     @Override

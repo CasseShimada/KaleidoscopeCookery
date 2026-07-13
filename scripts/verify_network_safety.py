@@ -44,6 +44,7 @@ def main() -> int:
     baozi_throw_client_event = read(BAOZI_THROW_CLIENT_EVENT)
     flatulence_client_event = read(FLATULENCE_CLIENT_EVENT)
     component_container_sources = (read(FRUIT_BASKET_ITEM), read(LUNCH_BAG_ITEM))
+    fruit_basket_item = read(FRUIT_BASKET_ITEM)
     mod_data_components = read(MOD_DATA_COMPONENTS)
     item_stack_container = read(ITEM_STACK_CONTAINER)
 
@@ -122,6 +123,10 @@ def main() -> int:
     for source in component_container_sources:
         if "readNbt()" in source or "writeNbt(" in source:
             errors.append("Container data component still tunnels network state through NBT.")
+    if "contents.equals(ItemContainerContents.EMPTY)" not in fruit_basket_item:
+        errors.append("Fruit basket items do not normalize empty container contents.")
+    if "stack.remove(ModDataComponents.FRUIT_BASKET_ITEMS)" not in fruit_basket_item:
+        errors.append("Fruit basket items retain an explicit empty contents component.")
     if "serializeNBT(" in item_stack_container or "deserializeNBT(" in item_stack_container:
         errors.append("ItemStackContainer still exposes obsolete network-NBT serialization helpers.")
     flatulence_edge_update = flatulence_client_event.find("wasShiftPressed = isShiftPressed;")

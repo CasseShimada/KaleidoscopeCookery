@@ -36,6 +36,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.FruitBasketItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.TransmutationLunchBagItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
@@ -327,6 +328,28 @@ public final class KaleidoscopeCookeryGameTests {
                 "Fruit basket did not remove the first occupied slot");
         helper.assertValueEqual(countItem(player, Items.APPLE), 64,
                 "Fruit basket did not give the extracted stack to the player");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void fruitBasketComponentsOmitEmptyContents(GameTestHelper helper) {
+        ItemStack basket = ModItems.FRUIT_BASKET.getDefaultInstance();
+        ItemStackContainer contents = new ItemStackContainer(8);
+
+        contents.set(0, new ItemStack(Items.APPLE));
+        FruitBasketItem.saveItems(basket, contents);
+        helper.assertTrue(basket.has(ModDataComponents.FRUIT_BASKET_ITEMS),
+                "Non-empty fruit basket contents were not stored");
+
+        contents.extractItem(0, 1);
+        FruitBasketItem.saveItems(basket, contents);
+        helper.assertFalse(basket.has(ModDataComponents.FRUIT_BASKET_ITEMS),
+                "Empty fruit basket contents left a data component behind");
+
+        basket.set(ModDataComponents.FRUIT_BASKET_ITEMS, ItemContainerContents.EMPTY);
+        FruitBasketItem.saveItems(basket, NonNullList.withSize(8, ItemStack.EMPTY));
+        helper.assertFalse(basket.has(ModDataComponents.FRUIT_BASKET_ITEMS),
+                "Empty block-entity contents left a fruit basket data component behind");
         helper.succeed();
     }
 
