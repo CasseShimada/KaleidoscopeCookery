@@ -159,6 +159,7 @@ def main() -> int:
             errors.append(f"{event_class} still exposes a legacy action-named registration method.")
 
     millstone_special_event = strip_comments(read(RECIPE_EVENT_FILES["MillstoneSpecialRecipeEvent"]))
+    millstone_finish_event = strip_comments(read(RECIPE_EVENT_FILES["MillstoneSpecialFinishEvent"]))
     millstone_block_entity = strip_comments(read(MILLSTONE_BLOCK_ENTITY))
     if not MILLSTONE_TAKE_ITEM_CALLBACK.exists():
         errors.append("Millstone take-item callback is missing.")
@@ -201,6 +202,8 @@ def main() -> int:
         errors.append("Millstone raw dough handling consumes a container in creative mode.")
     if "user.hasInfiniteMaterials() ? heldItem.copyWithCount(1) : heldItem.split(1)" not in millstone_special_event:
         errors.append("Millstone oil pot handling does not preserve the creative-mode held stack.")
+    if millstone_finish_event.count("if (level.addFreshEntity(entity))") < 2:
+        errors.append("Millstone special output clears stored results before confirming entity delivery.")
 
     declared_serializers = set(serializers)
     registered_serializer_consts = set(serializer_registrations)

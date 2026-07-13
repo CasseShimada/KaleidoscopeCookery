@@ -52,8 +52,9 @@ public final class MillstoneSpecialFinishEvent {
                 below.getZ() + 0.5f,
                 outputs);
         entity.setDefaultPickUpDelay();
-        level.addFreshEntity(entity);
-        millstone.resetWhenTakeout();
+        if (level.addFreshEntity(entity)) {
+            millstone.resetWhenTakeout();
+        }
     }
 
     private static void onGetOilPot(MillstoneBlockEntity millstone, Level level, ItemStack output) {
@@ -87,7 +88,8 @@ public final class MillstoneSpecialFinishEvent {
                 below.getZ() + 0.5f,
                 output);
         entity.setDefaultPickUpDelay();
-        level.addFreshEntity(entity);
-        millstone.resetWhenTakeout();
+        if (level.addFreshEntity(entity)) {
+            millstone.resetWhenTakeout();
+        }
     }
 }
