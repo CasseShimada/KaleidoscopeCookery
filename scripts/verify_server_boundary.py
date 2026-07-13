@@ -102,6 +102,7 @@ TEACUP_BLOCK = SRC / "block/drink/TeacupBlock.java"
 EMPTY_CUP_BLOCK = SRC / "block/drink/EmptyCupBlock.java"
 TABLE_BLOCK = SRC / "block/decoration/TableBlock.java"
 CHAIR_BLOCK = SRC / "block/decoration/ChairBlock.java"
+COOK_STOOL_BLOCK = SRC / "block/decoration/CookStoolBlock.java"
 PLATE_BLOCK = SRC / "block/decoration/PlateBlock.java"
 STACKABLE_FOOD_BLOCK = SRC / "block/decoration/StackableFoodBlock.java"
 FOOD_BITE_BLOCK = SRC / "block/food/FoodBiteBlock.java"
@@ -283,6 +284,14 @@ def main() -> int:
     trash_can_block = TRASH_CAN_BLOCK.read_text(encoding="utf-8")
     if "getTicker(" in trash_can_block:
         errors.append("TrashCanBlock still installs an unnecessary block entity ticker.")
+    seat_spawn_index = trash_can_block.find("if (!level.addFreshEntity(entitySit))")
+    trash_enter_event_index = trash_can_block.find(
+        "level.blockEvent(pos, state.getBlock(), TrashCanBlockEntity.EVENT_ENTER, 0)"
+    )
+    if seat_spawn_index < 0 or trash_enter_event_index < seat_spawn_index:
+        errors.append("TrashCanBlock triggers entry effects before confirming seat entity creation.")
+    if "if (!player.startRiding(entitySit, true, true))" not in trash_can_block:
+        errors.append("TrashCanBlock does not discard its seat entity when mounting fails.")
     trash_can_renderer = TRASH_CAN_RENDERER.read_text(encoding="utf-8")
     if "new WeakHashMap<>()" not in trash_can_renderer or "animationStates.computeIfAbsent(trashCan" not in trash_can_renderer:
         errors.append("Trash can renderer does not own weakly keyed animation state.")
@@ -538,6 +547,16 @@ def main() -> int:
             errors.append(f"{name} does not emit block-change game events for every furniture state update.")
         if "GameEvent.Context.of(player, state)" not in furniture_block_text:
             errors.append(f"{name} game events do not include the interacting player and prior block state.")
+
+    chair_block_text = CHAIR_BLOCK.read_text(encoding="utf-8")
+    cook_stool_text = COOK_STOOL_BLOCK.read_text(encoding="utf-8")
+    for path, seating_text in ((CHAIR_BLOCK, chair_block_text), (COOK_STOOL_BLOCK, cook_stool_text)):
+        if "if (!level.addFreshEntity(entitySit))" not in seating_text:
+            errors.append(f"{path.name} does not confirm seat entity creation.")
+        if "if (!player.startRiding(entitySit, true, true))" not in seating_text:
+            errors.append(f"{path.name} does not handle mounting failure.")
+        if "entitySit.discard();" not in seating_text:
+            errors.append(f"{path.name} does not discard an unusable seat entity.")
 
     plate_block_text = PLATE_BLOCK.read_text(encoding="utf-8")
     if plate_block_text.count("GameEvent.BLOCK_CHANGE") != 2:

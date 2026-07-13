@@ -71,18 +71,26 @@ public class CookStoolBlock extends HorizontalDirectionalBlock implements Simple
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         List<SitEntity> entities = level.getEntitiesOfClass(SitEntity.class, new AABB(pos));
-        if (entities.isEmpty()) {
-            if (level.isClientSide()) {
-                return InteractionResult.SUCCESS;
-            }
-            SitEntity entitySit = new SitEntity(level, pos);
-            entitySit.setYRot(state.getValue(FACING).toYRot());
-            if (level.addFreshEntity(entitySit)) {
-                player.startRiding(entitySit, true, true);
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!entities.isEmpty()) {
+            boolean hasPassenger = entities.stream().anyMatch(entity -> !entity.getPassengers().isEmpty());
+            if (hasPassenger) {
                 return InteractionResult.CONSUME;
             }
+            entities.forEach(Entity::discard);
         }
-        return super.useWithoutItem(state, level, pos, player, hitResult);
+        SitEntity entitySit = new SitEntity(level, pos);
+        entitySit.setYRot(state.getValue(FACING).toYRot());
+        if (!level.addFreshEntity(entitySit)) {
+            return InteractionResult.FAIL;
+        }
+        if (!player.startRiding(entitySit, true, true)) {
+            entitySit.discard();
+            return InteractionResult.FAIL;
+        }
+        return InteractionResult.CONSUME;
     }
 
     @Override

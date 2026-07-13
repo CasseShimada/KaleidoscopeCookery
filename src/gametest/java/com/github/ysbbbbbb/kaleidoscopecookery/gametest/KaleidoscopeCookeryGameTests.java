@@ -22,6 +22,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SimpleSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
+import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
@@ -220,6 +221,35 @@ public final class KaleidoscopeCookeryGameTests {
 
         helper.assertBlockPresent(Blocks.GOLD_BLOCK, replacedPartPos);
         helper.assertBlockNotPresent(ModBlocks.COLD_CUT_HAM_SLICES, centerPos);
+        helper.succeed();
+    }
+
+    @GameTest
+    public void seatBlocksMountPlayersAfterEntityCreation(GameTestHelper helper) {
+        BlockPos chairPos = new BlockPos(1, 1, 1);
+        BlockPos stoolPos = new BlockPos(3, 1, 1);
+        BlockPos trashCanPos = new BlockPos(5, 1, 1);
+        helper.setBlock(chairPos, ModBlocks.CHAIR_OAK);
+        helper.setBlock(stoolPos, ModBlocks.COOK_STOOL_OAK);
+        helper.setBlock(trashCanPos, ModBlocks.TRASH_CAN);
+
+        Player chairPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.useBlock(chairPos, chairPlayer);
+        helper.assertTrue(chairPlayer.getVehicle() instanceof SitEntity,
+                "Chair did not mount the player after creating its seat entity");
+
+        Player stoolPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.useBlock(stoolPos, stoolPlayer);
+        helper.assertTrue(stoolPlayer.getVehicle() instanceof SitEntity,
+                "Cook stool did not mount the player after creating its seat entity");
+
+        Player trashCanPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos absoluteTrashCanPos = helper.absolutePos(trashCanPos);
+        BlockState trashCanState = helper.getLevel().getBlockState(absoluteTrashCanPos);
+        ModBlocks.TRASH_CAN.fallOn(helper.getLevel(), trashCanState, absoluteTrashCanPos, trashCanPlayer, 2.0);
+        helper.assertTrue(trashCanPlayer.getVehicle() instanceof SitEntity sitEntity
+                        && sitEntity.getSitType() == SitEntity.TRASH_CAN,
+                "Trash can did not mount the player on its specialized seat entity");
         helper.succeed();
     }
 

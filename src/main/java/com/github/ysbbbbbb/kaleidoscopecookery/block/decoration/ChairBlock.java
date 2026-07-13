@@ -107,24 +107,25 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
     private InteractionResult tryToSitOn(BlockState state, Level level, BlockPos pos, Player player) {
         List<SitEntity> entities = level.getEntitiesOfClass(SitEntity.class, new AABB(pos));
         if (level.isClientSide()) {
-            return InteractionResult.PASS;
+            return InteractionResult.SUCCESS;
         }
         if (!entities.isEmpty()) {
             boolean hasPassenger = entities.stream().anyMatch(entity -> !entity.getPassengers().isEmpty());
             if (hasPassenger) {
-                return InteractionResult.SUCCESS;
+                return InteractionResult.CONSUME;
             }
             entities.forEach(Entity::discard);
         }
         SitEntity entitySit = new SitEntity(level, pos, 0.5125);
         entitySit.setYRot(state.getValue(FACING).toYRot());
         if (!level.addFreshEntity(entitySit)) {
-            return InteractionResult.CONSUME;
+            return InteractionResult.FAIL;
         }
         if (!player.startRiding(entitySit, true, true)) {
             entitySit.discard();
+            return InteractionResult.FAIL;
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.CONSUME;
     }
 
     @NotNull
