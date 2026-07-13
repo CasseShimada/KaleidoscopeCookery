@@ -21,7 +21,7 @@ public enum RecipeBlockComponentProvider implements IBlockComponentProvider {
         if (!(blockEntity instanceof RecipeBlockEntity recipeBlock)) {
             return;
         }
-        ItemStack stackInSlot = recipeBlock.getItems().get(0);
+        ItemStack stackInSlot = recipeBlock.getItem();
         if (stackInSlot.isEmpty()) {
             return;
         }

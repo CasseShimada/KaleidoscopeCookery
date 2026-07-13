@@ -77,7 +77,7 @@ public class RecipeBlock extends FaceAttachedHorizontalDirectionalBlock implemen
         }
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof RecipeBlockEntity recipeBlockEntity) {
-            ItemStack itemStack = recipeBlockEntity.getItems().get(0);
+            ItemStack itemStack = recipeBlockEntity.getItem();
             if (itemStack.isEmpty()) {
                 return super.useWithoutItem(state, level, pos, player, hitResult);
             }
@@ -137,7 +137,7 @@ public class RecipeBlock extends FaceAttachedHorizontalDirectionalBlock implemen
         if (!pLevel.isClientSide()) {
             BlockEntity blockEntity = pLevel.getBlockEntity(pPos);
             if (blockEntity instanceof RecipeBlockEntity recipeBlockEntity) {
-                recipeBlockEntity.getItems().set(0, stack.copyWithCount(1));
+                recipeBlockEntity.setItem(stack);
             }
         }
     }
@@ -146,7 +146,7 @@ public class RecipeBlock extends FaceAttachedHorizontalDirectionalBlock implemen
     public @NotNull ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeFluid) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof RecipeBlockEntity recipeBlockEntity) {
-            ItemStack itemStack = recipeBlockEntity.getItems().get(0);
+            ItemStack itemStack = recipeBlockEntity.getItem();
             if (!itemStack.isEmpty()) {
                 return itemStack.copy();
             }
@@ -170,7 +170,7 @@ public class RecipeBlock extends FaceAttachedHorizontalDirectionalBlock implemen
     public @NotNull List<ItemStack> getDrops(BlockState state, LootParams.Builder lootParamsBuilder) {
         BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof RecipeBlockEntity recipeBlock) {
-            ItemStack recipeStack = recipeBlock.getItems().get(0);
+            ItemStack recipeStack = recipeBlock.getItem();
             if (!recipeStack.isEmpty()) {
                 return List.of(recipeStack.copyWithCount(1));
             }

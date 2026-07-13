@@ -37,7 +37,7 @@ public class RecipeBlockEntityRender implements BlockEntityRenderer<RecipeBlockE
                                    net.minecraft.world.phys.Vec3 cameraPos,
                                    net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderState.extractBase(recipeBlock, state, crumblingOverlay);
-        ItemStack stack = recipeBlock.getItems().get(0);
+        ItemStack stack = recipeBlock.getItem();
         if (stack.isEmpty()) {
             state.output = ItemStack.EMPTY;
             return;

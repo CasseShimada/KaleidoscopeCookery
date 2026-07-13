@@ -24,6 +24,7 @@ EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
     BLOCK_ENTITY_ROOT / "decoration/ChairBlockEntity.java",
     BLOCK_ENTITY_ROOT / "decoration/FruitBasketBlockEntity.java",
     BLOCK_ENTITY_ROOT / "decoration/OilPotBlockEntity.java",
+    BLOCK_ENTITY_ROOT / "decoration/RecipeBlockEntity.java",
     BLOCK_ENTITY_ROOT / "decoration/TableBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java",
@@ -172,6 +173,12 @@ def main() -> int:
         errors.append("Furniture blocks still call the legacy block entity refresh API.")
     if "tableItems.set(" in table_block:
         errors.append("TableBlock still mutates the table block entity inventory directly.")
+    recipe_block = read(BLOCK_ROOT / "misc/RecipeBlock.java")
+    if "getItems()" in recipe_block:
+        errors.append("RecipeBlock still accesses the recipe block entity container directly.")
+    recipe_block_entity = read(BLOCK_ENTITY_ROOT / "decoration/RecipeBlockEntity.java")
+    if "ItemStackContainer" in recipe_block_entity:
+        errors.append("RecipeBlockEntity still wraps its single display item in a mutable container.")
     teapot = read(BLOCK_ENTITY_ROOT / "kitchen/TeapotBlockEntity.java")
     if teapot.count("this.setChanged();") < 2:
         errors.append("TeapotBlockEntity does not persist both cooking progress phases.")
