@@ -109,7 +109,7 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
 
     private int storeItem(ItemStack stack) {
         int before = stack.getCount();
-        ItemStack remainder = insertStacked(stack.copy());
+        ItemStack remainder = this.storage.addItem(stack);
         if (remainder.getCount() < before) {
             return before - remainder.getCount();
         }
@@ -128,10 +128,9 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
             return;
         }
         for (int i = storage.getContainerSize() - 1; i >= 0; i--) {
-            ItemStack stack = storage.getItem(i);
+            ItemStack stack = storage.removeItemNoUpdate(i);
             if (!stack.isEmpty()) {
-                user.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());
-                this.storage.setItem(i, ItemStack.EMPTY);
+                user.setItemInHand(InteractionHand.MAIN_HAND, stack);
                 playActionEffects(SoundEvents.BARREL_CLOSE, 0.8F);
                 if (level != null) {
                     level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_WITHDRAW, 0);
@@ -142,39 +141,11 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
         }
     }
 
-    private ItemStack insertStacked(ItemStack stack) {
-        for (int i = 0; i < storage.getContainerSize(); i++) {
-            ItemStack existing = storage.getItem(i);
-            if (existing.isEmpty()) {
-                continue;
-            }
-            if (ItemStack.isSameItemSameComponents(existing, stack)) {
-                int movable = Math.min(existing.getMaxStackSize() - existing.getCount(), stack.getCount());
-                if (movable > 0) {
-                    existing.grow(movable);
-                    stack.shrink(movable);
-                }
-                if (stack.isEmpty()) {
-                    return ItemStack.EMPTY;
-                }
-            }
-        }
-        for (int i = 0; i < storage.getContainerSize(); i++) {
-            if (storage.getItem(i).isEmpty()) {
-                int moved = Math.min(stack.getMaxStackSize(), stack.getCount());
-                storage.setItem(i, stack.copyWithCount(moved));
-                stack.shrink(moved);
-                return stack.isEmpty() ? ItemStack.EMPTY : stack;
-            }
-        }
-        return stack;
-    }
-
     private boolean absorbMatchingItem(ItemStack itemStack) {
         for (int i = 0; i < storage.getContainerSize(); i++) {
             ItemStack stored = storage.getItem(i);
             if (!stored.isEmpty() && ItemStack.isSameItemSameComponents(stored, itemStack)) {
-                ItemStack remainder = insertStacked(itemStack.copy());
+                ItemStack remainder = this.storage.addItem(itemStack);
                 int inserted = itemStack.getCount() - remainder.getCount();
                 if (inserted <= 0) {
                     return false;
@@ -199,18 +170,18 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        ContainerHelper.saveAllItems(output.child(STORAGE), this.storage.items);
+        ContainerHelper.saveAllItems(output.child(STORAGE), this.storage.getItems());
     }
 
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        ContainerHelper.loadAllItems(input.childOrEmpty(STORAGE), this.storage.items);
+        ContainerHelper.loadAllItems(input.childOrEmpty(STORAGE), this.storage.getItems());
     }
 
     public NonNullList<ItemStack> getStoredItems() {
         NonNullList<ItemStack> items = NonNullList.create();
-        for (ItemStack stack : this.storage.items) {
+        for (ItemStack stack : this.storage.getItems()) {
             if (!stack.isEmpty()) {
                 items.add(stack.copy());
             }

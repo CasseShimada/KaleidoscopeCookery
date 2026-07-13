@@ -7,6 +7,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBaske
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc.TrashCanBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.StockpotInput;
@@ -150,6 +151,47 @@ public final class KaleidoscopeCookeryGameTests {
                 "Fruit basket did not remove the first occupied slot");
         helper.assertValueEqual(countItem(player, Items.APPLE), 64,
                 "Fruit basket did not give the extracted stack to the player");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void trashCanUsesVanillaContainerOperations(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.TRASH_CAN);
+        TrashCanBlockEntity trashCan = helper.getBlockEntity(pos, TrashCanBlockEntity.class);
+
+        ItemStack firstApples = new ItemStack(Items.APPLE, 63);
+        trashCan.putItem(firstApples, true);
+        ItemStack moreApples = new ItemStack(Items.APPLE, 3);
+        trashCan.putItem(moreApples, true);
+        trashCan.putItem(Items.POTATO.getDefaultInstance(), true);
+
+        List<ItemStack> initialItems = trashCan.getStoredItems();
+        helper.assertTrue(firstApples.isEmpty() && moreApples.isEmpty(),
+                "Trash can did not consume inserted survival stacks");
+        helper.assertValueEqual(initialItems.size(), 3,
+                "Trash can did not fill all three history slots");
+        helper.assertTrue(initialItems.get(0).is(Items.APPLE) && initialItems.get(0).getCount() == 64,
+                "Trash can did not merge matching stacks using vanilla rules");
+        helper.assertTrue(initialItems.get(1).is(Items.APPLE) && initialItems.get(1).getCount() == 2,
+                "Trash can did not preserve the insertion remainder");
+
+        ItemStack creativeCarrot = Items.CARROT.getDefaultInstance();
+        trashCan.putItem(creativeCarrot, false);
+        List<ItemStack> rotatedItems = trashCan.getStoredItems();
+        helper.assertValueEqual(creativeCarrot.getCount(), 1,
+                "Creative trash-can insertion mutated the source stack");
+        helper.assertTrue(rotatedItems.get(0).is(Items.APPLE) && rotatedItems.get(0).getCount() == 2
+                        && rotatedItems.get(1).is(Items.POTATO)
+                        && rotatedItems.get(2).is(Items.CARROT),
+                "Full trash can did not rotate out only its oldest stack");
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        trashCan.withdrawItem(player);
+        helper.assertTrue(player.getMainHandItem().is(Items.CARROT),
+                "Trash can did not withdraw its newest stack first");
+        helper.assertValueEqual(trashCan.getStoredItems().size(), 2,
+                "Trash can retained the withdrawn stack");
         helper.succeed();
     }
 
