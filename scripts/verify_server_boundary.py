@@ -117,6 +117,7 @@ ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
 SCARECROW_ENTITY = SRC / "entity/ScarecrowEntity.java"
 RAW_DOUGH_ITEM = SRC / "item/RawDoughItem.java"
+THROWABLE_BAOZI_ENTITY = SRC / "entity/ThrowableBaoziEntity.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
 TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
 TRASH_CAN_RENDERER = CLIENT_SRC / "client/render/block/TrashCanBlockEntityRender.java"
@@ -714,6 +715,24 @@ def main() -> int:
         errors.append("RawDoughItem still clears the source stack manually.")
     if "worldIn.playSound(null," not in raw_dough_text:
         errors.append("RawDoughItem transformation sound is not server-broadcast.")
+
+    throwable_baozi_text = THROWABLE_BAOZI_ENTITY.read_text(encoding="utf-8")
+    on_hit_entity_start = throwable_baozi_text.find("protected void onHitEntity(")
+    on_hit_start = throwable_baozi_text.find("protected void onHit(", on_hit_entity_start)
+    on_hit_entity = throwable_baozi_text[on_hit_entity_start:on_hit_start]
+    if "instanceof ServerLevel serverLevel" not in on_hit_entity:
+        errors.append("ThrowableBaoziEntity does not guard entity impact effects behind ServerLevel.")
+    for required_reference in (
+        "hitEntity.hurtServer(serverLevel",
+        "wolf.heal(wolf.getMaxHealth())",
+        "serverLevel.broadcastEntityEvent(this, EntityEvent.LOVE_HEARTS)",
+    ):
+        if required_reference not in on_hit_entity:
+            errors.append(f"ThrowableBaoziEntity server impact handling is missing {required_reference}.")
+    if "SoundEvents.SNOW_HIT" in on_hit_entity:
+        errors.append("ThrowableBaoziEntity still plays a duplicate sound during entity impact dispatch.")
+    if throwable_baozi_text.count("SoundEvents.SNOW_HIT") != 1:
+        errors.append("ThrowableBaoziEntity should play exactly one impact sound per collision.")
 
     enamel_basin_text = ENAMEL_BASIN_BLOCK.read_text(encoding="utf-8")
     if "mainHandItem.consume(consumeCount, player)" not in enamel_basin_text:

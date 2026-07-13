@@ -74,20 +74,17 @@ public class ThrowableBaoziEntity extends ThrowableItemProjectile {
     }
 
     @Override
-    protected void onHitEntity(EntityHitResult entityHitResult) {
-        super.onHitEntity(entityHitResult);
-        Entity hitEntity = entityHitResult.getEntity();
-        if (this.level() instanceof ServerLevel serverLevel) {
-            hitEntity.hurtServer(serverLevel, this.damageSources().thrown(this, this.getOwner()), 0);
+    protected void onHitEntity(EntityHitResult hitResult) {
+        super.onHitEntity(hitResult);
+        if (!(this.level() instanceof ServerLevel serverLevel)) {
+            return;
         }
-        this.playSound(SoundEvents.SNOW_HIT, 1.0F, (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.2F + 1.0F);
 
-        // 如果是狗，那么直接回满狗的血
+        Entity hitEntity = hitResult.getEntity();
+        hitEntity.hurtServer(serverLevel, this.damageSources().thrown(this, this.getOwner()), 0);
         if (hitEntity instanceof Wolf wolf) {
             wolf.heal(wolf.getMaxHealth());
-            // 生成爱心粒子
-            this.level().broadcastEntityEvent(this, EntityEvent.LOVE_HEARTS);
-            // 触发成就
+            serverLevel.broadcastEntityEvent(this, EntityEvent.LOVE_HEARTS);
             if (this.getOwner() instanceof ServerPlayer player) {
                 ModTrigger.EVENT.trigger(player, ModEventTriggerType.MEAT_BUNS_BEAT_DOGS);
             }
@@ -97,8 +94,8 @@ public class ThrowableBaoziEntity extends ThrowableItemProjectile {
     @Override
     protected void onHit(HitResult hitResult) {
         super.onHit(hitResult);
-        if (!this.level().isClientSide()) {
-            this.level().broadcastEntityEvent(this, EntityEvent.DEATH);
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.broadcastEntityEvent(this, EntityEvent.DEATH);
             this.playSound(SoundEvents.SNOW_HIT, 1.0F, (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.2F + 1.0F);
             this.discard();
         }

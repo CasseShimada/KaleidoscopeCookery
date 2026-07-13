@@ -24,6 +24,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SimpleSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.entity.ScarecrowEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.entity.ThrowableBaoziEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.effect.WarmthEffect;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
@@ -65,6 +66,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -503,6 +505,30 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertValueEqual(countItem(creativePlayer, ModItems.RAW_NOODLES), 1,
                 "Creative dough produced more than one transformed item");
         helper.succeed();
+    }
+
+    @GameTest
+    public void baoziImpactHealsWolfAndRemovesProjectile(GameTestHelper helper) {
+        Wolf wolf = helper.spawn(EntityTypes.WOLF, new BlockPos(3, 1, 1));
+        wolf.setNoAi(true);
+        wolf.setHealth(1.0F);
+
+        Player owner = helper.makeMockPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, owner, new BlockPos(0, 1, 1));
+        ThrowableBaoziEntity baozi = new ThrowableBaoziEntity(helper.getLevel(), owner);
+        BlockPos start = helper.absolutePos(new BlockPos(1, 1, 1));
+        baozi.setPos(start.getX() + 0.5, start.getY() + 0.8, start.getZ() + 0.5);
+        baozi.shoot(1.0, 0.0, 0.0, 1.0F, 0.0F);
+        helper.assertTrue(helper.getLevel().addFreshEntity(baozi),
+                "Baozi projectile could not be added to the test world");
+
+        helper.runAfterDelay(5, () -> {
+            helper.assertValueEqual(wolf.getHealth(), wolf.getMaxHealth(),
+                    "Baozi impact did not fully heal the wolf");
+            helper.assertTrue(baozi.isRemoved(),
+                    "Baozi projectile remained after an entity impact");
+            helper.succeed();
+        });
     }
 
     @GameTest
