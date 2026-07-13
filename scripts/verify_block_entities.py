@@ -27,6 +27,7 @@ EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
     BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java",
+    BLOCK_ENTITY_ROOT / "kitchen/SteamerBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java",
 )
 
@@ -148,6 +149,11 @@ def main() -> int:
     shawarma_spit = read(BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java")
     if "cookTime--;\n            this.setChanged();" not in shawarma_spit:
         errors.append("ShawarmaSpitBlockEntity does not mark cooking progress dirty.")
+    steamer = read(BLOCK_ENTITY_ROOT / "kitchen/SteamerBlockEntity.java")
+    if "stack.isEmpty() || steamer.cookingTime[i] < 0" not in steamer:
+        errors.append("SteamerBlockEntity still reprocesses completed cooking slots.")
+    if "Block.UPDATE_ALL" in steamer:
+        errors.append("SteamerBlockEntity still broadcasts neighbor updates for inventory changes.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

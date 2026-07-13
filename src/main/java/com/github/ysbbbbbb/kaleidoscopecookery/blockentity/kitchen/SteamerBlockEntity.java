@@ -31,7 +31,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -233,9 +232,10 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
 
         // 开始蒸
         boolean hasCooking = false;
+        boolean completedCooking = false;
         for (int i = 0; i < steamer.items.size(); i++) {
             ItemStack stack = steamer.items.get(i);
-            if (stack.isEmpty()) {
+            if (stack.isEmpty() || steamer.cookingTime[i] < 0) {
                 continue;
             }
             hasCooking = true;
@@ -254,11 +254,13 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
                 steamer.items.set(i, resultStack);
                 // 设置为 -1 代表已经蒸熟
                 steamer.cookingTime[i] = -1;
-                level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
+                completedCooking = true;
             }
         }
-        if (hasCooking) {
-            setChanged(level, pos, state);
+        if (completedCooking) {
+            steamer.setChangedAndSync();
+        } else if (hasCooking) {
+            steamer.setChanged();
         }
     }
 
@@ -266,14 +268,14 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         boolean hasCooking = false;
 
         for (int i = 0; i < steamer.items.size(); i++) {
-            if (steamer.cookingProgress[i] > 0) {
+            if (steamer.cookingTime[i] >= 0 && steamer.cookingProgress[i] > 0) {
                 hasCooking = true;
                 steamer.cookingProgress[i] = Mth.clamp(steamer.cookingProgress[i] - 2, 0, steamer.cookingTime[i]);
             }
         }
 
         if (hasCooking) {
-            setChanged(level, pos, state);
+            steamer.setChanged();
         }
     }
 
@@ -382,7 +384,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         if (!added) {
             return false;
         }
-        this.refresh();
+        this.setChangedAndSync();
         return true;
     }
 
@@ -438,7 +440,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
             }
             return true;
         } else {
-            this.refresh();
+            this.setChangedAndSync();
         }
         return !isAllEmpty;
     }
