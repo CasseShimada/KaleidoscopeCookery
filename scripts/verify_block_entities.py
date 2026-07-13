@@ -21,6 +21,7 @@ BLOCK_ROOT = JAVA_ROOT / "block"
 BASE_BLOCK_ENTITY = BLOCK_ENTITY_ROOT / "BaseBlockEntity.java"
 
 EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES = (
+    BLOCK_ENTITY_ROOT / "decoration/FruitBasketBlockEntity.java",
     BLOCK_ENTITY_ROOT / "decoration/OilPotBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java",
     BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java",
@@ -138,6 +139,11 @@ def main() -> int:
     oil_pot_block_entity = read(BLOCK_ENTITY_ROOT / "decoration/OilPotBlockEntity.java")
     if "updateNeighbourForOutputSignal" not in oil_pot_block_entity:
         errors.append("OilPotBlockEntity does not notify comparators after oil count changes.")
+    transmutation_lunch_bag = read(JAVA_ROOT / "item/TransmutationLunchBagItem.java")
+    if "ItemStackContainer.wrap(fruitBasket.getItems())" in transmutation_lunch_bag:
+        errors.append("TransmutationLunchBagItem still mutates the fruit basket inventory directly.")
+    if "fruitBasket.refresh()" in transmutation_lunch_bag:
+        errors.append("TransmutationLunchBagItem still calls the legacy block entity refresh API.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)

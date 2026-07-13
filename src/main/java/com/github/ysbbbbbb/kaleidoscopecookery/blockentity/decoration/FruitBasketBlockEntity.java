@@ -41,7 +41,7 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
                 if (this.level != null) {
                     this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS);
                 }
-                this.refresh();
+                this.setChangedAndSync();
             }
         }
     }
@@ -62,7 +62,7 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
                     if (this.level != null) {
                         this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS);
                     }
-                    this.refresh();
+                    this.setChangedAndSync();
                 }
                 return;
             }
@@ -91,6 +91,6 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
         for (int i = 0; i < maxSize; i++) {
             this.items.setItem(i, items.get(i).copy());
         }
-        this.refresh();
+        this.setChangedAndSync();
     }
 }

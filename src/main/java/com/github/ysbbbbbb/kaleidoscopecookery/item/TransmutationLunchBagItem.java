@@ -95,7 +95,7 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
             return InteractionResult.SUCCESS;
         }
         ItemStackContainer bagItems = TransmutationLunchBagItem.getItems(bag);
-        ItemStackContainer fruitBasketItems = ItemStackContainer.wrap(fruitBasket.getItems());
+        ItemStackContainer fruitBasketItems = ItemStackContainer.copyOf(fruitBasket.getItems());
 
         // 先检查果篮是否为空
         boolean basketEmpty = true;
@@ -116,7 +116,7 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
                 }
             }
             TransmutationLunchBagItem.setItems(bag, bagItems);
-            fruitBasket.refresh();
+            fruitBasket.setItems(fruitBasketItems.copyStacks());
             playRemoveOneSound(player);
             return InteractionResult.CONSUME;
         }
@@ -130,7 +130,7 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
             }
         }
         TransmutationLunchBagItem.setItems(bag, bagItems);
-        fruitBasket.refresh();
+        fruitBasket.setItems(fruitBasketItems.copyStacks());
         playDropContentsSound(player);
         return InteractionResult.CONSUME;
     }
