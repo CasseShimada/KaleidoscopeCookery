@@ -183,9 +183,13 @@ def main() -> int:
     pot_block_entity = POT_BLOCK_ENTITY.read_text(encoding="utf-8")
     if "StirFryAnimationData" in pot_block_entity or "animationData" in pot_block_entity:
         errors.append("PotBlockEntity still stores client-only stir-fry animation state.")
+    if "public long seed" in pot_block_entity or "System.currentTimeMillis()" in pot_block_entity:
+        errors.append("PotBlockEntity still exposes or wall-clock-generates its render seed.")
     pot_renderer = POT_RENDERER.read_text(encoding="utf-8")
     if "new WeakHashMap<>()" not in pot_renderer or "computeIfAbsent(pot" not in pot_renderer:
         errors.append("Pot renderer does not own weakly keyed per-block animation state.")
+    if "Util.getMillis()" not in pot_renderer:
+        errors.append("Pot renderer does not use Minecraft's monotonic client clock.")
     stockpot_block_entity = STOCKPOT_BLOCK_ENTITY.read_text(encoding="utf-8")
     if "renderEntity" in stockpot_block_entity or "clientTick()" in stockpot_block_entity:
         errors.append("StockpotBlockEntity still stores or ticks a client-only render entity.")

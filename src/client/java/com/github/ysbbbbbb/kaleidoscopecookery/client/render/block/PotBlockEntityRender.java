@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.Util;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -41,25 +42,26 @@ public class PotBlockEntityRender implements BlockEntityRenderer<PotBlockEntity,
                                    net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderState.extractBase(pot, state, crumblingOverlay);
         StirFryAnimationData data = this.animationData.computeIfAbsent(pot, ignored -> new StirFryAnimationData());
-        long now = System.currentTimeMillis();
+        long now = Util.getMillis();
         long time = now - data.timestamp;
+        long seed = pot.getSeed();
 
         if (data.preSeed == -1L) {
-            data.preSeed = pot.getSeed();
+            data.preSeed = seed;
         }
-        if (data.preSeed != pot.getSeed()) {
-            data.preSeed = pot.getSeed();
+        if (data.preSeed != seed) {
+            data.preSeed = seed;
             if (time > 1000) {
                 data.timestamp = now;
                 data.randomHeights = new float[9];
-                RandomSource source = RandomSource.create(pot.getSeed());
+                RandomSource source = RandomSource.create(seed);
                 for (int i = 0; i < 9; i++) {
                     data.randomHeights[i] = 0.25f + source.nextFloat() * 1;
                 }
             }
         }
 
-        state.seed = pot.getSeed();
+        state.seed = seed;
         state.time = time;
         state.randomHeights = data.randomHeights;
         state.rotation = pot.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).get2DDataValue() * 90;

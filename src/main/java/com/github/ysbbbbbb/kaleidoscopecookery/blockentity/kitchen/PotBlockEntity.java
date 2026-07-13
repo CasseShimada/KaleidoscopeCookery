@@ -71,11 +71,11 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     private int currentTick = 0;
     private int stirFryCount = 0;
 
-    public long seed;
+    private long seed;
 
     public PotBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(ModBlocks.POT_BE, pPos, pBlockState);
-        this.seed = System.currentTimeMillis();
+        this.seed = pPos.asLong();
     }
 
     @Override
@@ -264,7 +264,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     @Override
     public void onShovelHit(Level level, LivingEntity user, ItemStack shovel) {
         if (!level.isClientSide()) {
-            this.seed = System.currentTimeMillis();
+            this.seed = level.getRandom().nextLong();
             this.setChangedAndSync();
         }
 
@@ -535,7 +535,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         this.status = input.getIntOr(STATUS, PUT_INGREDIENT);
         this.currentTick = input.getIntOr(CURRENT_TICK, 0);
         this.stirFryCount = input.getIntOr(STIR_FRY_COUNT, 0);
-        this.seed = input.getLongOr(SEED, 0L);
+        this.seed = input.getLongOr(SEED, this.seed);
     }
 
     public List<ItemStack> getInputs() {
