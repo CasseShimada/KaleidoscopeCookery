@@ -184,6 +184,24 @@ def validate_model_layers() -> list[str]:
     return errors
 
 
+def validate_resource_reloaders() -> list[str]:
+    errors: list[str] = []
+    listener = strip_comments(read(CLIENT_ROOT / "resources/ItemRenderReplacerReloadListener.java"))
+    client_registry = strip_comments(read(CLIENT_ROOT / "init/ClientRegistry.java"))
+
+    if "extends SimplePreparableReloadListener<ItemRenderReplacer>" not in listener:
+        errors.append("Item render replacements do not use the vanilla prepare/apply reload lifecycle.")
+    if not re.search(r"static\s+volatile\s+ItemRenderReplacer\s+replacer", listener):
+        errors.append("Item render replacements are not published as an atomic reload snapshot.")
+    if "REPLACER.clear()" in listener:
+        errors.append("Item render replacement reload still clears live mutable state.")
+    if "replacer = prepared" not in listener:
+        errors.append("Prepared item render replacements are not applied as one snapshot.")
+    if "registerReloadListener(ItemRenderReplacerReloadListener.ID" not in client_registry:
+        errors.append("Item render replacement reload listener is not registered through Fabric ResourceLoader.")
+    return errors
+
+
 def validate_textures() -> list[str]:
     errors: list[str] = []
     for path, texture in collect_mod_texture_refs():
@@ -375,6 +393,7 @@ def main() -> int:
     errors: list[str] = []
     errors.extend(validate_renderers())
     errors.extend(validate_model_layers())
+    errors.extend(validate_resource_reloaders())
     errors.extend(validate_textures())
     errors.extend(validate_equipment_assets())
     errors.extend(validate_particles())
