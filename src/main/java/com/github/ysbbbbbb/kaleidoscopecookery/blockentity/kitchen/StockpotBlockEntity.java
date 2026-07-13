@@ -51,6 +51,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.jetbrains.annotations.Nullable;
@@ -284,8 +285,14 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
 
         // 第一种情况，放上盖子
         if (!hasLid && stack.is(ModItems.STOCKPOT_LID)) {
-            this.setLidItem(user.hasInfiniteMaterials() ? stack.copyWithCount(1) : stack.split(1));
-            level.setBlockAndUpdate(worldPosition, blockState.setValue(StockpotBlock.HAS_LID, true));
+            ItemStack lid = stack.copyWithCount(1);
+            BlockState updatedState = blockState.setValue(StockpotBlock.HAS_LID, true);
+            if (!level.setBlockAndUpdate(worldPosition, updatedState)) {
+                return false;
+            }
+            this.setLidItem(lid);
+            stack.consume(1, user);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, blockState));
             user.playSound(SoundEvents.LANTERN_PLACE, 0.5F, 0.5F);
             ModTrigger.EVENT.trigger(user, ModEventTriggerType.USE_LID_ON_STOCKPOT);
             return true;
@@ -297,13 +304,17 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             if (lid.isEmpty()) {
                 lid = ModItems.STOCKPOT_LID.getDefaultInstance();
             }
+            BlockState updatedState = blockState.setValue(StockpotBlock.HAS_LID, false);
+            if (!level.setBlockAndUpdate(worldPosition, updatedState)) {
+                return false;
+            }
             this.setLidItem(ItemStack.EMPTY);
             if (stack.isEmpty()) {
                 user.setItemInHand(InteractionHand.MAIN_HAND, lid);
             } else {
                 BlockDrop.popResource(level, worldPosition, 0.5, lid);
             }
-            level.setBlockAndUpdate(worldPosition, blockState.setValue(StockpotBlock.HAS_LID, false));
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, blockState));
             user.playSound(SoundEvents.LANTERN_BREAK, 0.5F, 0.5F);
             return true;
         }
@@ -655,6 +666,6 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
 
     private void setLidItem(ItemStack lidItem) {
         this.lidItem = lidItem.copyWithCount(1);
-        this.setChanged();
+        this.setChangedAndSync();
     }
 }
