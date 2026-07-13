@@ -100,7 +100,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             this.currentTick--;
             // 每 5tick 刷新一次
             if (this.currentTick % 5 == 0) {
-                this.refresh();
+                this.setChangedAndSync();
             }
             // 模拟油炸声音
             if (this.currentTick % 20 == 0) {
@@ -269,7 +269,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     public void onShovelHit(Level level, LivingEntity user, ItemStack shovel) {
         if (!level.isClientSide()) {
             this.seed = System.currentTimeMillis();
-            this.refresh();
+            this.setChangedAndSync();
         }
 
         // 每次翻炒给点粒子效果
@@ -328,7 +328,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         this.currentTick = value.time();
         this.stirFryCount = value.stirFryCount();
         this.status = COOKING;
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     private void applyFlexRecipe(Level level, SimpleInput input, RecipeHolder<FlexPotRecipe> recipe) {
@@ -345,7 +345,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         }
 
         this.status = COOKING;
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     private void applySuspiciousRecipe() {
@@ -354,7 +354,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         this.currentTick = 10 * 20;
         this.stirFryCount = 0;
         this.status = COOKING;
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     @Override
@@ -570,7 +570,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             this.inputs.set(i, stack.copyWithCount(1));
         }
         level.playSound(null, this.worldPosition, SoundEvents.LANTERN_PLACE, SoundSource.BLOCKS, 1.0F, 0.5F);
-        this.refresh();
+        this.setChangedAndSync();
     }
 
     public SimpleContainer getContainer() {

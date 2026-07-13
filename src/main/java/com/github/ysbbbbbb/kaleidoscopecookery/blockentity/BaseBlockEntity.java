@@ -26,6 +26,18 @@ public abstract class BaseBlockEntity extends BlockEntity {
         }
     }
 
+    protected final void setChangedAndSync() {
+        this.setChanged();
+        this.syncToClient();
+    }
+
+    protected final void syncToClient() {
+        if (level != null && !level.isClientSide()) {
+            BlockState state = level.getBlockState(worldPosition);
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
     @Override
     public @NotNull CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         return this.saveWithoutMetadata(registries);
