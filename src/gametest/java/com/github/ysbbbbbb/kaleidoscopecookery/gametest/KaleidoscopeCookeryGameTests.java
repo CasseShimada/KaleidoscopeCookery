@@ -3,18 +3,24 @@ package com.github.ysbbbbbb.kaleidoscopecookery.gametest;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +29,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.storage.TagValueInput;
 
 import java.util.List;
 
@@ -72,6 +79,43 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
+    public void stockpotSoupBaseIdsRemainCompatible(GameTestHelper helper) {
+        Identifier water = vanillaId("water");
+        Identifier lava = vanillaId("lava");
+
+        helper.assertValueEqual(ModSoupBases.WATER, water, "Water soup-base ID changed");
+        helper.assertValueEqual(ModSoupBases.LAVA, lava, "Lava soup-base ID changed");
+        helper.assertTrue(SoupBaseManager.getSoupBase(vanillaId("water_bucket"))
+                        == SoupBaseManager.getSoupBase(water),
+                "Migrated water bucket soup-base ID did not resolve to water");
+        helper.assertTrue(SoupBaseManager.getSoupBase(vanillaId("lava_bucket"))
+                        == SoupBaseManager.getSoupBase(lava),
+                "Migrated lava bucket soup-base ID did not resolve to lava");
+
+        ResourceKey<Recipe<?>> recipeKey = ResourceKey.create(
+                Registries.RECIPE, id("stockpot/four_joy_meatball_soup"));
+        RecipeHolder<?> holder = helper.getLevel().recipeAccess().byKey(recipeKey)
+                .orElseThrow(() -> helper.assertionException("Missing stockpot recipe %s", recipeKey.identifier()));
+        helper.assertTrue(holder.value() instanceof StockpotRecipe,
+                "Stockpot recipe did not decode as a stockpot recipe");
+        helper.assertValueEqual(((StockpotRecipe) holder.value()).soupBase(), water,
+                "Stockpot recipe did not preserve the stable water soup-base ID");
+
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.STOCKPOT);
+        StockpotBlockEntity stockpot = helper.getBlockEntity(pos, StockpotBlockEntity.class);
+        CompoundTag tag = stockpot.saveCustomOnly(helper.getLevel().registryAccess());
+        tag.putString("SoupBaseId", "minecraft:water_bucket");
+        stockpot.loadCustomOnly(TagValueInput.create(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
+        helper.assertValueEqual(stockpot.getSoupBaseId(), water,
+                "Migrated stockpot NBT did not normalize the water bucket alias");
+        helper.assertTrue(stockpot.getSoupBase() == SoupBaseManager.getSoupBase(water),
+                "Normalized stockpot NBT did not resolve its soup base");
+        helper.succeed();
+    }
+
+    @GameTest
     public void satiatedShieldCancelsFabricDamageCallback(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.getFoodData().setFoodLevel(20);
@@ -106,5 +150,9 @@ public final class KaleidoscopeCookeryGameTests {
 
     private static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
+    }
+
+    private static Identifier vanillaId(String path) {
+        return Identifier.fromNamespaceAndPath("minecraft", path);
     }
 }

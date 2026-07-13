@@ -1,6 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.StockpotInput;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseIds;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
@@ -21,6 +22,10 @@ import static com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.Stockp
 public record FlexStockpotRecipe(NonNullList<Ingredient> ingredients,
                                  Identifier soupBase, ItemStackTemplate resultTemplate, int time,
                                  Ingredient carrier, StockpotVisuals visuals) implements BaseRecipe<StockpotInput> {
+    public FlexStockpotRecipe {
+        soupBase = SoupBaseIds.normalize(soupBase);
+    }
+
     public FlexStockpotRecipe(List<Ingredient> ingredients,
                               Identifier soupBase, ItemStackTemplate resultTemplate,
                               int time, Ingredient carrier, StockpotVisuals visuals) {

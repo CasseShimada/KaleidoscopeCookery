@@ -12,5 +12,5 @@
     "count": 3,
     "id": "kaleidoscope_cookery:fearsome_thick_soup"
   },
-  "soup_base": "minecraft:lava_bucket"
+  "soup_base": "minecraft:lava"
 }

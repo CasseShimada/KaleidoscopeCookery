@@ -34,11 +34,11 @@ public final class SoupBaseManager {
     }
 
     public static ISoupBase getSoupBase(Identifier name) {
-        return ALL_SOUP_BASES.get(name);
+        return ALL_SOUP_BASES.get(SoupBaseIds.normalize(name));
     }
 
     public static boolean containsSoupBase(Identifier name) {
-        return ALL_SOUP_BASES.containsKey(name);
+        return ALL_SOUP_BASES.containsKey(SoupBaseIds.normalize(name));
     }
 
     public static Map<Identifier, ISoupBase> getAllSoupBases() {

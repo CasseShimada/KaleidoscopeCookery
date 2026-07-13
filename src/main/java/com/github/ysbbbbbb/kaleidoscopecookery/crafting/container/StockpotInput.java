@@ -1,5 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.container;
 
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
@@ -10,7 +11,7 @@ public class StockpotInput extends SimpleInput {
 
     public StockpotInput(List<ItemStack> items, Identifier soupBase) {
         super(items);
-        this.soupBase = soupBase;
+        this.soupBase = SoupBaseIds.normalize(soupBase);
     }
 
     public Identifier getSoupBase() {

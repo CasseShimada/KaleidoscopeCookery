@@ -12,6 +12,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotVisuals;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.StockpotRecipeSerializer;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.FluidSoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseIds;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.*;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
@@ -638,6 +639,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         }
         this.soupBaseId = input.getString(SOUP_BASE_ID)
                 .flatMap(value -> Optional.ofNullable(Identifier.tryParse(value)))
+                .map(SoupBaseIds::normalize)
                 .orElse(ModSoupBases.WATER);
         this.result = input.read(RESULT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
         this.status = input.getIntOr(STATUS, PUT_SOUP_BASE);

@@ -273,6 +273,7 @@ def main() -> int:
     missing_type_files: list[str] = []
     bad_custom_types: list[str] = []
     bad_results: list[str] = []
+    migrated_soup_base_ids: list[str] = []
     recipe_files = list(iter_recipe_files())
 
     for path in recipe_files:
@@ -293,6 +294,10 @@ def main() -> int:
             if type_path not in serializer_ids_by_path:
                 bad_custom_types.append(f"{path.relative_to(ROOT)} -> unregistered custom type {recipe_type}")
 
+        soup_base = data.get("soup_base")
+        if soup_base in {"minecraft:water_bucket", "minecraft:lava_bucket"}:
+            migrated_soup_base_ids.append(f"{path.relative_to(ROOT)} -> {soup_base}")
+
         for result_id in collect_result_ids(data):
             parsed_result = split_id(result_id)
             if parsed_result is None:
@@ -312,6 +317,9 @@ def main() -> int:
         errors.extend(f"  - {entry}" for entry in bad_results[:50])
         if len(bad_results) > 50:
             errors.append(f"  ... {len(bad_results) - 50} more")
+    if migrated_soup_base_ids:
+        errors.append("Stockpot recipes use migrated bucket item IDs instead of stable fluid soup-base IDs:")
+        errors.extend(f"  - {entry}" for entry in migrated_soup_base_ids)
 
     missing_custom_recipe_json = sorted(set(serializer_ids_by_path) - set(custom_type_counts))
     if missing_custom_recipe_json:

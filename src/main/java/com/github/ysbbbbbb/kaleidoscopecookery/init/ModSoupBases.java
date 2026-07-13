@@ -1,6 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseIds;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityTypes;
@@ -8,8 +9,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 public final class ModSoupBases {
-    public static final Identifier WATER = itemId(Items.WATER_BUCKET);
-    public static final Identifier LAVA = itemId(Items.LAVA_BUCKET);
+    public static final Identifier WATER = SoupBaseIds.WATER;
+    public static final Identifier LAVA = SoupBaseIds.LAVA;
     public static final Identifier AXOLOTL_BUCKET = itemId(Items.AXOLOTL_BUCKET);
     public static final Identifier COD_BUCKET = itemId(Items.COD_BUCKET);
     public static final Identifier SALMON_BUCKET = itemId(Items.SALMON_BUCKET);
