@@ -213,6 +213,14 @@ def main() -> int:
     teapot_block_entity = TEAPOT_BLOCK_ENTITY.read_text(encoding="utf-8")
     if "AnimationState" in teapot_block_entity or "clientTick(" in teapot_block_entity:
         errors.append("TeapotBlockEntity still stores or updates client-only animation state.")
+    for name, source in (
+        ("PotBlockEntity", pot_block_entity),
+        ("StockpotBlockEntity", stockpot_block_entity),
+        ("TeapotBlockEntity", teapot_block_entity),
+    ):
+        for legacy_shrink in ("stack.shrink(", "mainHandItem.shrink(", "getMainHandItem().shrink("):
+            if legacy_shrink in source:
+                errors.append(f"{name} still manually shrinks a player-provided stack: {legacy_shrink}")
     teapot_block = TEAPOT_BLOCK.read_text(encoding="utf-8")
     if "level.isClientSide() || blockEntityType != ModBlocks.TEAPOT_BE" not in teapot_block:
         errors.append("TeapotBlock still installs its block entity ticker on the client.")

@@ -222,7 +222,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             // 普通情况油脂
             placeOil(level, user, level.getRandom());
             if (!user.hasInfiniteMaterials()) {
-                stack.shrink(1);
+                stack.consume(1, user);
             }
             ModTrigger.EVENT.trigger(user, ModEventTriggerType.PUT_OIL_IN_POT);
             return true;
@@ -365,7 +365,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         // 迷之炒菜盖饭特判逻辑
         if (finallyResult.is(getItem(SUSPICIOUS_STIR_FRY)) && stack.is(TagCommon.COOKED_RICE)) {
             if (!user.hasInfiniteMaterials()) {
-                stack.shrink(1);
+                stack.consume(1, user);
             }
             ItemUtils.getItemToLivingEntity(user, ModItems.SUSPICIOUS_STIR_FRY_RICE_BOWL.getDefaultInstance());
             this.reset();
@@ -403,7 +403,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
                 return false;
             } else {
                 if (!user.hasInfiniteMaterials()) {
-                    mainHandItem.shrink(finallyResult.getCount());
+                    mainHandItem.consume(finallyResult.getCount(), user);
                 }
                 ItemUtils.getItemToLivingEntity(user, finallyResult);
                 this.reset();
@@ -486,7 +486,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         }
         if (user.getMainHandItem().is(container.getItem())) {
             if (!user.hasInfiniteMaterials()) {
-                user.getMainHandItem().shrink(1);
+                user.getMainHandItem().consume(1, user);
             }
             return true;
         }

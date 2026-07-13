@@ -490,7 +490,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         }
         if (user.getMainHandItem().is(container.getItem())) {
             if (!user.hasInfiniteMaterials()) {
-                user.getMainHandItem().shrink(1);
+                user.getMainHandItem().consume(1, user);
             }
             return true;
         }
@@ -515,7 +515,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             return false;
         }
         if (!carrier.isEmpty() && !user.hasInfiniteMaterials()) {
-            stack.shrink(1);
+            stack.consume(1, user);
         }
 
         ItemStack resultCopy = this.result.copyWithCount(1);

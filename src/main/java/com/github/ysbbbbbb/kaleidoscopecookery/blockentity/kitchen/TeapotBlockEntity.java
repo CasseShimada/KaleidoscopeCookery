@@ -163,7 +163,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
         }
         this.teaFluidId = BuiltInRegistries.FLUID.getKey(fluid);
         if (!user.hasInfiniteMaterials()) {
-            stack.shrink(1);
+            stack.consume(1, user);
             ItemUtils.getItemToLivingEntity(user, remainder);
         }
         level.playSound(null, worldPosition, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -193,7 +193,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
             return true;
         }
         if (!user.hasInfiniteMaterials()) {
-            stack.shrink(1);
+            stack.consume(1, user);
             ItemUtils.getItemToLivingEntity(user, filled);
         }
         level.playSound(null, worldPosition, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -230,7 +230,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
             this.input = stack.copyWithCount(count);
             this.currentTick = INGREDIENT_TIME;
             if (!user.hasInfiniteMaterials()) {
-                stack.shrink(count);
+                stack.consume(count, user);
             }
             this.setChangedAndSync();
             return true;
