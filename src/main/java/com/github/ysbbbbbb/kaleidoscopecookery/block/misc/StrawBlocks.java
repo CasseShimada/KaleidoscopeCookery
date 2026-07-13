@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.MapColor;
 
 public class StrawBlocks extends RotatedPillarBlock {
@@ -40,7 +41,10 @@ public class StrawBlocks extends RotatedPillarBlock {
         // 完全免伤，但是稻草有几率会被破坏
         float possibility = Mth.clamp((float) fallDistance / 30F, 0F, 1F);
         if (level.getRandom().nextFloat() < possibility) {
-            level.destroyBlock(pos, false);
+            if (!level.destroyBlock(pos, false)) {
+                return;
+            }
+            level.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(entity, state));
             popResource(level, pos, new ItemStack(ModItems.RICE_PANICLE, 5));
             popResource(level, pos, new ItemStack(ModItems.RICE_SEED, 4));
             if (level instanceof ServerLevel serverLevel) {

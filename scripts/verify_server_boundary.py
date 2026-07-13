@@ -116,6 +116,7 @@ FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
 STRUNG_MUSHROOMS_BLOCK = SRC / "block/misc/StrungMushroomsBlock.java"
 CHILI_RISTRA_BLOCK = SRC / "block/misc/ChiliRistraBlock.java"
+STRAW_BLOCKS = SRC / "block/misc/StrawBlocks.java"
 OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
 SICKLE_HARVEST_CALLBACK = SRC / "api/event/SickleHarvestCallback.java"
@@ -826,6 +827,16 @@ def main() -> int:
         for required_event in ("GameEvent.BLOCK_CHANGE", "GameEvent.BLOCK_DESTROY", "GameEvent.Context.of(player, state)"):
             if required_event not in hanging_harvest:
                 errors.append(f"{name} harvest events are missing {required_event}.")
+
+    straw_blocks = STRAW_BLOCKS.read_text(encoding="utf-8")
+    confirmed_straw_break = "if (!level.destroyBlock(pos, false))"
+    first_straw_drop = "popResource(level, pos, new ItemStack(ModItems.RICE_PANICLE, 5))"
+    if confirmed_straw_break not in straw_blocks:
+        errors.append("StrawBlocks does not confirm fall-driven block removal.")
+    if straw_blocks.find(confirmed_straw_break) > straw_blocks.find(first_straw_drop):
+        errors.append("StrawBlocks drops harvest items before confirming fall-driven removal.")
+    if "GameEvent.Context.of(entity, state)" not in straw_blocks:
+        errors.append("StrawBlocks does not emit a contextual block-destroy event.")
 
     chili_crop_text = CHILI_CROP_BLOCK.read_text(encoding="utf-8")
     if "ModLootTables.HARVEST_CHILI_CROP" not in chili_crop_text:
