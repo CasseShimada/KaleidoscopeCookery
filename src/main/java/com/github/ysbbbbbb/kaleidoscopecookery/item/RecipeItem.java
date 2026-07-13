@@ -316,6 +316,16 @@ public class RecipeItem extends CookeryTooltipBlockItem {
             output = output.copy();
         }
 
+        @Override
+        public List<ItemStack> input() {
+            return this.input.stream().map(ItemStack::copy).toList();
+        }
+
+        @Override
+        public ItemStack output() {
+            return this.output.copy();
+        }
+
         private static ItemStack copyItemAndCountOnly(ItemStack stack) {
             return stack.isEmpty() ? ItemStack.EMPTY : new ItemStack(stack.getItem(), stack.getCount());
         }

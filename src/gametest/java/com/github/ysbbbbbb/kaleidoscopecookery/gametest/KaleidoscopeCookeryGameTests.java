@@ -21,6 +21,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.TransmutationLunchBagItem;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -253,6 +254,28 @@ public final class KaleidoscopeCookeryGameTests {
         TransmutationLunchBagItem.setItems(bag, items);
         helper.assertTrue(TransmutationLunchBagItem.hasItems(bag),
                 "Non-empty lunch-bag contents were not stored");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void recipeRecordComponentsExposeDefensiveCopies(GameTestHelper helper) {
+        ItemStack sourceInput = new ItemStack(Items.CARROT, 2);
+        ItemStack sourceOutput = Items.SUSPICIOUS_STEW.getDefaultInstance();
+        sourceOutput.set(DataComponents.CUSTOM_NAME, Component.literal("Recorded result"));
+        RecipeItem.RecipeRecord record = new RecipeItem.RecipeRecord(
+                List.of(sourceInput), sourceOutput, RecipeItem.POT);
+
+        sourceInput.setCount(1);
+        sourceOutput.remove(DataComponents.CUSTOM_NAME);
+        List<ItemStack> exposedInputs = record.input();
+        ItemStack exposedOutput = record.output();
+        exposedInputs.getFirst().setCount(1);
+        exposedOutput.remove(DataComponents.CUSTOM_NAME);
+
+        helper.assertValueEqual(record.input().getFirst().getCount(), 2,
+                "Recipe record exposed its mutable input stack");
+        helper.assertTrue(record.output().has(DataComponents.CUSTOM_NAME),
+                "Recipe record exposed its mutable output stack");
         helper.succeed();
     }
 
