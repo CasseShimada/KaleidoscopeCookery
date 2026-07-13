@@ -170,32 +170,32 @@ public final class ItemUtils {
         }
     }
 
-    public static Item getContainerItem(ItemStack stack) {
+    public static ItemStack getContainerStack(ItemStack stack) {
         if (stack.isEmpty()) {
-            return Items.AIR;
+            return ItemStack.EMPTY;
         }
         UseRemainder useRemainder = stack.get(DataComponents.USE_REMAINDER);
         if (useRemainder != null) {
             ItemStack remainderStack = useRemainder.convertInto().create();
             if (!remainderStack.isEmpty()) {
-                return remainderStack.getItem();
+                return remainderStack;
             }
         }
         Item item = stack.getItem();
         ItemStack remainingItem = item.getCraftingRemainder().create();
         if (!remainingItem.isEmpty()) {
-            return remainingItem.getItem();
+            return remainingItem;
         }
         if (stack.is(TagMod.BOWL_CONTAINER)) {
-            return Items.BOWL;
+            return Items.BOWL.getDefaultInstance();
         } else if (stack.is(TagMod.GLASS_BOTTLE_CONTAINER)) {
-            return Items.GLASS_BOTTLE;
+            return Items.GLASS_BOTTLE.getDefaultInstance();
         } else if (stack.is(TagMod.BUCKET_CONTAINER)) {
-            return Items.BUCKET;
+            return Items.BUCKET.getDefaultInstance();
         } else if (stack.is(Items.POTION)) {
-            return Items.GLASS_BOTTLE;
+            return Items.GLASS_BOTTLE.getDefaultInstance();
         }
-        return Items.AIR;
+        return ItemStack.EMPTY;
     }
 
     public static Component getIngredientName(Level level, Ingredient ingredient) {

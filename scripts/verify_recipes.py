@@ -193,7 +193,7 @@ def main() -> int:
 
     creative_container_guard = re.search(
         r"if\s*\(\s*!user\.hasInfiniteMaterials\(\)\s*\)\s*\{.*?"
-        r"ItemUtils\.getContainerItem\(heldItem\.split\(1\)\)",
+        r"ItemUtils\.getContainerStack\(heldItem\.split\(1\)\)",
         millstone_special_event,
         flags=re.DOTALL,
     )

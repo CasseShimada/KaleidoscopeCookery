@@ -308,9 +308,9 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
                 // 依据容器数量消耗
                 if (!user.hasInfiniteMaterials()) {
                     consumeCount = Math.min(consumeCount, heldItem.getCount());
-                    Item containerItem = ItemUtils.getContainerItem(heldItem.split(consumeCount));
-                    if (containerItem != Items.AIR) {
-                        ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
+                    ItemStack container = ItemUtils.getContainerStack(heldItem.split(consumeCount));
+                    if (!container.isEmpty()) {
+                        ItemUtils.getItemToLivingEntity(user, container);
                     }
                 }
             }

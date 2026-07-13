@@ -24,6 +24,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,7 +33,9 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.UseRemainder;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
@@ -110,6 +113,15 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(extraRemainders.stream()
                         .anyMatch(stack -> stack.is(ModItems.EMPTY_CUP)),
                 "Stacked tea did not return the empty cup through vanilla use handling");
+
+        ItemStack namedBowl = Items.BOWL.getDefaultInstance();
+        namedBowl.set(DataComponents.CUSTOM_NAME, Component.literal("Preserved remainder"));
+        ItemStack componentCarrier = Items.APPLE.getDefaultInstance();
+        componentCarrier.set(DataComponents.USE_REMAINDER,
+                new UseRemainder(ItemStackTemplate.fromNonEmptyStack(namedBowl)));
+        helper.assertTrue(ItemStack.isSameItemSameComponents(
+                        ItemUtils.getContainerStack(componentCarrier), namedBowl),
+                "Container lookup discarded remainder stack components");
         helper.succeed();
     }
 

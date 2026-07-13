@@ -223,14 +223,14 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
         if (!food.isEmpty()) {
             // 消耗物品
             ItemStack returnStack = food.finishUsingItem(level, entity);
-            Item containerItem = ItemUtils.getContainerItem(food);
+            ItemStack container = ItemUtils.getContainerStack(food);
 
             // 返还容器
             if (!entity.hasInfiniteMaterials()) {
                 if (!returnStack.isEmpty()) {
                     ItemUtils.getItemToLivingEntity(entity, returnStack);
-                } else if (containerItem != Items.AIR) {
-                    ItemUtils.getItemToLivingEntity(entity, containerItem.getDefaultInstance());
+                } else if (!container.isEmpty()) {
+                    ItemUtils.getItemToLivingEntity(entity, container);
                 }
             }
 

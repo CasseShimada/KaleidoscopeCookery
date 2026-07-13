@@ -205,9 +205,9 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 continue;
             }
             // 如果带有容器，此时返还容器
-            Item containerItem = ItemUtils.getContainerItem(stack);
-            if (!user.hasInfiniteMaterials() && containerItem != Items.AIR) {
-                ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
+            ItemStack container = ItemUtils.getContainerStack(stack);
+            if (!user.hasInfiniteMaterials() && !container.isEmpty()) {
+                ItemUtils.getItemToLivingEntity(user, container);
             }
             this.inputs.set(i, stack.copyWithCount(1));
         }
@@ -470,9 +470,9 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             if (!this.inputs.get(i).isEmpty()) {
                 continue;
             }
-            Item containerItem = ItemUtils.getContainerItem(itemStack);
-            if (!user.hasInfiniteMaterials() && containerItem != Items.AIR) {
-                ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
+            ItemStack container = ItemUtils.getContainerStack(itemStack);
+            if (!user.hasInfiniteMaterials() && !container.isEmpty()) {
+                ItemUtils.getItemToLivingEntity(user, container);
             }
             this.inputs.set(i, user.hasInfiniteMaterials() ? itemStack.copyWithCount(1) : itemStack.split(1));
             level.playSound(null, user.getX(), user.getY() + 0.5, user.getZ(),
@@ -517,18 +517,18 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     }
 
     private boolean containerIsMatch(LivingEntity user, ItemStack stack) {
-        Item containerItem = ItemUtils.getContainerItem(stack);
-        if (containerItem == Items.AIR) {
+        ItemStack container = ItemUtils.getContainerStack(stack);
+        if (container.isEmpty()) {
             return true;
         }
-        if (user.getMainHandItem().is(containerItem)) {
+        if (user.getMainHandItem().is(container.getItem())) {
             if (!user.hasInfiniteMaterials()) {
                 user.getMainHandItem().shrink(1);
             }
             return true;
         }
         this.sendActionBarMessage(user, "tip.kaleidoscope_cookery.kitchen.remove_ingredient.need_container",
-                containerItem.getDefaultInstance().getHoverName());
+                container.getHoverName());
         return false;
     }
 

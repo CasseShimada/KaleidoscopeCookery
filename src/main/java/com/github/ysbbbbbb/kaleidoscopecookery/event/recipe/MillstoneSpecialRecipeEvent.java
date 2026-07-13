@@ -56,9 +56,9 @@ public final class MillstoneSpecialRecipeEvent {
 
         // 消耗一个容器，并返还
         if (!user.hasInfiniteMaterials()) {
-            Item containerItem = ItemUtils.getContainerItem(heldItem.split(1));
-            if (containerItem != Items.AIR) {
-                ItemUtils.getItemToLivingEntity(user, containerItem.getDefaultInstance());
+            ItemStack container = ItemUtils.getContainerStack(heldItem.split(1));
+            if (!container.isEmpty()) {
+                ItemUtils.getItemToLivingEntity(user, container);
             }
         }
 
