@@ -23,22 +23,18 @@ public final class FlatulenceClientEvent {
     private static void onClientTick(Minecraft client) {
         KeyMapping keyShift = client.options.keyShift;
         boolean isShiftPressed = keyShift.isDown();
-
-        if (isShiftPressed && !wasShiftPressed) {
-            if (!isInGame(client)) {
-                return;
-            }
-            LocalPlayer player = client.player;
-            if (player == null) {
-                return;
-            }
-            if (!player.hasEffect(ModEffects.FLATULENCE)) {
-                return;
-            }
-            keyShift.consumeClick();
-            ClientNetworkHandler.sendFlatulence();
-        }
+        boolean justPressed = isShiftPressed && !wasShiftPressed;
         wasShiftPressed = isShiftPressed;
+
+        if (!justPressed || !isInGame(client)) {
+            return;
+        }
+        LocalPlayer player = client.player;
+        if (player == null || !player.hasEffect(ModEffects.FLATULENCE)) {
+            return;
+        }
+        keyShift.consumeClick();
+        ClientNetworkHandler.sendFlatulence();
     }
 
     private static boolean isInGame(Minecraft client) {

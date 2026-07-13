@@ -15,6 +15,7 @@ MESSAGE_DIR = JAVA_ROOT / "network/message"
 NETWORK_HANDLER = JAVA_ROOT / "network/NetworkHandler.java"
 CLIENT_NETWORK_HANDLER = CLIENT_JAVA_ROOT / "client/network/ClientNetworkHandler.java"
 BAOZI_THROW_CLIENT_EVENT = CLIENT_JAVA_ROOT / "client/event/BaoziThrowClientEvent.java"
+FLATULENCE_CLIENT_EVENT = CLIENT_JAVA_ROOT / "client/event/FlatulenceClientEvent.java"
 
 
 def read(path: Path) -> str:
@@ -37,6 +38,7 @@ def main() -> int:
     network_handler = read(NETWORK_HANDLER)
     client_network_handler = read(CLIENT_NETWORK_HANDLER)
     baozi_throw_client_event = read(BAOZI_THROW_CLIENT_EVENT)
+    flatulence_client_event = read(FLATULENCE_CLIENT_EVENT)
 
     if not messages:
         errors.append("No CustomPacketPayload records found under network/message.")
@@ -100,6 +102,10 @@ def main() -> int:
         errors.append("Baozi pre-attack handling does not consume attacks after a successful payload send.")
     if "!player.getCooldowns().isOnCooldown(player.getMainHandItem())" not in baozi_throw_client_event:
         errors.append("Baozi pre-attack handling ignores the synchronized item cooldown.")
+    flatulence_edge_update = flatulence_client_event.find("wasShiftPressed = isShiftPressed;")
+    flatulence_early_return = flatulence_client_event.find("if (!justPressed || !isInGame(client))")
+    if flatulence_edge_update < 0 or flatulence_early_return < 0 or flatulence_edge_update > flatulence_early_return:
+        errors.append("Flatulence key edge state is not updated before client tick early returns.")
 
     if errors:
         print("Network safety verification failed:")
