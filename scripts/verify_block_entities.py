@@ -243,6 +243,10 @@ def main() -> int:
         errors.append("MillstoneBlockEntity does not persist grinding progress each tick.")
     if "this.progress % 10 == 0) {\n                this.syncToClient();" not in millstone:
         errors.append("MillstoneBlockEntity does not retain its periodic client progress updates.")
+    if "Mth.positiveModulo(this.cacheRot + gameTime * degPerTick, 360.0)" not in millstone:
+        errors.append("MillstoneBlockEntity does not normalize its world-time rotation phase.")
+    if "this.rotSpeedTick = Math.max(data.rotSpeedTick(), 1);\n        this.cacheRot = getRotationOffset" not in millstone:
+        errors.append("MillstoneBlockEntity does not preserve rotation when changing bindable speeds.")
     stockpot = read(BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java")
     if "private void setLidItem(ItemStack lidItem)" not in stockpot:
         errors.append("StockpotBlockEntity still exposes direct lid item mutation.")

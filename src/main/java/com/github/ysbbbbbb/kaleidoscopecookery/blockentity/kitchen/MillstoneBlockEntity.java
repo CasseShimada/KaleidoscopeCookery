@@ -79,9 +79,14 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
     }
 
     public float getRotation(Level level, float partialTick) {
-        float degPerTick = 360f / Math.max(this.rotSpeedTick, 1);
-        float gameTime = level.getGameTime() + partialTick;
-        return (this.cacheRot + gameTime * degPerTick) % 360;
+        double degPerTick = 360.0 / Math.max(this.rotSpeedTick, 1);
+        double gameTime = level.getGameTime() + partialTick;
+        return (float) Mth.positiveModulo(this.cacheRot + gameTime * degPerTick, 360.0);
+    }
+
+    private static float getRotationOffset(long gameTime, float rotation, float rotSpeedTick) {
+        double degPerTick = 360.0 / Math.max(rotSpeedTick, 1);
+        return (float) Mth.positiveModulo(rotation - gameTime * degPerTick, 360.0);
     }
 
     public void tick(Level level) {
@@ -389,13 +394,9 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
         }
         this.entityId = mob.getUUID();
         this.bindEntity = mob;
-        // 缓存角度纠正
-        float rot = this.getRotation(this.level, 0);
-        this.cacheRot = this.cacheRot - (rot - this.cacheRot);
-
-        // 读取数据地图，获取抬升角度
         MillstoneBindableData data = MillstoneBindableDataReloadListener.getData(mob.getType());
-        this.rotSpeedTick = data.rotSpeedTick();
+        this.rotSpeedTick = Math.max(data.rotSpeedTick(), 1);
+        this.cacheRot = getRotationOffset(this.level.getGameTime(), this.cacheRot, this.rotSpeedTick);
         this.liftAngle = data.liftAngle();
         this.offset = data.offset();
         this.setChangedAndSync();
@@ -430,8 +431,8 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
         super.loadAdditional(inputTag);
         this.entityId = inputTag.getString(ENTITY_ID_KEY).map(UUID::fromString).orElse(Util.NIL_UUID);
         this.cacheRot = inputTag.getFloatOr(CACHE_ROT_KEY, 0.0F);
-        this.rotSpeedTick = inputTag.getFloatOr(ROT_SPEED_TICK_KEY, 0.0F);
-        this.liftAngle = inputTag.getFloatOr(LIFT_ANGLE_KEY, 0.0F);
+        this.rotSpeedTick = Math.max(inputTag.getFloatOr(ROT_SPEED_TICK_KEY, this.rotSpeedTick), 1.0F);
+        this.liftAngle = inputTag.getFloatOr(LIFT_ANGLE_KEY, this.liftAngle);
         this.input = inputTag.read(INPUT_ITEM_KEY, ItemStack.CODEC).orElse(ItemStack.EMPTY);
         this.output = inputTag.read(OUTPUT_ITEM_KEY, ItemStack.CODEC).orElse(ItemStack.EMPTY);
         this.carrier = inputTag.read(CARRIER_INGREDIENT_KEY, Ingredient.CODEC);
