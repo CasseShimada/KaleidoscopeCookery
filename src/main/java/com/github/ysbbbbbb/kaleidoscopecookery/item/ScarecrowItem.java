@@ -61,8 +61,8 @@ public class ScarecrowItem extends CookeryTooltipItem {
                 scarecrow.gameEvent(GameEvent.ENTITY_PLACE, context.getPlayer());
                 ModTrigger.EVENT.trigger(context.getPlayer(), ModEventTriggerType.PLACE_SCARECROW);
             }
-            if (!level.isClientSide() && (context.getPlayer() == null || !context.getPlayer().hasInfiniteMaterials())) {
-                stack.shrink(1);
+            if (!level.isClientSide()) {
+                stack.consume(1, context.getPlayer());
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }

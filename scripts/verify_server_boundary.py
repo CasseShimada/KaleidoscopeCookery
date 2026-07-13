@@ -104,6 +104,8 @@ TABLE_BLOCK = SRC / "block/decoration/TableBlock.java"
 CHAIR_BLOCK = SRC / "block/decoration/ChairBlock.java"
 PLATE_BLOCK = SRC / "block/decoration/PlateBlock.java"
 STACKABLE_FOOD_BLOCK = SRC / "block/decoration/StackableFoodBlock.java"
+STOVE_BLOCK = SRC / "block/kitchen/StoveBlock.java"
+SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
 TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
 TRASH_CAN_RENDERER = CLIENT_SRC / "client/render/block/TrashCanBlockEntityRender.java"
@@ -467,6 +469,22 @@ def main() -> int:
             errors.append(f"{name} does not use vanilla ItemStack.consume() for player item consumption.")
         if shrink_expression in decoration_block_text:
             errors.append(f"{name} still manually shrinks player item stacks.")
+
+    stove_block_text = STOVE_BLOCK.read_text(encoding="utf-8")
+    if "itemInHand.consume(1, player)" not in stove_block_text:
+        errors.append("StoveBlock does not use vanilla ItemStack.consume() for fire charges.")
+    if "itemInHand.shrink(" in stove_block_text:
+        errors.append("StoveBlock still manually shrinks fire charges.")
+
+    scarecrow_item_text = SCARECROW_ITEM.read_text(encoding="utf-8")
+    for required_reference in (
+        "if (!level.isClientSide())",
+        "stack.consume(1, context.getPlayer())",
+    ):
+        if required_reference not in scarecrow_item_text:
+            errors.append(f"ScarecrowItem placement consumption is missing {required_reference}.")
+    if "stack.shrink(" in scarecrow_item_text:
+        errors.append("ScarecrowItem still manually shrinks the placement stack.")
 
     recipe_block_text = RECIPE_BLOCK.read_text(encoding="utf-8")
     for required_reference in (
