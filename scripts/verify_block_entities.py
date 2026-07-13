@@ -214,6 +214,11 @@ def main() -> int:
         errors.append("KitchenwareRacksBlockEntity mutates detached or client-side state.")
     if kitchenware_racks.count("this.level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 2:
         errors.append("KitchenwareRacksBlockEntity does not emit block-change events for rack mutations.")
+    chopping_board = read(BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java")
+    if chopping_board.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 4:
+        errors.append("ChoppingBoardBlockEntity does not emit block-change events for all board mutations.")
+    if "ItemStack returned = this.currentCutStack.copy();\n            this.resetBoardData();" not in chopping_board:
+        errors.append("ChoppingBoardBlockEntity returns ingredients before clearing the board.")
     shawarma_spit = read(BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java")
     if "cookTime--;\n            this.setChanged();" not in shawarma_spit:
         errors.append("ShawarmaSpitBlockEntity does not mark cooking progress dirty.")

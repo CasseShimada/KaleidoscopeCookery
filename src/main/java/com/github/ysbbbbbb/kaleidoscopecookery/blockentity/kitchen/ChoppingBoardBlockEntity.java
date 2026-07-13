@@ -24,6 +24,7 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +71,7 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
             this.currentCutStack = user.hasInfiniteMaterials() ? putOnItem.copyWithCount(1) : putOnItem.split(1);
             this.result = recipe.assemble(container);
             this.setChangedAndSync();
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             level.playSound(null, this.worldPosition,
                     SoundEvents.WOOD_PLACE,
                     SoundSource.BLOCKS,
@@ -89,8 +91,10 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
         }
         // 如果已经切完，执行取出逻辑
         if (this.currentCutCount >= this.maxCutCount) {
-            Block.popResource(level, worldPosition, this.result.copy());
+            ItemStack finished = this.result.copy();
             this.resetBoardData();
+            Block.popResource(level, worldPosition, finished);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             level.playSound(null, this.worldPosition,
                     SoundEvents.WOOD_PLACE,
                     SoundSource.BLOCKS,
@@ -101,6 +105,7 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
             this.currentCutCount++;
             this.playParticlesSound();
             this.setChangedAndSync();
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             return true;
         } else {
             return false;
@@ -113,12 +118,14 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
             return false;
         }
         if (this.currentCutCount == 0 && !this.currentCutStack.isEmpty()) {
-            if (user instanceof Player player) {
-                ItemUtils.giveItemToPlayer(player, this.currentCutStack, player.getInventory().getSelectedSlot());
-            } else {
-                Block.popResource(level, this.worldPosition, this.currentCutStack);
-            }
+            ItemStack returned = this.currentCutStack.copy();
             this.resetBoardData();
+            if (user instanceof Player player) {
+                ItemUtils.giveItemToPlayer(player, returned, player.getInventory().getSelectedSlot());
+            } else {
+                Block.popResource(level, this.worldPosition, returned);
+            }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             level.playSound(null, this.worldPosition,
                     SoundEvents.ITEM_FRAME_REMOVE_ITEM,
                     SoundSource.BLOCKS,
