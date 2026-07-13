@@ -25,52 +25,52 @@ import static com.github.ysbbbbbb.kaleidoscopecookery.init.ModFoods.*;
 public final class FoodBiteRegistry {
     private static final Map<Identifier, FoodData> FOOD_DATA_MAP = new LinkedHashMap<>();
 
-    public static Identifier DARK_CUISINE;
-    public static Identifier SUSPICIOUS_STIR_FRY;
-    public static Identifier SLIME_BALL_MEAL;
-    public static Identifier FONDANT_PIE;
-    public static Identifier DONGPO_PORK;
-    public static Identifier FONDANT_SPIDER_EYE;
-    public static Identifier CHORUS_FRIED_EGG;
-    public static Identifier BRAISED_FISH;
-    public static Identifier GOLDEN_SALAD;
-    public static Identifier SPICY_CHICKEN;
-    public static Identifier YAKITORI;
-    public static Identifier PAN_SEARED_KNIGHT_STEAK;
-    public static Identifier STARGAZY_PIE;
-    public static Identifier SWEET_AND_SOUR_ENDER_PEARLS;
-    public static Identifier CRYSTAL_LAMB_CHOP;
-    public static Identifier BLAZE_LAMB_CHOP;
-    public static Identifier FROST_LAMB_CHOP;
-    public static Identifier NETHER_STYLE_SASHIMI;
-    public static Identifier END_STYLE_SASHIMI;
-    public static Identifier DESERT_STYLE_SASHIMI;
-    public static Identifier TUNDRA_STYLE_SASHIMI;
-    public static Identifier COLD_STYLE_SASHIMI;
-    public static Identifier SHENGJIAN_MANTOU;
-    public static Identifier CANDIED_POTATO;
-    public static Identifier DOUGH_DROP_SOUP;
-    public static Identifier STUFFED_TIGER_SKIN_PEPPER;
-    public static Identifier SPICY_RABBIT_HEAD;
-    public static Identifier FOUR_JOY_MEATBALL_SOUP;
-    public static Identifier NUMBING_SPICY_CHICKEN;
-    public static Identifier FRIED_CATERPILLAR;
-    public static Identifier FRIED_SPRING_ROLL;
-    public static Identifier SPICY_BLOOD_STEW;
-    public static Identifier FRUIT_PLATTER;
-    public static Identifier BRAISED_PORK_RIBS;
-    public static Identifier COLD_ROASTED_MEAT;
-    public static Identifier OIL_SPLASHED_FISH;
-    public static Identifier BROWN_MUSHROOM_POT_SOUP;
-    public static Identifier RED_MUSHROOM_POT_SOUP;
-    public static Identifier WARPED_FUNGUS_POT_SOUP;
-    public static Identifier CRIMSON_FUNGUS_POT_SOUP;
-    public static Identifier BUDDHA_JUMPS_OVER_THE_WALL;
+    public static final Identifier DARK_CUISINE;
+    public static final Identifier SUSPICIOUS_STIR_FRY;
+    public static final Identifier SLIME_BALL_MEAL;
+    public static final Identifier FONDANT_PIE;
+    public static final Identifier DONGPO_PORK;
+    public static final Identifier FONDANT_SPIDER_EYE;
+    public static final Identifier CHORUS_FRIED_EGG;
+    public static final Identifier BRAISED_FISH;
+    public static final Identifier GOLDEN_SALAD;
+    public static final Identifier SPICY_CHICKEN;
+    public static final Identifier YAKITORI;
+    public static final Identifier PAN_SEARED_KNIGHT_STEAK;
+    public static final Identifier STARGAZY_PIE;
+    public static final Identifier SWEET_AND_SOUR_ENDER_PEARLS;
+    public static final Identifier CRYSTAL_LAMB_CHOP;
+    public static final Identifier BLAZE_LAMB_CHOP;
+    public static final Identifier FROST_LAMB_CHOP;
+    public static final Identifier NETHER_STYLE_SASHIMI;
+    public static final Identifier END_STYLE_SASHIMI;
+    public static final Identifier DESERT_STYLE_SASHIMI;
+    public static final Identifier TUNDRA_STYLE_SASHIMI;
+    public static final Identifier COLD_STYLE_SASHIMI;
+    public static final Identifier SHENGJIAN_MANTOU;
+    public static final Identifier CANDIED_POTATO;
+    public static final Identifier DOUGH_DROP_SOUP;
+    public static final Identifier STUFFED_TIGER_SKIN_PEPPER;
+    public static final Identifier SPICY_RABBIT_HEAD;
+    public static final Identifier FOUR_JOY_MEATBALL_SOUP;
+    public static final Identifier NUMBING_SPICY_CHICKEN;
+    public static final Identifier FRIED_CATERPILLAR;
+    public static final Identifier FRIED_SPRING_ROLL;
+    public static final Identifier SPICY_BLOOD_STEW;
+    public static final Identifier FRUIT_PLATTER;
+    public static final Identifier BRAISED_PORK_RIBS;
+    public static final Identifier COLD_ROASTED_MEAT;
+    public static final Identifier OIL_SPLASHED_FISH;
+    public static final Identifier BROWN_MUSHROOM_POT_SOUP;
+    public static final Identifier RED_MUSHROOM_POT_SOUP;
+    public static final Identifier WARPED_FUNGUS_POT_SOUP;
+    public static final Identifier CRIMSON_FUNGUS_POT_SOUP;
+    public static final Identifier BUDDHA_JUMPS_OVER_THE_WALL;
 
     private FoodBiteRegistry() {
     }
 
-    public static void init() {
+    static {
         DARK_CUISINE = registerFoodData("dark_cuisine", FoodData
                 .create(3, DARK_CUISINE_BLOCK, DARK_CUISINE_ITEM)
                 .setAnimateTick(FoodBiteAnimateTicks.DARK_CUISINE_ANIMATE_TICK));
@@ -227,6 +227,9 @@ public final class FoodBiteRegistry {
                 .setLootItem(Items.FLOWER_POT)
                 .soupPotAABB()
                 .potSoupAnimateTick());
+    }
+
+    public static void init() {
     }
 
     public static List<Identifier> ids() {

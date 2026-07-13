@@ -187,7 +187,7 @@ def validate_registry_id_constants() -> list[str]:
     )
     for path, register_method in registries:
         text = read(path)
-        if re.search(r"public\s+static\s+(?!final\b)Identifier\b", text):
+        if re.search(r"public\s+static\s+(?!final\b)Identifier\s+\w+\s*(?:=|;)", text):
             errors.append(f"{path.relative_to(ROOT)} exposes mutable registry identifiers.")
 
         registered_ids = collect_string_calls(path, register_method)
@@ -200,6 +200,23 @@ def validate_registry_id_constants() -> list[str]:
             errors.append(
                 f"{path.relative_to(ROOT)} does not bind every registered id to a static final constant."
             )
+
+    food_registry = JAVA_ROOT / "init/registry/FoodBiteRegistry.java"
+    food_text = read(food_registry)
+    if re.search(r"public\s+static\s+(?!final\b)Identifier\s+\w+\s*(?:=|;)", food_text):
+        errors.append(f"{food_registry.relative_to(ROOT)} exposes mutable registry identifiers.")
+    declared_constants = set(re.findall(
+        r"public\s+static\s+final\s+Identifier\s+(\w+)\s*;",
+        food_text,
+    ))
+    assigned_constants = set(re.findall(
+        r"\b(\w+)\s*=\s*registerFoodData\(\s*\"[a-z0-9_./-]+\"",
+        food_text,
+    ))
+    if declared_constants != assigned_constants:
+        errors.append(
+            f"{food_registry.relative_to(ROOT)} does not assign every registry id constant exactly once."
+        )
     return errors
 
 
