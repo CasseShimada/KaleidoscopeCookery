@@ -9,8 +9,8 @@ import snownee.jade.api.Accessor;
 import snownee.jade.api.view.IServerExtensionProvider;
 import snownee.jade.api.view.ViewGroup;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public enum KitchenwareRackComponentProvider implements IServerExtensionProvider<ItemStack> {
     INSTANCE;
@@ -20,13 +20,10 @@ public enum KitchenwareRackComponentProvider implements IServerExtensionProvider
     public List<ViewGroup<ItemStack>> getGroups(Accessor<?> accessor) {
         Object target = accessor.getTarget();
         if (target instanceof KitchenwareRacksBlockEntity kitchenwareRacks) {
-            List<ItemStack> list = new ArrayList<>();
-            if (!kitchenwareRacks.getItemLeft().isEmpty()) {
-                list.add(kitchenwareRacks.getItemLeft());
-            }
-            if (!kitchenwareRacks.getItemRight().isEmpty()) {
-                list.add(kitchenwareRacks.getItemRight());
-            }
+            List<ItemStack> list = Stream.of(kitchenwareRacks.getItemLeft(), kitchenwareRacks.getItemRight())
+                    .filter(stack -> !stack.isEmpty())
+                    .map(ItemStack::copy)
+                    .toList();
             return List.of(new ViewGroup<>(list));
         }
         return null;

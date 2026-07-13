@@ -21,7 +21,10 @@ public enum PotComponentProvider implements IServerExtensionProvider<ItemStack> 
         Object target = accessor.getTarget();
         if (target instanceof PotBlockEntity pot) {
             if (pot.getStatus() < IPot.FINISHED) {
-                List<ItemStack> list = pot.getInputs().stream().filter(s -> !s.isEmpty()).toList();
+                List<ItemStack> list = pot.getInputs().stream()
+                        .filter(stack -> !stack.isEmpty())
+                        .map(ItemStack::copy)
+                        .toList();
                 return List.of(new ViewGroup<>(list));
             }
         }

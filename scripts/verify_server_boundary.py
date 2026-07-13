@@ -17,6 +17,14 @@ CLIENT_MIXINS = ROOT / "src/client/resources/kaleidoscope_cookery.client.mixins.
 FABRIC_MOD = ROOT / "src/main/resources/fabric.mod.json"
 BUILD_GRADLE = ROOT / "build.gradle"
 MOD_EVENTS = SRC / "init/ModEvents.java"
+JADE_ITEM_STORAGE_PROVIDERS = (
+    SRC / "compat/jade/block/FruitBasketComponentProvider.java",
+    SRC / "compat/jade/block/KitchenwareRackComponentProvider.java",
+    SRC / "compat/jade/block/TableComponentProvider.java",
+    SRC / "compat/jade/block/PotComponentProvider.java",
+    SRC / "compat/jade/block/StockpotComponentProvider.java",
+    SRC / "compat/jade/block/SteamerComponentProvider.java",
+)
 
 LEGACY_CLIENT_LOCATIONS = (
     SRC / "KaleidoscopeCookeryClient.java",
@@ -167,6 +175,13 @@ def main() -> int:
         excluded_path = f"compat/{compat}/**"
         if excluded_path in build_text:
             errors.append(f"build.gradle still excludes optional integration sources: {excluded_path}")
+
+    for path in JADE_ITEM_STORAGE_PROVIDERS:
+        provider_text = path.read_text(encoding="utf-8")
+        if "ItemStackContainer" in provider_text:
+            errors.append(f"Jade item storage provider wraps display data in ItemStackContainer: {path.relative_to(ROOT)}")
+        if ".map(ItemStack::copy)" not in provider_text:
+            errors.append(f"Jade item storage provider does not copy its ItemStack snapshot: {path.relative_to(ROOT)}")
 
     mixin_data = json.loads(MIXINS.read_text(encoding="utf-8"))
     client_mixin_data = json.loads(CLIENT_MIXINS.read_text(encoding="utf-8"))
@@ -585,6 +600,7 @@ def main() -> int:
     print(f"  migrated interaction events: {len(INTERACTION_EVENT_REGISTRATIONS)}")
     print(f"  legacy server event paths checked: {len(LEGACY_SERVER_EVENT_PATHS)}")
     print(f"  unwired legacy event paths checked: {len(UNWIRED_LEGACY_EVENT_PATHS)}")
+    print(f"  Jade item storage snapshots: {len(JADE_ITEM_STORAGE_PROVIDERS)}")
     print(f"  common mixins: {len(mixin_data.get('mixins', []))}")
     print(f"  client mixins: {len(client_mixin_data.get('client', []))}")
     return 0
