@@ -9,6 +9,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+GENERAL_CONFIG = (
+    ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/config/GeneralConfig.java"
+)
 
 TEXT_ROOTS = (
     ROOT / "src/main/java",
@@ -105,11 +108,31 @@ def validate_resource_source_sets() -> list[str]:
     return errors
 
 
+def validate_configuration_boundary() -> list[str]:
+    errors: list[str] = []
+    config_text = GENERAL_CONFIG.read_text(encoding="utf-8")
+    for field in (
+        "satiatedShieldAbsorbEnabled",
+        "satiatedShieldAbsorbExcessDamage",
+    ):
+        if re.search(rf"public\s+boolean\s+{field}\s*(?:=|;)", config_text):
+            errors.append(f"GeneralConfig exposes mutable configuration field: {field}")
+        if f"public boolean {field}()" not in config_text:
+            errors.append(f"GeneralConfig is missing read accessor: {field}()")
+
+    build_text = (ROOT / "build.gradle").read_text(encoding="utf-8")
+    properties_text = (ROOT / "gradle.properties").read_text(encoding="utf-8")
+    if "cloth-config" in build_text or "cloth_config_version" in properties_text:
+        errors.append("Unused Cloth Config dependency remains in the build configuration.")
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     errors.extend(validate_forbidden_text())
     errors.extend(validate_forbidden_paths())
     errors.extend(validate_resource_source_sets())
+    errors.extend(validate_configuration_boundary())
 
     if errors:
         print("Release hygiene verification failed:")

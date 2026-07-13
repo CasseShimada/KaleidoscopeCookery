@@ -18,11 +18,11 @@ public final class GeneralConfig {
     /**
      * Whether enabling the Satiated Shield effect.
      */
-    public boolean satiatedShieldAbsorbEnabled = true;
+    private boolean satiatedShieldAbsorbEnabled = true;
     /**
      * Whether the Satiated Shield effect should absorb excess damage beyond its capacity.
      */
-    public boolean satiatedShieldAbsorbExcessDamage = true;
+    private boolean satiatedShieldAbsorbExcessDamage = true;
 
     private GeneralConfig() {
     }
@@ -36,6 +36,18 @@ public final class GeneralConfig {
             INSTANCE = load();
         }
         return INSTANCE;
+    }
+
+    public boolean satiatedShieldAbsorbEnabled() {
+        return satiatedShieldAbsorbEnabled;
+    }
+
+    public boolean satiatedShieldAbsorbExcessDamage() {
+        return satiatedShieldAbsorbExcessDamage;
+    }
+
+    void setSatiatedShieldAbsorbExcessDamage(boolean absorbExcessDamage) {
+        satiatedShieldAbsorbExcessDamage = absorbExcessDamage;
     }
 
     private static GeneralConfig load() {

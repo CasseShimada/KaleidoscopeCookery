@@ -47,14 +47,14 @@ public final class SatiatedShieldEvent {
         float playerFoodLevel = player.getFoodData().getFoodLevel();
         player.causeFoodExhaustion(exhaustionAmount);
 
-        if (!config.satiatedShieldAbsorbExcessDamage) {
+        if (!config.satiatedShieldAbsorbExcessDamage()) {
             applyRemainingDamage(player, source, exhaustionAmount, exhaustionPerDamage, playerFoodLevel);
         }
         return false;
     }
 
     private static boolean canUseSatiatedShield(Player player, GeneralConfig config) {
-        return config.satiatedShieldAbsorbEnabled
+        return config.satiatedShieldAbsorbEnabled()
                 && player.getFoodData().getFoodLevel() > 0
                 && player.hasEffect(ModEffects.SATIATED_SHIELD);
     }

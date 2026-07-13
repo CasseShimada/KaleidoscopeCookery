@@ -10,6 +10,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBloc
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc.TrashCanBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
+import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfigTestAccess;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.StockpotInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.TeapotInput;
@@ -501,13 +502,13 @@ public final class KaleidoscopeCookeryGameTests {
         float initialHealth = player.getHealth();
 
         GeneralConfig config = GeneralConfig.get();
-        boolean previousSetting = config.satiatedShieldAbsorbExcessDamage;
+        boolean previousSetting = config.satiatedShieldAbsorbExcessDamage();
         boolean damaged;
         try {
-            config.satiatedShieldAbsorbExcessDamage = false;
+            GeneralConfigTestAccess.setSatiatedShieldAbsorbExcessDamage(config, false);
             damaged = player.hurtServer(helper.getLevel(), helper.getLevel().damageSources().generic(), 4.0F);
         } finally {
-            config.satiatedShieldAbsorbExcessDamage = previousSetting;
+            GeneralConfigTestAccess.setSatiatedShieldAbsorbExcessDamage(config, previousSetting);
         }
 
         helper.assertFalse(damaged, "Satiated shield did not cancel the original damage call");

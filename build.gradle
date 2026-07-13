@@ -82,7 +82,6 @@ dependencies {
     compileOnly "maven.modrinth:jade:${project.jade_version}"
     clientCompileOnly "maven.modrinth:rei:${project.rei_version}"
     clientCompileOnly "maven.modrinth:architectury-api:${project.architectury_version}"
-    clientCompileOnly "maven.modrinth:cloth-config:${project.cloth_config_version}"
     clientCompileOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
 }
 
