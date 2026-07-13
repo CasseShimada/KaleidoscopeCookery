@@ -41,6 +41,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
@@ -220,15 +221,17 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     public boolean onPlaceOil(Level level, LivingEntity user, ItemStack stack) {
         if (stack.is(TagMod.OIL)) {
             // 普通情况油脂
-            placeOil(level, user, level.getRandom());
-            if (!user.hasInfiniteMaterials()) {
-                stack.consume(1, user);
+            if (!placeOil(level, user, level.getRandom())) {
+                return false;
             }
+            stack.consume(1, user);
             ModTrigger.EVENT.trigger(user, ModEventTriggerType.PUT_OIL_IN_POT);
             return true;
         } else if (stack.is(ModItems.KITCHEN_SHOVEL) && KitchenShovelItem.hasOil(stack)) {
             // 带油锅铲特判
-            placeOil(level, user, level.getRandom());
+            if (!placeOil(level, user, level.getRandom())) {
+                return false;
+            }
             if (!user.hasInfiniteMaterials()) {
                 KitchenShovelItem.setHasOil(stack, false);
             }
@@ -236,7 +239,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             return true;
         } else if (stack.is(ModItems.OIL_POT) && OilPotItem.hasOil(stack)) {
             // 油壶特判
-            placeOil(level, user, level.getRandom());
+            if (!placeOil(level, user, level.getRandom())) {
+                return false;
+            }
             if (!user.hasInfiniteMaterials()) {
                 OilPotItem.shrinkOilCount(stack);
             }
@@ -246,10 +251,15 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         return false;
     }
 
-    private void placeOil(Level level, LivingEntity user, RandomSource random) {
-        this.currentTick = PUT_INGREDIENT_TIME;
+    private boolean placeOil(Level level, LivingEntity user, RandomSource random) {
         BlockState state = level.getBlockState(worldPosition);
-        level.setBlockAndUpdate(worldPosition, state.setValue(HAS_OIL, true).setValue(SHOW_OIL, true));
+        BlockState updatedState = state.setValue(HAS_OIL, true).setValue(SHOW_OIL, true);
+        if (!level.setBlockAndUpdate(worldPosition, updatedState)) {
+            return false;
+        }
+        this.currentTick = PUT_INGREDIENT_TIME;
+        this.setChangedAndSync();
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, state));
         level.playSound(user, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1F,
                 (random.nextFloat() - random.nextFloat()) * 0.8F);
         for (int i = 0; i < 10; i++) {
@@ -259,6 +269,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
                     worldPosition.getZ() + 0.5 + random.nextDouble() / 3 * (random.nextBoolean() ? 1 : -1),
                     0, 0.05, 0);
         }
+        return true;
     }
 
     @Override
@@ -445,10 +456,12 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             ItemStack item = this.inputs.get(i);
             if (item.isEmpty()) {
                 ItemStack container = ItemUtils.getContainerStack(itemStack);
+                this.inputs.set(i, user.hasInfiniteMaterials() ? itemStack.copyWithCount(1) : itemStack.split(1));
+                this.setChangedAndSync();
+                level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
                 if (!user.hasInfiniteMaterials() && !container.isEmpty()) {
                     ItemUtils.getItemToLivingEntity(user, container);
                 }
-                this.inputs.set(i, user.hasInfiniteMaterials() ? itemStack.copyWithCount(1) : itemStack.split(1));
                 level.playSound(null, this.worldPosition, SoundEvents.LANTERN_PLACE, SoundSource.BLOCKS, 1.0F, 0.5F);
                 return true;
             }
@@ -468,7 +481,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
                     return false;
                 }
                 this.inputs.set(i, ItemStack.EMPTY);
+                this.setChangedAndSync();
                 ItemUtils.getItemToLivingEntity(user, stack);
+                level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
                 if (this.hasHeatSource(level) && level instanceof ServerLevel serverLevel) {
                     user.hurtServer(serverLevel, level.damageSources().inFire(), 1.0F);
                     ModTrigger.EVENT.trigger(user, ModEventTriggerType.HURT_WHEN_TAKEOUT_FROM_POT);
@@ -553,6 +568,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
         if (this.status != PUT_INGREDIENT) {
             return;
         }
+        boolean changed = false;
         for (int i = 0; i < Math.min(ingredients.size(), this.inputs.size()); i++) {
             ItemStack stack = ingredients.get(i);
             if (stack.isEmpty()) {
@@ -564,9 +580,14 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
                 ItemUtils.getItemToLivingEntity(user, container);
             }
             this.inputs.set(i, stack.copyWithCount(1));
+            changed = true;
+        }
+        if (!changed) {
+            return;
         }
         level.playSound(null, this.worldPosition, SoundEvents.LANTERN_PLACE, SoundSource.BLOCKS, 1.0F, 0.5F);
         this.setChangedAndSync();
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
     }
 
     public SimpleContainer getContainer() {

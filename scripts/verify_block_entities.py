@@ -252,6 +252,13 @@ def main() -> int:
         errors.append("StockpotBlockEntity still exposes direct lid item mutation.")
     if "this.lidItem = lidItem.copyWithCount(1);\n        this.setChanged();" not in stockpot:
         errors.append("StockpotBlockEntity does not own lid item copying and persistence.")
+    pot = read(BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java")
+    if "if (!level.setBlockAndUpdate(worldPosition, updatedState))" not in pot:
+        errors.append("PotBlockEntity consumes oil without confirming the block-state update.")
+    if pot.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 4:
+        errors.append("PotBlockEntity does not emit block-change events for all content mutations.")
+    if pot.count("this.inputs.set(i,") > pot.count("this.setChangedAndSync();"):
+        errors.append("PotBlockEntity input mutations can outnumber explicit dirty-and-sync paths.")
 
     declared_consts = set(block_entity_declarations)
     expected_consts = set(EXPECTED_BLOCK_ENTITY_IDS)
