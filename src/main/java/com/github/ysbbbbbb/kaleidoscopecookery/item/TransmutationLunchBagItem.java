@@ -110,7 +110,7 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
             for (int i = 0; i < bagItems.size(); i++) {
                 ItemStack stack = bagItems.get(i);
                 if (!stack.isEmpty() && stack.getItem().canFitInsideContainerItems()) {
-                    ItemStack remaining = ItemUtils.insertItemStacked(fruitBasketItems, stack);
+                    ItemStack remaining = fruitBasketItems.addItem(stack);
                     bagItems.extractItem(i, stack.getCount() - remaining.getCount());
                 }
             }
@@ -124,7 +124,7 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
         for (int i = 0; i < fruitBasketItems.size(); i++) {
             ItemStack stack = fruitBasketItems.get(i);
             if (!stack.isEmpty() && canAdd(stack)) {
-                ItemStack remaining = ItemUtils.insertItemStacked(bagItems, stack);
+                ItemStack remaining = bagItems.addItem(stack);
                 fruitBasketItems.extractItem(i, stack.getCount() - remaining.getCount());
             }
         }
@@ -346,7 +346,7 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
         int totalCount = food.getCount();
 
         ItemStackContainer items = getItems(bag);
-        ItemStack remaining = ItemUtils.insertItemStacked(items, food);
+        ItemStack remaining = items.addItem(food);
 
         int addCount = totalCount - (remaining.isEmpty() ? 0 : remaining.getCount());
         if (addCount > 0) {

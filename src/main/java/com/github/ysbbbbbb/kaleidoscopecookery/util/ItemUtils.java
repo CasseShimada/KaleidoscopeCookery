@@ -1,7 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.util;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
-import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -120,54 +119,6 @@ public final class ItemUtils {
                 .filter(slot -> ItemStack.isSameItemSameComponents(slot, stack))
                 .mapToInt(ItemStack::getCount)
                 .sum();
-    }
-
-    private static ItemStack insertItem(ItemStackContainer dest, ItemStack stack) {
-        if (dest != null && !stack.isEmpty()) {
-            for(int i = 0; i < dest.size(); ++i) {
-                stack = dest.insertItem(i, stack);
-                if (stack.isEmpty()) {
-                    return ItemStack.EMPTY;
-                }
-            }
-
-        }
-        return stack;
-    }
-
-    public static ItemStack insertItemStacked(ItemStackContainer inventory, ItemStack stack) {
-        if (inventory != null && !stack.isEmpty()) {
-            if (!stack.isStackable()) {
-                return insertItem(inventory, stack);
-            } else {
-                int sizeInventory = inventory.size();
-
-                for(int i = 0; i < sizeInventory; ++i) {
-                    ItemStack slot = inventory.get(i);
-                    if (ItemStack.isSameItemSameComponents(slot, stack)) {
-                        stack = inventory.insertItem(i, stack);
-                        if (stack.isEmpty()) {
-                            break;
-                        }
-                    }
-                }
-
-                if (!stack.isEmpty()) {
-                    for(int i = 0; i < sizeInventory; ++i) {
-                        if (inventory.get(i).isEmpty()) {
-                            stack = inventory.insertItem(i, stack);
-                            if (stack.isEmpty()) {
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                return stack;
-            }
-        } else {
-            return stack;
-        }
     }
 
     public static ItemStack getContainerStack(ItemStack stack) {

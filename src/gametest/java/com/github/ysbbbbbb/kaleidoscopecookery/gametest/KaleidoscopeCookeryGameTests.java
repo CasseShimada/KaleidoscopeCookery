@@ -16,6 +16,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
@@ -152,6 +153,33 @@ public final class KaleidoscopeCookeryGameTests {
                     "Full creative inventory silently discarded the remaining item");
             helper.succeed();
         });
+    }
+
+    @GameTest
+    public void itemStackContainersUseVanillaInsertion(GameTestHelper helper) {
+        ItemStackContainer items = new ItemStackContainer(2);
+        items.set(0, new ItemStack(Items.APPLE, 63));
+        ItemStack input = new ItemStack(Items.APPLE, 3);
+
+        ItemStack remainder = items.addItem(input);
+        helper.assertTrue(remainder.isEmpty(), "Container did not accept the full input stack");
+        helper.assertValueEqual(items.get(0).getCount(), 64,
+                "Container did not merge into the matching stack first");
+        helper.assertValueEqual(items.get(1).getCount(), 2,
+                "Container did not move the remainder into an empty slot");
+        helper.assertValueEqual(input.getCount(), 3,
+                "Container insertion mutated the caller's input stack");
+
+        ItemStack namedApple = Items.APPLE.getDefaultInstance();
+        namedApple.set(DataComponents.CUSTOM_NAME, Component.literal("Separate stack"));
+        ItemStackContainer componentSensitive = new ItemStackContainer(1);
+        componentSensitive.set(0, namedApple);
+        ItemStack componentRemainder = componentSensitive.addItem(Items.APPLE.getDefaultInstance());
+        helper.assertValueEqual(componentRemainder.getCount(), 1,
+                "Container merged stacks with different components");
+        helper.assertTrue(ItemStack.isSameItemSameComponents(componentSensitive.get(0), namedApple),
+                "Rejected insertion changed the existing component-bearing stack");
+        helper.succeed();
     }
 
     @GameTest

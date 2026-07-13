@@ -1,12 +1,13 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.inventory;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 
 public final class ItemStackContainer {
-    private final NonNullList<ItemStack> stacks;
+    private final SimpleContainer container;
 
     public ItemStackContainer(int size) {
-        this.stacks = NonNullList.withSize(size, ItemStack.EMPTY);
+        this.container = new SimpleContainer(size);
     }
 
     public static ItemStackContainer copyOf(NonNullList<ItemStack> stacks) {
@@ -22,84 +23,46 @@ public final class ItemStackContainer {
     }
 
     public static ItemStackContainer copyOf(ItemStackContainer items, int size) {
-        return copyOf(items.stacks, size);
+        return copyOf(items.copyStacks(), size);
     }
 
     public void set(int slot, ItemStack stack) {
         this.validateSlotIndex(slot);
-        this.stacks.set(slot, stack.copy());
+        // Preserve serialized contents as-is; vanilla insertion still enforces stack limits.
+        this.container.getItems().set(slot, stack.copy());
     }
 
     public int size() {
-        return this.stacks.size();
+        return this.container.getContainerSize();
     }
 
     public ItemStack get(int slot) {
         this.validateSlotIndex(slot);
-        return this.stacks.get(slot).copy();
+        return this.container.getItem(slot).copy();
     }
 
-    public ItemStack insertItem(int slot, ItemStack stack) {
-        if (stack.isEmpty()) {
-            return ItemStack.EMPTY;
-        } else {
-            this.validateSlotIndex(slot);
-            ItemStack existing = this.stacks.get(slot);
-            int limit = stack.getMaxStackSize();
-            if (!existing.isEmpty()) {
-                if (!ItemStack.isSameItemSameComponents(stack, existing)) {
-                    return stack;
-                }
-
-                limit -= existing.getCount();
-            }
-
-            if (limit <= 0) {
-                return stack;
-            } else {
-                boolean reachedLimit = stack.getCount() > limit;
-                if (existing.isEmpty()) {
-                    this.stacks.set(slot, stack.copyWithCount(reachedLimit ? limit : stack.getCount()));
-                } else {
-                    existing.grow(reachedLimit ? limit : stack.getCount());
-                }
-
-                return reachedLimit ? stack.copyWithCount(stack.getCount() - limit) : ItemStack.EMPTY;
-            }
-        }
+    public ItemStack addItem(ItemStack stack) {
+        return this.container.addItem(stack);
     }
 
     public ItemStack extractItem(int slot, int amount) {
         if (amount <= 0) {
             return ItemStack.EMPTY;
-        } else {
-            this.validateSlotIndex(slot);
-            ItemStack existing = this.stacks.get(slot);
-            if (existing.isEmpty()) {
-                return ItemStack.EMPTY;
-            } else {
-                int toExtract = Math.min(amount, existing.getMaxStackSize());
-                if (existing.getCount() <= toExtract) {
-                    this.stacks.set(slot, ItemStack.EMPTY);
-                    return existing;
-                } else {
-                    this.stacks.set(slot, existing.copyWithCount(existing.getCount() - toExtract));
-                    return existing.copyWithCount(toExtract);
-                }
-            }
         }
+        this.validateSlotIndex(slot);
+        return this.container.removeItem(slot, amount);
     }
 
     private void validateSlotIndex(int slot) {
-        if (slot < 0 || slot >= this.stacks.size()) {
-            throw new IndexOutOfBoundsException("Slot " + slot + " not in valid range [0, " + this.stacks.size() + ")");
+        if (slot < 0 || slot >= this.size()) {
+            throw new IndexOutOfBoundsException("Slot " + slot + " not in valid range [0, " + this.size() + ")");
         }
     }
 
     public NonNullList<ItemStack> copyStacks() {
-        NonNullList<ItemStack> copy = NonNullList.withSize(this.stacks.size(), ItemStack.EMPTY);
-        for (int i = 0; i < this.stacks.size(); i++) {
-            copy.set(i, this.stacks.get(i).copy());
+        NonNullList<ItemStack> copy = NonNullList.withSize(this.size(), ItemStack.EMPTY);
+        for (int i = 0; i < this.size(); i++) {
+            copy.set(i, this.container.getItem(i).copy());
         }
         return copy;
     }
