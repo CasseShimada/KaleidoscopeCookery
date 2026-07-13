@@ -7,12 +7,9 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.tooltip.ItemContainerTooltip;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
-import com.mojang.serialization.Codec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
@@ -30,6 +27,7 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.component.Consumable;
 import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.world.item.consume_effects.ConsumeEffect;
@@ -55,9 +53,9 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
     }
 
     public static ItemStackContainer getItems(ItemStack bag) {
-        ItemContainer container = bag.get(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS);
-        if (container != null) {
-            return container.toContainer();
+        ItemContainerContents contents = bag.get(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS);
+        if (contents != null) {
+            return ItemStackContainer.fromContents(contents, MAX_SIZE);
         }
         return new ItemStackContainer(MAX_SIZE);
     }
@@ -74,7 +72,7 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
         if (allEmpty) {
             bag.remove(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS);
         } else {
-            bag.set(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS, ItemContainer.of(items));
+            bag.set(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS, items.toContents());
         }
     }
 
@@ -403,51 +401,4 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
         tooltip.accept(Component.translatable("tooltip.kaleidoscope_cookery.transmutation_lunch_bag").withStyle(ChatFormatting.GRAY));
     }
 
-    public record ItemContainer(ItemStackContainer items) {
-        public ItemContainer {
-            items = copyItems(items);
-        }
-
-        public static ItemContainer of(ItemStackContainer items) {
-            return new ItemContainer(items);
-        }
-
-        public ItemStackContainer toContainer() {
-            return copyItems(this.items);
-        }
-
-        @Override
-        public ItemStackContainer items() {
-            return toContainer();
-        }
-
-        private static ItemStackContainer copyItems(ItemStackContainer items) {
-            return ItemStackContainer.copyOf(items, MAX_SIZE);
-        }
-
-        private static ItemContainer fromList(List<ItemStack> list) {
-            ItemStackContainer handler = new ItemStackContainer(MAX_SIZE);
-            for (int i = 0; i < Math.min(list.size(), handler.size()); i++) {
-                handler.set(i, list.get(i));
-            }
-            return new ItemContainer(handler);
-        }
-
-        private List<ItemStack> itemsForCodec() {
-            ItemStackContainer handler = this.items();
-            List<ItemStack> output = new ArrayList<>();
-            for (int i = 0; i < handler.size(); i++) {
-                output.add(handler.get(i));
-            }
-            return output;
-        }
-
-        public static final Codec<ItemContainer> CODEC = ItemStack.OPTIONAL_CODEC.listOf().xmap(
-                ItemContainer::fromList,
-                ItemContainer::itemsForCodec
-        );
-
-        public static final StreamCodec<RegistryFriendlyByteBuf, ItemContainer> STREAM_CODEC =
-                ItemStack.OPTIONAL_LIST_STREAM_CODEC.map(ItemContainer::fromList, ItemContainer::itemsForCodec);
-    }
 }

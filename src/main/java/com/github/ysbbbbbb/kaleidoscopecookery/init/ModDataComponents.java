@@ -1,23 +1,23 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.init;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
-import com.github.ysbbbbbb.kaleidoscopecookery.item.FruitBasketItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
-import com.github.ysbbbbbb.kaleidoscopecookery.item.TransmutationLunchBagItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.Quality;
+import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.component.ItemContainerContents;
 
 public final class ModDataComponents {
-    public static final DataComponentType<FruitBasketItem.ItemContainer> FRUIT_BASKET_ITEMS = register(
+    public static final DataComponentType<ItemContainerContents> FRUIT_BASKET_ITEMS = register(
             "fruit_basket_items",
-            DataComponentType.<FruitBasketItem.ItemContainer>builder()
-                    .persistent(FruitBasketItem.ItemContainer.CODEC)
-                    .networkSynchronized(FruitBasketItem.ItemContainer.STREAM_CODEC)
+            DataComponentType.<ItemContainerContents>builder()
+                    .persistent(ItemStackContainer.CONTENTS_CODEC)
+                    .networkSynchronized(ItemContainerContents.STREAM_CODEC)
                     .build()
     );
 
@@ -37,12 +37,12 @@ public final class ModDataComponents {
                     .build()
     );
 
-    public static final DataComponentType<TransmutationLunchBagItem.ItemContainer> TRANSMUTATION_LUNCH_BAG_ITEMS =
+    public static final DataComponentType<ItemContainerContents> TRANSMUTATION_LUNCH_BAG_ITEMS =
             register(
                     "transmutation_lunch_bag_items",
-                    DataComponentType.<TransmutationLunchBagItem.ItemContainer>builder()
-                            .persistent(TransmutationLunchBagItem.ItemContainer.CODEC)
-                            .networkSynchronized(TransmutationLunchBagItem.ItemContainer.STREAM_CODEC)
+                    DataComponentType.<ItemContainerContents>builder()
+                            .persistent(ItemStackContainer.CONTENTS_CODEC)
+                            .networkSynchronized(ItemContainerContents.STREAM_CODEC)
                             .build()
             );
 

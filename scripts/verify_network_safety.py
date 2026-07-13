@@ -19,6 +19,7 @@ FLATULENCE_CLIENT_EVENT = CLIENT_JAVA_ROOT / "client/event/FlatulenceClientEvent
 FRUIT_BASKET_ITEM = JAVA_ROOT / "item/FruitBasketItem.java"
 LUNCH_BAG_ITEM = JAVA_ROOT / "item/TransmutationLunchBagItem.java"
 ITEM_STACK_CONTAINER = JAVA_ROOT / "inventory/ItemStackContainer.java"
+MOD_DATA_COMPONENTS = JAVA_ROOT / "init/ModDataComponents.java"
 
 
 def read(path: Path) -> str:
@@ -43,6 +44,7 @@ def main() -> int:
     baozi_throw_client_event = read(BAOZI_THROW_CLIENT_EVENT)
     flatulence_client_event = read(FLATULENCE_CLIENT_EVENT)
     component_container_sources = (read(FRUIT_BASKET_ITEM), read(LUNCH_BAG_ITEM))
+    mod_data_components = read(MOD_DATA_COMPONENTS)
     item_stack_container = read(ITEM_STACK_CONTAINER)
 
     if not messages:
@@ -107,9 +109,15 @@ def main() -> int:
         errors.append("Baozi pre-attack handling does not consume attacks after a successful payload send.")
     if "!player.getCooldowns().isOnCooldown(player.getMainHandItem())" not in baozi_throw_client_event:
         errors.append("Baozi pre-attack handling ignores the synchronized item cooldown.")
+    if mod_data_components.count(".networkSynchronized(ItemContainerContents.STREAM_CODEC)") != 2:
+        errors.append("Container data components do not use the vanilla ItemContainerContents stream codec.")
+    if mod_data_components.count(".persistent(ItemStackContainer.CONTENTS_CODEC)") != 2:
+        errors.append("Container data components do not share the legacy-compatible contents codec.")
+    if ("Codec.withAlternative(" not in item_stack_container
+            or "ItemContainerContents.CODEC" not in item_stack_container
+            or "ItemStack.OPTIONAL_CODEC.listOf()" not in item_stack_container):
+        errors.append("Container contents codec does not preserve the legacy ItemStack list format.")
     for source in component_container_sources:
-        if "ItemStack.OPTIONAL_LIST_STREAM_CODEC.map(" not in source:
-            errors.append("Container data component does not use the vanilla ItemStack list stream codec.")
         if "readNbt()" in source or "writeNbt(" in source:
             errors.append("Container data component still tunnels network state through NBT.")
     if "serializeNBT(" in item_stack_container or "deserializeNBT(" in item_stack_container:

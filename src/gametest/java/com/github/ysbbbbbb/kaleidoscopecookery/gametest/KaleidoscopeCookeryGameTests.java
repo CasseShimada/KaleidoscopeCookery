@@ -18,6 +18,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -27,6 +28,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
@@ -179,6 +181,26 @@ public final class KaleidoscopeCookeryGameTests {
                 "Container merged stacks with different components");
         helper.assertTrue(ItemStack.isSameItemSameComponents(componentSensitive.get(0), namedApple),
                 "Rejected insertion changed the existing component-bearing stack");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void itemContainerComponentsReadLegacyContents(GameTestHelper helper) {
+        ItemStack namedApple = Items.APPLE.getDefaultInstance();
+        namedApple.set(DataComponents.CUSTOM_NAME, Component.literal("Legacy contents"));
+        List<ItemStack> legacyItems = List.of(
+                new ItemStack(Items.CARROT, 2), ItemStack.EMPTY, namedApple);
+        var ops = RegistryOps.create(JsonOps.INSTANCE, helper.getLevel().registryAccess());
+        var legacyJson = ItemStack.OPTIONAL_CODEC.listOf().encodeStart(ops, legacyItems).getOrThrow();
+        var contents = ItemStackContainer.CONTENTS_CODEC.parse(ops, legacyJson).getOrThrow();
+        ItemStackContainer decoded = ItemStackContainer.fromContents(contents, 8);
+
+        helper.assertTrue(decoded.get(0).is(Items.CARROT) && decoded.get(0).getCount() == 2,
+                "Legacy component contents lost the first stack");
+        helper.assertTrue(decoded.get(1).isEmpty(),
+                "Legacy component contents lost an empty slot");
+        helper.assertTrue(ItemStack.isSameItemSameComponents(decoded.get(2), namedApple),
+                "Legacy component contents lost item components");
         helper.succeed();
     }
 

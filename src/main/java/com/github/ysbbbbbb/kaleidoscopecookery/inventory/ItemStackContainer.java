@@ -1,9 +1,17 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.inventory;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 
 public final class ItemStackContainer {
+    public static final Codec<ItemContainerContents> CONTENTS_CODEC = Codec.withAlternative(
+            ItemContainerContents.CODEC,
+            ItemStack.OPTIONAL_CODEC.listOf(),
+            ItemContainerContents::fromItems
+    );
+
     private final SimpleContainer container;
 
     public ItemStackContainer(int size) {
@@ -24,6 +32,12 @@ public final class ItemStackContainer {
 
     public static ItemStackContainer copyOf(ItemStackContainer items, int size) {
         return copyOf(items.copyStacks(), size);
+    }
+
+    public static ItemStackContainer fromContents(ItemContainerContents contents, int size) {
+        NonNullList<ItemStack> stacks = NonNullList.withSize(size, ItemStack.EMPTY);
+        contents.copyInto(stacks);
+        return copyOf(stacks, size);
     }
 
     public void set(int slot, ItemStack stack) {
@@ -65,5 +79,9 @@ public final class ItemStackContainer {
             copy.set(i, this.container.getItem(i).copy());
         }
         return copy;
+    }
+
+    public ItemContainerContents toContents() {
+        return ItemContainerContents.fromItems(this.copyStacks());
     }
 }

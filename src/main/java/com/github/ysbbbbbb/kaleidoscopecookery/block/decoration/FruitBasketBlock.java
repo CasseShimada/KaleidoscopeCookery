@@ -123,10 +123,7 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (stack.has(ModDataComponents.FRUIT_BASKET_ITEMS) && level.getBlockEntity(pos) instanceof FruitBasketBlockEntity basket) {
-            FruitBasketItem.ItemContainer handler = stack.get(ModDataComponents.FRUIT_BASKET_ITEMS);
-            if (handler != null) {
-                basket.setItems(handler.items());
-            }
+            basket.setItems(FruitBasketItem.getItems(stack).copyStacks());
         }
     }
 
@@ -136,7 +133,7 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
         BlockEntity parameter = lootParamsBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (parameter instanceof FruitBasketBlockEntity fruitBasket) {
             drops.stream().filter(stack -> stack.is(ModItems.FRUIT_BASKET)).findFirst()
-                    .ifPresent(stack -> stack.set(ModDataComponents.FRUIT_BASKET_ITEMS, FruitBasketItem.ItemContainer.of(fruitBasket.getItems())));
+                    .ifPresent(stack -> FruitBasketItem.saveItems(stack, fruitBasket.getItems()));
         }
         return drops;
     }
@@ -145,7 +142,7 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
     public @NotNull ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeFluid) {
         ItemStack cloneItemStack = super.getCloneItemStack(level, pos, state, includeFluid);
         level.getBlockEntity(pos, ModBlocks.FRUIT_BASKET_BE)
-                .ifPresent(e -> cloneItemStack.set(ModDataComponents.FRUIT_BASKET_ITEMS, FruitBasketItem.ItemContainer.of(e.getItems())));
+                .ifPresent(e -> FruitBasketItem.saveItems(cloneItemStack, e.getItems()));
         return cloneItemStack;
     }
 
