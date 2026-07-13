@@ -5,6 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.TrashCanBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc.TrashCanBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.animation.TrashCanAnimation;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.model.TrashCanModel;
+import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.animation.KeyframeAnimation;
@@ -17,6 +18,10 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.phys.AABB;
+
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public class TrashCanBlockEntityRender implements BlockEntityRenderer<TrashCanBlockEntity, TrashCanBlockEntityRender.RenderState> {
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/block/trash_can.png");
@@ -27,6 +32,7 @@ public class TrashCanBlockEntityRender implements BlockEntityRenderer<TrashCanBl
     private final KeyframeAnimation player1Animation;
     private final KeyframeAnimation player2Animation;
     private final KeyframeAnimation enterAnimation;
+    private final Map<TrashCanBlockEntity, AnimationData> animationStates = new WeakHashMap<>();
 
     public TrashCanBlockEntityRender(BlockEntityRendererProvider.Context context) {
         this.model = new TrashCanModel(context.bakeLayer(TrashCanModel.LAYER_LOCATION));
@@ -50,11 +56,24 @@ public class TrashCanBlockEntityRender implements BlockEntityRenderer<TrashCanBl
         Direction facing = trashCan.getBlockState().getValue(TrashCanBlock.FACING);
         state.facingDeg = facing.get2DDataValue() * 90;
         state.ageInTicks = trashCan.getLevel() == null ? partialTick : trashCan.getLevel().getGameTime() + partialTick;
-        state.putState.copyFrom(trashCan.putState);
-        state.withdrawState.copyFrom(trashCan.withdrawState);
-        state.player1State.copyFrom(trashCan.player1State);
-        state.player2State.copyFrom(trashCan.player2State);
-        state.enterState.copyFrom(trashCan.enterState);
+        AnimationData animations = this.animationStates.computeIfAbsent(trashCan, ignored -> new AnimationData());
+        syncEventAnimation(animations.putState, trashCan.getPutAnimationStartTick());
+        syncEventAnimation(animations.withdrawState, trashCan.getWithdrawAnimationStartTick());
+        syncEventAnimation(animations.enterState, trashCan.getEnterAnimationStartTick());
+        animations.updatePlayerAnimation(trashCan);
+        state.putState.copyFrom(animations.putState);
+        state.withdrawState.copyFrom(animations.withdrawState);
+        state.player1State.copyFrom(animations.player1State);
+        state.player2State.copyFrom(animations.player2State);
+        state.enterState.copyFrom(animations.enterState);
+    }
+
+    private static void syncEventAnimation(AnimationState animationState, int startTick) {
+        if (startTick == Integer.MIN_VALUE) {
+            animationState.stop();
+        } else {
+            animationState.start(startTick);
+        }
     }
 
     @Override
@@ -83,5 +102,37 @@ public class TrashCanBlockEntityRender implements BlockEntityRenderer<TrashCanBl
         final AnimationState enterState = new AnimationState();
         int facingDeg;
         float ageInTicks;
+    }
+
+    private static class AnimationData {
+        final AnimationState putState = new AnimationState();
+        final AnimationState withdrawState = new AnimationState();
+        final AnimationState player1State = new AnimationState();
+        final AnimationState player2State = new AnimationState();
+        final AnimationState enterState = new AnimationState();
+        long playerAnimationTick = Long.MIN_VALUE;
+
+        void updatePlayerAnimation(TrashCanBlockEntity trashCan) {
+            var level = trashCan.getLevel();
+            if (level == null || level.getEntitiesOfClass(SitEntity.class, new AABB(trashCan.getBlockPos())).isEmpty()) {
+                this.player1State.stop();
+                this.player2State.stop();
+                this.playerAnimationTick = Long.MIN_VALUE;
+                return;
+            }
+            long gameTime = level.getGameTime();
+            long animationTick = gameTime - Math.floorMod(gameTime + trashCan.getBlockPos().hashCode(), 61);
+            if (this.playerAnimationTick == animationTick) {
+                return;
+            }
+            this.playerAnimationTick = animationTick;
+            if ((Long.hashCode(trashCan.getBlockPos().asLong() ^ animationTick) & 1) == 0) {
+                this.player2State.stop();
+                this.player1State.start((int) animationTick);
+            } else {
+                this.player1State.stop();
+                this.player2State.start((int) animationTick);
+            }
+        }
     }
 }

@@ -38,8 +38,6 @@ import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -79,15 +77,6 @@ public class TrashCanBlock extends HorizontalDirectionalBlock implements SimpleW
     @Override
     protected @NotNull MapCodec<? extends HorizontalDirectionalBlock> codec() {
         return CODEC;
-    }
-
-    @Override
-    @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (!level.isClientSide() || blockEntityType != ModBlocks.TRASH_CAN_BE) {
-            return null;
-        }
-        return (lvl, blockPos, blockState, blockEntity) -> ((TrashCanBlockEntity) blockEntity).clientTick(lvl);
     }
 
     @Override

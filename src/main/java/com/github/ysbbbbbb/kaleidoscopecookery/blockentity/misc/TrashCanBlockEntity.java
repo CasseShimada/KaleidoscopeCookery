@@ -2,7 +2,6 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.TrashCanBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
-import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -13,7 +12,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -34,43 +32,12 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
     private static final String STORAGE = "Storage";
     private final SimpleContainer storage = new SimpleContainer(3);
 
-    public final AnimationState putState = new AnimationState();
-    public final AnimationState withdrawState = new AnimationState();
-    public final AnimationState player1State = new AnimationState();
-    public final AnimationState player2State = new AnimationState();
-    public final AnimationState enterState = new AnimationState();
+    private int putAnimationStartTick = Integer.MIN_VALUE;
+    private int withdrawAnimationStartTick = Integer.MIN_VALUE;
+    private int enterAnimationStartTick = Integer.MIN_VALUE;
 
     public TrashCanBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlocks.TRASH_CAN_BE, pos, blockState);
-    }
-
-    public void clientTick(Level level) {
-        long offset = level.getGameTime() + worldPosition.hashCode();
-        if (Math.floorMod(offset, 61) == 0 && hasTrashCanSeat(level)) {
-            startRandomPlayerAnimation(level);
-        }
-        if (Math.floorMod(offset, 5) == 0 && !hasTrashCanSeat(level)) {
-            stopPlayerAnimations();
-        }
-    }
-
-    private boolean hasTrashCanSeat(Level level) {
-        return !level.getEntitiesOfClass(SitEntity.class, new AABB(this.worldPosition)).isEmpty();
-    }
-
-    private void startRandomPlayerAnimation(Level level) {
-        if (level.getRandom().nextBoolean()) {
-            this.player2State.stop();
-            this.player1State.start((int) level.getGameTime());
-        } else {
-            this.player1State.stop();
-            this.player2State.start((int) level.getGameTime());
-        }
-    }
-
-    private void stopPlayerAnimations() {
-        this.player1State.stop();
-        this.player2State.stop();
     }
 
     public void entityInside(Level level, BlockPos pos, Entity entity) {
@@ -189,16 +156,39 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
         return items;
     }
 
+    public int getPutAnimationStartTick() {
+        return this.putAnimationStartTick;
+    }
+
+    public int getWithdrawAnimationStartTick() {
+        return this.withdrawAnimationStartTick;
+    }
+
+    public int getEnterAnimationStartTick() {
+        return this.enterAnimationStartTick;
+    }
+
     @Override
     public boolean triggerEvent(int id, int type) {
         if (this.level == null) {
             return false;
         }
-        int tick = (int) this.level.getGameTime();
         switch (id) {
-            case EVENT_PUT -> this.putState.start(tick);
-            case EVENT_WITHDRAW -> this.withdrawState.start(tick);
-            case EVENT_ENTER -> this.enterState.start(tick);
+            case EVENT_PUT -> {
+                if (this.level.isClientSide()) {
+                    this.putAnimationStartTick = (int) this.level.getGameTime();
+                }
+            }
+            case EVENT_WITHDRAW -> {
+                if (this.level.isClientSide()) {
+                    this.withdrawAnimationStartTick = (int) this.level.getGameTime();
+                }
+            }
+            case EVENT_ENTER -> {
+                if (this.level.isClientSide()) {
+                    this.enterAnimationStartTick = (int) this.level.getGameTime();
+                }
+            }
             default -> {
                 return super.triggerEvent(id, type);
             }

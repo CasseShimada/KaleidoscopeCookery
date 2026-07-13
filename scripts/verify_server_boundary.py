@@ -98,6 +98,9 @@ MOB_SOUP_BASE_RENDERER = CLIENT_SRC / "client/render/soupbase/MobSoupBaseRender.
 TEAPOT_BLOCK = SRC / "block/kitchen/TeapotBlock.java"
 TEAPOT_BLOCK_ENTITY = SRC / "blockentity/kitchen/TeapotBlockEntity.java"
 TEAPOT_RENDERER = CLIENT_SRC / "client/render/block/TeapotBlockEntityRender.java"
+TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
+TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
+TRASH_CAN_RENDERER = CLIENT_SRC / "client/render/block/TrashCanBlockEntityRender.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
 OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
@@ -208,6 +211,15 @@ def main() -> int:
     teapot_renderer = TEAPOT_RENDERER.read_text(encoding="utf-8")
     if "new WeakHashMap<>()" not in teapot_renderer or "boilingStates.computeIfAbsent(teapot" not in teapot_renderer:
         errors.append("Teapot renderer does not own weakly keyed boiling animation state.")
+    trash_can_block_entity = TRASH_CAN_BLOCK_ENTITY.read_text(encoding="utf-8")
+    if "AnimationState" in trash_can_block_entity or "clientTick(" in trash_can_block_entity:
+        errors.append("TrashCanBlockEntity still stores or ticks client-only animation state.")
+    trash_can_block = TRASH_CAN_BLOCK.read_text(encoding="utf-8")
+    if "getTicker(" in trash_can_block:
+        errors.append("TrashCanBlock still installs an unnecessary block entity ticker.")
+    trash_can_renderer = TRASH_CAN_RENDERER.read_text(encoding="utf-8")
+    if "new WeakHashMap<>()" not in trash_can_renderer or "animationStates.computeIfAbsent(trashCan" not in trash_can_renderer:
+        errors.append("Trash can renderer does not own weakly keyed animation state.")
 
     entrypoints = json.loads(FABRIC_MOD.read_text(encoding="utf-8"))["entrypoints"]
     expected_optional_entrypoints = {
