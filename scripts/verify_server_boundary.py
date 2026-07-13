@@ -104,6 +104,7 @@ TABLE_BLOCK = SRC / "block/decoration/TableBlock.java"
 CHAIR_BLOCK = SRC / "block/decoration/ChairBlock.java"
 PLATE_BLOCK = SRC / "block/decoration/PlateBlock.java"
 STACKABLE_FOOD_BLOCK = SRC / "block/decoration/StackableFoodBlock.java"
+FOOD_BITE_BLOCK = SRC / "block/food/FoodBiteBlock.java"
 STOVE_BLOCK = SRC / "block/kitchen/StoveBlock.java"
 ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
@@ -559,6 +560,17 @@ def main() -> int:
     return_stackable_index = stackable_food_text.find("ItemUtils.getItemToLivingEntity(player")
     if remove_stackable_index > return_stackable_index:
         errors.append("StackableFoodBlock returns the last serving before confirming block removal.")
+
+    food_bite_text = FOOD_BITE_BLOCK.read_text(encoding="utf-8")
+    if "if (!level.destroyBlock(pos, true, player))" not in food_bite_text:
+        errors.append("FoodBiteBlock does not confirm terminal food-block removal.")
+    if "GameEvent.BLOCK_DESTROY" not in food_bite_text or "GameEvent.Context.of(player, state)" not in food_bite_text:
+        errors.append("FoodBiteBlock does not emit a contextual block-destroy event for terminal removal.")
+    bite_state_update = "if (!level.setBlock(pos, state.setValue(bitesProperty, bites + 1), Block.UPDATE_ALL))"
+    if bite_state_update not in food_bite_text:
+        errors.append("FoodBiteBlock does not confirm bite-state updates before feeding the player.")
+    if food_bite_text.find(bite_state_update) > food_bite_text.find("player.getFoodData().eat(foodProperties)"):
+        errors.append("FoodBiteBlock feeds the player before confirming its bite-state update.")
 
     stove_block_text = STOVE_BLOCK.read_text(encoding="utf-8")
     if "itemInHand.consume(1, player)" not in stove_block_text:

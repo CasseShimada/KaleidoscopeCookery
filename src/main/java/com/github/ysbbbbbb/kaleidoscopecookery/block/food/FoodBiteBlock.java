@@ -111,7 +111,10 @@ public class FoodBiteBlock extends FoodBlock {
         IntegerProperty bitesProperty = this.getBites();
         int bites = state.getValue(bitesProperty);
         if (bites >= getMaxBites()) {
-            level.destroyBlock(pos, true, player);
+            if (!level.destroyBlock(pos, true, player)) {
+                return InteractionResult.FAIL;
+            }
+            level.gameEvent(GameEvent.BLOCK_DESTROY, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
         }
         return eat(level, pos, state, player);
@@ -120,6 +123,11 @@ public class FoodBiteBlock extends FoodBlock {
     private InteractionResult eat(Level level, BlockPos pos, BlockState state, Player player) {
         if (!player.canEat(foodProperties.canAlwaysEat())) {
             return InteractionResult.PASS;
+        }
+        IntegerProperty bitesProperty = this.getBites();
+        int bites = state.getValue(bitesProperty);
+        if (!level.setBlock(pos, state.setValue(bitesProperty, bites + 1), Block.UPDATE_ALL)) {
+            return InteractionResult.FAIL;
         }
         player.getFoodData().eat(foodProperties);
         if (consumable != null) {
@@ -135,12 +143,7 @@ public class FoodBiteBlock extends FoodBlock {
         }
         level.playSound(null, pos, SoundEvents.GENERIC_EAT.value(), SoundSource.PLAYERS,
                 0.5F, level.getRandom().nextFloat() * 0.1F + 0.9F);
-        IntegerProperty bitesProperty = this.getBites();
-        int bites = state.getValue(bitesProperty);
         level.gameEvent(player, GameEvent.EAT, pos);
-        if (bites < getMaxBites()) {
-            level.setBlock(pos, state.setValue(bitesProperty, bites + 1), Block.UPDATE_ALL);
-        }
         return InteractionResult.CONSUME;
     }
 
