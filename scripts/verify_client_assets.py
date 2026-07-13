@@ -210,6 +210,16 @@ def validate_animation_clocks() -> list[str]:
     return errors
 
 
+def validate_stable_render_seeds() -> list[str]:
+    errors: list[str] = []
+    millstone_renderer = read(CLIENT_ROOT / "render/block/MillstoneBlockEntityRender.java")
+    if "state.randomSeed = millstone.getBlockPos().asLong();" not in millstone_renderer:
+        errors.append("Millstone renderer does not derive item layout from the stable block position.")
+    if "millstone.hashCode()" in millstone_renderer:
+        errors.append("Millstone renderer still seeds item layout from object identity.")
+    return errors
+
+
 def validate_textures() -> list[str]:
     errors: list[str] = []
     for path, texture in collect_mod_texture_refs():
@@ -403,6 +413,7 @@ def main() -> int:
     errors.extend(validate_model_layers())
     errors.extend(validate_resource_reloaders())
     errors.extend(validate_animation_clocks())
+    errors.extend(validate_stable_render_seeds())
     errors.extend(validate_textures())
     errors.extend(validate_equipment_assets())
     errors.extend(validate_particles())

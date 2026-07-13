@@ -67,7 +67,8 @@ public class MillstoneBlockEntityRender implements BlockEntityRenderer<Millstone
         }
         state.facingDeg = facingDeg;
 
-        ItemStack renderItem = millstone.getOutput().isEmpty() ? millstone.getInput() : millstone.getOutput();
+        ItemStack output = millstone.getOutput();
+        ItemStack renderItem = output.isEmpty() ? millstone.getInput() : output;
         state.renderItem = renderItem;
         state.renderCount = Math.min(renderItem.getCount(), MillstoneBlockEntity.MAX_INPUT_COUNT);
         state.itemState.clear();
@@ -75,7 +76,7 @@ public class MillstoneBlockEntityRender implements BlockEntityRenderer<Millstone
             ItemRenderReplacerReloadListener.updateMillstoneRenderState(itemModelResolver, state.itemState, renderItem,
                     ItemDisplayContext.FIXED, millstone.getLevel(), 0);
         }
-        state.randomSeed = millstone.hashCode();
+        state.randomSeed = millstone.getBlockPos().asLong();
     }
 
     @Override
@@ -141,6 +142,6 @@ public class MillstoneBlockEntityRender implements BlockEntityRenderer<Millstone
         float wheelYRot;
         float rollZRot;
         float rotStickXRot;
-        int randomSeed;
+        long randomSeed;
     }
 }
