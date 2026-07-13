@@ -533,6 +533,12 @@ def main() -> int:
         errors.append("StoveBlock still manually shrinks fire charges.")
     if stove_block_text.count("GameEvent.BLOCK_CHANGE") != 5:
         errors.append("StoveBlock does not emit a block-change game event for every lit-state transition.")
+    if "if (!level.setBlockAndUpdate(pos, state.setValue(LIT, true)))" not in stove_block_text:
+        errors.append("StoveBlock consumes ignition items before confirming the lit-state update.")
+    if "if (!level.setBlockAndUpdate(pos, state.setValue(LIT, false)))" not in stove_block_text:
+        errors.append("StoveBlock mutates extinguishing tools before confirming the lit-state update.")
+    if "if (!level.setBlock(hitBlockPos, state.setValue(BlockStateProperties.LIT, true), Block.UPDATE_ALL_IMMEDIATE))" not in stove_block_text:
+        errors.append("StoveBlock triggers projectile ignition effects without confirming the state update.")
     for required_context in (
         "GameEvent.Context.of(state)",
         "GameEvent.Context.of(blockState)",

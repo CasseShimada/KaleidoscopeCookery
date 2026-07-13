@@ -154,15 +154,15 @@ public class StoveBlock extends HorizontalDirectionalBlock {
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            level.setBlockAndUpdate(pos, state.setValue(LIT, true));
+            if (!level.setBlockAndUpdate(pos, state.setValue(LIT, true))) {
+                return InteractionResult.FAIL;
+            }
             if (itemInHand.is(Items.FIRE_CHARGE)) {
                 level.playSound(null, pos,
                         SoundEvents.FIRECHARGE_USE,
                         SoundSource.BLOCKS, 1.0F,
                         level.getRandom().nextFloat() * 0.4F + 0.8F);
-                if (!player.hasInfiniteMaterials()) {
-                    itemInHand.consume(1, player);
-                }
+                itemInHand.consume(1, player);
             } else {
                 level.playSound(null, pos,
                         SoundEvents.FLINTANDSTEEL_USE,
@@ -181,10 +181,12 @@ public class StoveBlock extends HorizontalDirectionalBlock {
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
+            if (!level.setBlockAndUpdate(pos, state.setValue(LIT, false))) {
+                return InteractionResult.FAIL;
+            }
             if (itemInHand.is(ModItems.KITCHEN_SHOVEL) && hasOil(itemInHand)) {
                 setHasOil(itemInHand, false);
             }
-            level.setBlockAndUpdate(pos, state.setValue(LIT, false));
             level.playSound(null, pos,
                     SoundEvents.FIRE_EXTINGUISH,
                     SoundSource.BLOCKS, 0.5F,
@@ -203,7 +205,9 @@ public class StoveBlock extends HorizontalDirectionalBlock {
         BlockPos hitBlockPos = hitResult.getBlockPos();
         if (!level.isClientSide() && level instanceof ServerLevel serverLevel && projectile.isOnFire()
                 && projectile.mayInteract(serverLevel, hitBlockPos) && !state.getValue(LIT)) {
-            level.setBlock(hitBlockPos, state.setValue(BlockStateProperties.LIT, true), Block.UPDATE_ALL_IMMEDIATE);
+            if (!level.setBlock(hitBlockPos, state.setValue(BlockStateProperties.LIT, true), Block.UPDATE_ALL_IMMEDIATE)) {
+                return;
+            }
             level.gameEvent(GameEvent.BLOCK_CHANGE, hitBlockPos, GameEvent.Context.of(projectile, state));
             if (projectile.getOwner() instanceof Player player) {
                 ModTrigger.EVENT.trigger(player, ModEventTriggerType.LIT_THE_STOVE);
