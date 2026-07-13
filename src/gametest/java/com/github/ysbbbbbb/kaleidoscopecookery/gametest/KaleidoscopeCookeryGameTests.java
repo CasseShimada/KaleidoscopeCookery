@@ -4,6 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
@@ -20,6 +21,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
@@ -30,6 +32,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 
 import java.util.List;
 
@@ -116,7 +119,7 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
-    public void satiatedShieldCancelsFabricDamageCallback(GameTestHelper helper) {
+    public void satiatedShieldUsesVanillaExhaustionUnits(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.getFoodData().setFoodLevel(20);
         player.getFoodData().setSaturation(5.0F);
@@ -129,6 +132,43 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertFalse(damaged, "Satiated shield did not cancel Fabric's allow-damage callback");
         helper.assertValueEqual(player.getHealth(), initialHealth,
                 "Satiated shield allowed ordinary damage to reduce health");
+        CompoundTag foodDataTag = foodDataTag(player);
+        helper.assertValueEqual(foodDataTag.getFloatOr("foodExhaustionLevel", -1.0F), 8.0F,
+                "Four damage did not add eight vanilla exhaustion points");
+
+        ServerPlayer foodTickPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        foodTickPlayer.getFoodData().readAdditionalSaveData(TagValueInput.create(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), foodDataTag));
+        foodTickPlayer.getFoodData().tick(foodTickPlayer);
+        helper.assertValueEqual(foodTickPlayer.getFoodData().getSaturationLevel(), 4.0F,
+                "Vanilla food ticking did not consume saturation from shield exhaustion");
+        helper.assertValueEqual(foodTickPlayer.getFoodData().getFoodLevel(), 20,
+                "Shield exhaustion skipped saturation and consumed hunger first");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void satiatedShieldPreservesOverflowDamage(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getFoodData().setFoodLevel(1);
+        player.getFoodData().setSaturation(0.0F);
+        player.getActiveEffectsMap().put(ModEffects.SATIATED_SHIELD,
+                new MobEffectInstance(ModEffects.SATIATED_SHIELD, 200));
+        float initialHealth = player.getHealth();
+
+        GeneralConfig config = GeneralConfig.get();
+        boolean previousSetting = config.satiatedShieldAbsorbExcessDamage;
+        boolean damaged;
+        try {
+            config.satiatedShieldAbsorbExcessDamage = false;
+            damaged = player.hurtServer(helper.getLevel(), helper.getLevel().damageSources().generic(), 4.0F);
+        } finally {
+            config.satiatedShieldAbsorbExcessDamage = previousSetting;
+        }
+
+        helper.assertFalse(damaged, "Satiated shield did not cancel the original damage call");
+        helper.assertValueEqual(player.getHealth(), initialHealth - 2.0F,
+                "Damage beyond the available hunger shield was not preserved");
         helper.succeed();
     }
 
@@ -154,5 +194,11 @@ public final class KaleidoscopeCookeryGameTests {
 
     private static Identifier vanillaId(String path) {
         return Identifier.fromNamespaceAndPath("minecraft", path);
+    }
+
+    private static CompoundTag foodDataTag(Player player) {
+        TagValueOutput output = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
+        player.getFoodData().addAdditionalSaveData(output);
+        return output.buildResult();
     }
 }

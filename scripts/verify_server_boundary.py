@@ -214,7 +214,9 @@ def main() -> int:
         "ServerLivingEntityEvents.ALLOW_DAMAGE.register(SatiatedShieldEvent::onAllowDamage)",
         "REMAINING_DAMAGE_BYPASS.contains(player.getUUID())",
         "source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)",
-        "applyBypassingShield(player, source, remainingDamage)",
+        "player.causeFoodExhaustion(exhaustionAmount)",
+        "float excessExhaustion = exhaustionAmount - availableExhaustion",
+        "applyBypassingShield(player, source, excessExhaustion / exhaustionPerDamage)",
         "return false;",
     ):
         if required_reference not in satiated_shield_text:

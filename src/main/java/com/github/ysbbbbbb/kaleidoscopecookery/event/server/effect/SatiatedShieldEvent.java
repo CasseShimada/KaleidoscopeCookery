@@ -18,8 +18,6 @@ public final class SatiatedShieldEvent {
     private static final int DAMAGE_TO_EXHAUSTION_MULTIPLIER = 2;
     private static final int WEAKNESS_EXHAUSTION_MULTIPLIER = 2;
     private static final float EXHAUSTION_PER_FOOD_LEVEL = 4.0F;
-    private static final float WEAKNESS_EXCESS_DAMAGE_PER_FOOD_LEVEL = 2.0F;
-    private static final float EXCESS_DAMAGE_PER_FOOD_LEVEL = 4.0F;
     private static final Set<UUID> REMAINING_DAMAGE_BYPASS = new HashSet<>();
 
     private SatiatedShieldEvent() {
@@ -41,19 +39,16 @@ public final class SatiatedShieldEvent {
             return true;
         }
 
-        // 1 damage consumes 2 exhaustion.
-        int exhaustionAmount = Math.round(damageAmount) * DAMAGE_TO_EXHAUSTION_MULTIPLIER;
-        // 部分特殊伤害，扣除的 Exhaustion 翻倍
+        int exhaustionPerDamage = DAMAGE_TO_EXHAUSTION_MULTIPLIER;
         if (source.is(TagMod.SATIATED_SHIELD_WEAKNESS)) {
-            exhaustionAmount *= WEAKNESS_EXHAUSTION_MULTIPLIER;
+            exhaustionPerDamage *= WEAKNESS_EXHAUSTION_MULTIPLIER;
         }
-        // 原版是 4 点 Exhaustion 对应 1 点 Food Level
-        float exhaustionLevel = Math.max(0, exhaustionAmount / EXHAUSTION_PER_FOOD_LEVEL);
+        float exhaustionAmount = Math.max(0, Math.round(damageAmount) * exhaustionPerDamage);
         float playerFoodLevel = player.getFoodData().getFoodLevel();
-        player.causeFoodExhaustion(exhaustionLevel);
+        player.causeFoodExhaustion(exhaustionAmount);
 
         if (!config.satiatedShieldAbsorbExcessDamage) {
-            applyRemainingDamage(player, source, damageAmount, exhaustionLevel, playerFoodLevel);
+            applyRemainingDamage(player, source, exhaustionAmount, exhaustionPerDamage, playerFoodLevel);
         }
         return false;
     }
@@ -64,16 +59,12 @@ public final class SatiatedShieldEvent {
                 && player.hasEffect(ModEffects.SATIATED_SHIELD);
     }
 
-    private static void applyRemainingDamage(Player player, DamageSource source, float damageAmount,
-                                             float exhaustionLevel, float playerFoodLevel) {
-        // 判断是否超出了玩家当前的 Food Level
-        // 原版是 4 点 Exhaustion 对应 1 点 Food Level
-        float consumedFoodLevel = exhaustionLevel / EXHAUSTION_PER_FOOD_LEVEL;
-        if (consumedFoodLevel >= playerFoodLevel) {
-            // 扣光了，施加额外伤害
-            float extraDamage = getExtraDamage(source, consumedFoodLevel - playerFoodLevel);
-            float remainingDamage = Math.max(0, damageAmount - extraDamage);
-            applyBypassingShield(player, source, remainingDamage);
+    private static void applyRemainingDamage(Player player, DamageSource source, float exhaustionAmount,
+                                             int exhaustionPerDamage, float playerFoodLevel) {
+        float availableExhaustion = playerFoodLevel * EXHAUSTION_PER_FOOD_LEVEL;
+        float excessExhaustion = exhaustionAmount - availableExhaustion;
+        if (excessExhaustion > 0) {
+            applyBypassingShield(player, source, excessExhaustion / exhaustionPerDamage);
         }
     }
 
@@ -90,12 +81,5 @@ public final class SatiatedShieldEvent {
         } finally {
             REMAINING_DAMAGE_BYPASS.remove(playerId);
         }
-    }
-
-    private static float getExtraDamage(DamageSource source, float excessFoodLevel) {
-        if (source.is(TagMod.SATIATED_SHIELD_WEAKNESS)) {
-            return excessFoodLevel * WEAKNESS_EXCESS_DAMAGE_PER_FOOD_LEVEL;
-        }
-        return excessFoodLevel * EXCESS_DAMAGE_PER_FOOD_LEVEL;
     }
 }
