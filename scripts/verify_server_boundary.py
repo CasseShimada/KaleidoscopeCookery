@@ -779,6 +779,7 @@ def main() -> int:
             "serverPlayer.gameMode.destroyBlock(newPos)",
             "blockState.getFluidState().createLegacyBlock()",
             "riceCropBlock.replantAfterHarvestIfUnchanged",
+            "GameEvent.BLOCK_CHANGE",
         ):
             if required_reference not in crop_harvest_body:
                 errors.append(f"SickleItem crop harvest is missing {required_reference}.")
@@ -795,7 +796,7 @@ def main() -> int:
 
     rice_crop_text = RICE_CROP_BLOCK.read_text(encoding="utf-8")
     for required_reference in (
-        "replantAfterHarvestIfUnchanged",
+        "public boolean replantAfterHarvestIfUnchanged",
         "bottomState.getFluidState().createLegacyBlock()",
         "middleState.getFluidState().createLegacyBlock()",
         "upperState.getFluidState().createLegacyBlock()",
@@ -809,6 +810,8 @@ def main() -> int:
     first_replant_write_index = rice_crop_text.find("level.setBlock(basePos, getReplantedState")
     if last_replant_guard_index > first_replant_write_index:
         errors.append("RiceCropBlock writes replanted sections before validating all harvested positions.")
+    if "return level.setBlock(basePos, getReplantedState(DOWN, bottomState), Block.UPDATE_ALL)" not in rice_crop_text:
+        errors.append("RiceCropBlock does not report whether all replanted sections were written.")
     if "|| !levelAccessor.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, false), Block.UPDATE_ALL)" not in rice_crop_text:
         errors.append("RiceCropBlock returns picked-up water without confirming the fluid-state update.")
 

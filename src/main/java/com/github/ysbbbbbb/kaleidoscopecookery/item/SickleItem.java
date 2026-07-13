@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
@@ -167,7 +168,11 @@ public class SickleItem extends CookeryTooltipItem {
                         || level.getBlockState(newPos).equals(blockState)) {
                     return false;
                 }
-                riceCropBlock.replantAfterHarvestIfUnchanged(level, newPos, blockState, middleRiceState, upperRiceState);
+                if (riceCropBlock.replantAfterHarvestIfUnchanged(
+                        level, newPos, blockState, middleRiceState, upperRiceState)) {
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, newPos,
+                            GameEvent.Context.of(player, level.getBlockState(newPos)));
+                }
                 return true;
             }
 
@@ -182,7 +187,9 @@ public class SickleItem extends CookeryTooltipItem {
                 if (stateForAge.hasProperty(waterlogged)) {
                     stateForAge = stateForAge.setValue(waterlogged, blockState.getValue(waterlogged));
                 }
-                level.setBlock(newPos, stateForAge, Block.UPDATE_ALL);
+                if (level.setBlock(newPos, stateForAge, Block.UPDATE_ALL)) {
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, newPos, GameEvent.Context.of(player, stateForAge));
+                }
             }
             return true;
         }
