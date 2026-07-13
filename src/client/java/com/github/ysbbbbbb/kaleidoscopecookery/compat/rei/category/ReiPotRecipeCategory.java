@@ -1,7 +1,9 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.ReiUtil;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
@@ -21,14 +23,12 @@ import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import me.shedaniel.rei.api.client.gui.compat.GuiGraphics;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.world.item.crafting.RecipeAccess;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import com.mojang.serialization.MapCodec;
 
@@ -43,8 +43,8 @@ public class ReiPotRecipeCategory implements DisplayCategory<ReiPotRecipeCategor
     private static final MutableComponent TITLE = Component.translatable("block.kaleidoscope_cookery.pot");
     public static final int WIDTH = 176;
     public static final int HEIGHT = 102;
-    private static final Comparator<RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe>> RECIPE_ORDER =
-            Comparator.comparing((RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe> holder) ->
+    private static final Comparator<RecipeHolder<PotRecipe>> RECIPE_ORDER =
+            Comparator.comparing((RecipeHolder<PotRecipe> holder) ->
                             BuiltInRegistries.ITEM.getKey(holder.value().result().create().getItem()).toString())
                     .thenComparingInt(holder -> holder.value().result().create().getCount())
                     .thenComparing(holder -> holder.id().identifier().toString());
@@ -126,20 +126,10 @@ public class ReiPotRecipeCategory implements DisplayCategory<ReiPotRecipeCategor
     }
 
     public static void registerDisplays(DisplayRegistry registry) {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return;
-        }
-        RecipeAccess recipeAccess = level.recipeAccess();
-        List<RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe>> list = new ArrayList<>();
-        for (RecipeHolder<?> holder : recipeAccess.getSynchronizedRecipes().recipes()) {
-            if (holder.value().getType() != ModRecipes.POT_RECIPE) {
-                continue;
-            }
-            list.add((RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe>) holder);
-        }
+        List<RecipeHolder<PotRecipe>> list =
+                new ArrayList<>(ClientRecipeLookup.getRecipes(ModRecipes.POT_RECIPE));
         list.sort(RECIPE_ORDER);
-        for (RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe> r : list) {
+        for (RecipeHolder<PotRecipe> r : list) {
             List<EntryIngredient> inputs = ReiUtil.ofIngredients(r.value().getIngredients());
             List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().result().create());
             EntryIngredient carrier = r.value().carrier()

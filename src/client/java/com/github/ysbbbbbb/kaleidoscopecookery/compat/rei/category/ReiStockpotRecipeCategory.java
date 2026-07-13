@@ -2,6 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.farmersdelight.FarmersDelightCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.ReiUtil;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
@@ -28,7 +29,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.crafting.RecipeAccess;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import com.mojang.serialization.MapCodec;
 
@@ -125,14 +125,8 @@ public class ReiStockpotRecipeCategory implements DisplayCategory<ReiStockpotRec
         if (level == null) {
             return;
         }
-        RecipeAccess recipeAccess = level.recipeAccess();
-        List<RecipeHolder<StockpotRecipe>> list = new ArrayList<>();
-        for (RecipeHolder<?> holder : recipeAccess.getSynchronizedRecipes().recipes()) {
-            if (holder.value().getType() == ModRecipes.STOCKPOT_RECIPE) {
-                StockpotRecipe recipe = (StockpotRecipe) holder.value();
-                list.add(new RecipeHolder<>(holder.id(), recipe));
-            }
-        }
+        List<RecipeHolder<StockpotRecipe>> list =
+                new ArrayList<>(ClientRecipeLookup.getRecipes(ModRecipes.STOCKPOT_RECIPE));
         FarmersDelightCompat.appendStockpotRecipes(level, list);
         list.sort(RECIPE_ORDER);
 

@@ -1,7 +1,9 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.ReiUtil;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.ChoppingBoardRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
@@ -17,13 +19,9 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import me.shedaniel.rei.plugin.common.displays.crafting.DefaultCustomDisplay;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.crafting.RecipeAccess;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.ArrayList;
@@ -90,17 +88,8 @@ public class ReiChoppingBoardRecipeCategory implements DisplayCategory<DefaultCu
     }
 
     public static void registerDisplays(DisplayRegistry registry) {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return;
-        }
-        RecipeAccess recipeAccess = level.recipeAccess();
-        for (RecipeHolder<?> holder : recipeAccess.getSynchronizedRecipes().recipes()) {
-            if (holder.value().getType() != ModRecipes.CHOPPING_BOARD_RECIPE) {
-                continue;
-            }
-            RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.ChoppingBoardRecipe> r =
-                    (RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.ChoppingBoardRecipe>) holder;
+        for (RecipeHolder<ChoppingBoardRecipe> r
+                : ClientRecipeLookup.getRecipes(ModRecipes.CHOPPING_BOARD_RECIPE)) {
             List<EntryIngredient> input = ReiUtil.ofIngredients(r.value().getIngredient());
             List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().getResult());
 

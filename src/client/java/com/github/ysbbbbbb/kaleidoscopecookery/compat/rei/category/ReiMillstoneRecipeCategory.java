@@ -1,7 +1,9 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.category;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
+import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.ReiUtil;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import me.shedaniel.math.Point;
@@ -17,13 +19,10 @@ import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.crafting.RecipeAccess;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import com.mojang.serialization.MapCodec;
 
@@ -97,17 +96,8 @@ public class ReiMillstoneRecipeCategory implements DisplayCategory<ReiMillstoneR
     }
 
     public static void registerDisplays(DisplayRegistry registry) {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return;
-        }
-        RecipeAccess recipeAccess = level.recipeAccess();
-        for (RecipeHolder<?> holder : recipeAccess.getSynchronizedRecipes().recipes()) {
-            if (holder.value().getType() != ModRecipes.MILLSTONE_RECIPE) {
-                continue;
-            }
-            RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe> r =
-                    (RecipeHolder<com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe>) holder;
+        for (RecipeHolder<MillstoneRecipe> r
+                : ClientRecipeLookup.getRecipes(ModRecipes.MILLSTONE_RECIPE)) {
             List<EntryIngredient> input = ReiUtil.ofIngredients(r.value().getIngredient());
             List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().getResult());
             EntryIngredient carrier = r.value().getCarrier()
