@@ -81,8 +81,9 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
                     BlockState airBlockState = rightState.getFluidState().is(Fluids.WATER)
                             ? Blocks.WATER.defaultBlockState()
                             : Blocks.AIR.defaultBlockState();
-                    level.setBlock(right, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL);
-                    level.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, right, Block.getId(rightState));
+                    if (level.setBlock(right, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL)) {
+                        level.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, right, Block.getId(rightState));
+                    }
                 } else {
                     level.destroyBlock(right, true, player);
                 }
@@ -105,9 +106,6 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (level.isClientSide()) {
-            return;
-        }
         Direction facing = state.getValue(FACING);
         BlockPos leftPos = pos.relative(facing.getClockWise());
         BlockState leftState = state.setValue(POSITION, LEFT);

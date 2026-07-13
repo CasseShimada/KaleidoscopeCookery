@@ -105,6 +105,7 @@ CHAIR_BLOCK = SRC / "block/decoration/ChairBlock.java"
 PLATE_BLOCK = SRC / "block/decoration/PlateBlock.java"
 STACKABLE_FOOD_BLOCK = SRC / "block/decoration/StackableFoodBlock.java"
 FOOD_BITE_BLOCK = SRC / "block/food/FoodBiteBlock.java"
+FOOD_BITE_ONE_BY_TWO_BLOCK = SRC / "block/food/FoodBiteOneByTwoBlock.java"
 STOVE_BLOCK = SRC / "block/kitchen/StoveBlock.java"
 ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
@@ -571,6 +572,16 @@ def main() -> int:
         errors.append("FoodBiteBlock does not confirm bite-state updates before feeding the player.")
     if food_bite_text.find(bite_state_update) > food_bite_text.find("player.getFoodData().eat(foodProperties)"):
         errors.append("FoodBiteBlock feeds the player before confirming its bite-state update.")
+
+    two_block_food_text = FOOD_BITE_ONE_BY_TWO_BLOCK.read_text(encoding="utf-8")
+    set_placed_start = two_block_food_text.find("public void setPlacedBy(")
+    set_placed_end = two_block_food_text.find("protected void createBlockStateDefinition(", set_placed_start)
+    set_placed_by = two_block_food_text[set_placed_start:set_placed_end]
+    if "level.isClientSide()" in set_placed_by:
+        errors.append("FoodBiteOneByTwoBlock suppresses vanilla client-side placement of its paired half.")
+    confirmed_pair_removal = "if (level.setBlock(right, airBlockState, Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_ALL))"
+    if confirmed_pair_removal not in two_block_food_text:
+        errors.append("FoodBiteOneByTwoBlock does not confirm creative paired-half removal.")
 
     stove_block_text = STOVE_BLOCK.read_text(encoding="utf-8")
     if "itemInHand.consume(1, player)" not in stove_block_text:
