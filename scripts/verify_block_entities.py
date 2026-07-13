@@ -238,6 +238,10 @@ def main() -> int:
     teapot = read(BLOCK_ENTITY_ROOT / "kitchen/TeapotBlockEntity.java")
     if teapot.count("this.setChanged();") < 2:
         errors.append("TeapotBlockEntity does not persist both cooking progress phases.")
+    if "if (!level.removeBlock(worldPosition, false))" not in teapot:
+        errors.append("TeapotBlockEntity returns its drops before confirming block removal.")
+    if "level.gameEvent(GameEvent.BLOCK_DESTROY, worldPosition" not in teapot:
+        errors.append("TeapotBlockEntity does not emit a block-destroy event when taken.")
     millstone = read(BLOCK_ENTITY_ROOT / "kitchen/MillstoneBlockEntity.java")
     if "this.progress--;\n            this.setChanged();" not in millstone:
         errors.append("MillstoneBlockEntity does not persist grinding progress each tick.")

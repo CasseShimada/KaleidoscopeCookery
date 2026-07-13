@@ -33,9 +33,9 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.TagValueInput;
@@ -261,12 +261,17 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
         if (level.isClientSide()) {
             return true;
         }
-        for (ItemStack drop : getDrops()) {
+        BlockState state = level.getBlockState(worldPosition);
+        List<ItemStack> drops = getDrops();
+        if (!level.removeBlock(worldPosition, false)) {
+            return false;
+        }
+        for (ItemStack drop : drops) {
             ItemUtils.getItemToLivingEntity(user, drop);
         }
         level.playSound(null, worldPosition, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.6F,
                 0.8F + level.getRandom().nextFloat() * 0.2F);
-        level.setBlock(worldPosition, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        level.gameEvent(GameEvent.BLOCK_DESTROY, worldPosition, GameEvent.Context.of(user, state));
         return true;
     }
 
