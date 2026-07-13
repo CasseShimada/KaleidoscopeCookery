@@ -167,14 +167,22 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
             // 炒菜完成，进入出锅阶段
             this.status = BURNT;
             this.currentTick = BURNT_TIME;
-            this.setChanged();
+            this.setChangedAndSync();
         }
     }
 
     private void tickCooking(Level level, RandomSource random) {
         if (this.currentTick == 0) {
-            level.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1F,
-                    (random.nextFloat() - random.nextFloat()) * 0.8F);
+            BlockState state = level.getBlockState(worldPosition);
+            if (!state.hasProperty(SHOW_OIL)) {
+                return;
+            }
+            if (state.getValue(SHOW_OIL)) {
+                if (!level.setBlockAndUpdate(worldPosition, state.setValue(SHOW_OIL, false))) {
+                    return;
+                }
+                level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(state));
+            }
             this.status = FINISHED;
             // 检查翻炒次数
             if (this.stirFryCount > 0) {
@@ -182,9 +190,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
                 this.carrier = Optional.of(Ingredient.of(Items.BOWL));
             }
             this.currentTick = TAKEOUT_TIME;
-            this.setChanged();
-            BlockState state = level.getBlockState(worldPosition);
-            level.setBlockAndUpdate(worldPosition, state.setValue(SHOW_OIL, false));
+            this.setChangedAndSync();
+            level.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1F,
+                    (random.nextFloat() - random.nextFloat()) * 0.8F);
         }
     }
 

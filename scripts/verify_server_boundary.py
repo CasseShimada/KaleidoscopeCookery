@@ -194,6 +194,22 @@ def main() -> int:
         errors.append("PotBlockEntity still stores client-only stir-fry animation state.")
     if "public long seed" in pot_block_entity or "System.currentTimeMillis()" in pot_block_entity:
         errors.append("PotBlockEntity still exposes or wall-clock-generates its render seed.")
+    tick_cooking_start = pot_block_entity.find("private void tickCooking(")
+    tick_cooking_end = pot_block_entity.find("private void tickPutIngredient(", tick_cooking_start)
+    tick_cooking = pot_block_entity[tick_cooking_start:tick_cooking_end]
+    oil_state_update = "level.setBlockAndUpdate(worldPosition, state.setValue(SHOW_OIL, false))"
+    if oil_state_update not in tick_cooking:
+        errors.append("PotBlockEntity does not confirm the oil-visibility update before finishing cooking.")
+    if tick_cooking.find(oil_state_update) > tick_cooking.find("this.status = FINISHED"):
+        errors.append("PotBlockEntity finishes cooking before confirming the oil-visibility update.")
+    for required_reference in ("this.setChangedAndSync()", "GameEvent.BLOCK_CHANGE", "GameEvent.Context.of(state)"):
+        if required_reference not in tick_cooking:
+            errors.append(f"PotBlockEntity cooking completion is missing {required_reference}.")
+    tick_finished_start = pot_block_entity.find("private void tickFinished(")
+    tick_finished_end = tick_cooking_start
+    tick_finished = pot_block_entity[tick_finished_start:tick_finished_end]
+    if "this.setChangedAndSync()" not in tick_finished:
+        errors.append("PotBlockEntity does not immediately synchronize the finished-to-burnt transition.")
     pot_renderer = POT_RENDERER.read_text(encoding="utf-8")
     if "new WeakHashMap<>()" not in pot_renderer or "computeIfAbsent(pot" not in pot_renderer:
         errors.append("Pot renderer does not own weakly keyed per-block animation state.")
