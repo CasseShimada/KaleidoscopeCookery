@@ -179,8 +179,33 @@ def report_missing(kind: str, missing: Iterable[str], errors: list[str]) -> None
         errors.append(f"  ... {len(missing_list) - 50} more")
 
 
+def validate_registry_id_constants() -> list[str]:
+    errors: list[str] = []
+    registries = (
+        (JAVA_ROOT / "init/registry/PlateRegistry.java", "registerPlateData"),
+        (JAVA_ROOT / "init/registry/TeacupRegistry.java", "registerTeacupData"),
+    )
+    for path, register_method in registries:
+        text = read(path)
+        if re.search(r"public\s+static\s+(?!final\b)Identifier\b", text):
+            errors.append(f"{path.relative_to(ROOT)} exposes mutable registry identifiers.")
+
+        registered_ids = collect_string_calls(path, register_method)
+        constant_pattern = re.compile(
+            rf"public\s+static\s+final\s+Identifier\s+\w+\s*=\s*"
+            rf"{re.escape(register_method)}\(\s*\"([a-z0-9_./-]+)\""
+        )
+        constant_ids = set(constant_pattern.findall(text))
+        if constant_ids != registered_ids:
+            errors.append(
+                f"{path.relative_to(ROOT)} does not bind every registered id to a static final constant."
+            )
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
+    errors.extend(validate_registry_id_constants())
 
     json_errors: list[str] = []
     for path in iter_resource_files(pattern="*.json"):

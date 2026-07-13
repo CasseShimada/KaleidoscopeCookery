@@ -30,23 +30,54 @@ import java.util.function.Supplier;
 public final class PlateRegistry {
     private static final Map<Identifier, PlateData> PLATE_DATA_MAP = new LinkedHashMap<>();
 
-    public static Identifier SHENGJIAN_MANTOU_PLATE;
-    public static Identifier BAOZI_PLATE;
-    public static Identifier QINGTUAN_PLATE;
-    public static Identifier STICKY_CANDY_PLATE;
-    public static Identifier STICKY_RICE_CAKE_PLATE;
-    public static Identifier ZONGZI_PLATE;
-    public static Identifier BERRY_PLATTER;
-    public static Identifier APPLE_PLATTER;
-    public static Identifier TOMATO_PLATTER;
-    public static Identifier WATERMELON_PLATTER;
-    public static Identifier CHORUS_FRUIT_PLATTER;
+    public static final Identifier SHENGJIAN_MANTOU_PLATE = registerPlateData(
+            "shengjian_mantou_plate", PlateData.create(5)
+                    .setServingItems(() -> FoodBiteRegistry.getItem(FoodBiteRegistry.SHENGJIAN_MANTOU))
+                    .setLootItem(() -> Items.BOWL));
+    public static final Identifier BAOZI_PLATE = registerPlateData("baozi_plate", PlateData.create(5)
+            .setServingItems(() -> ModItems.BAOZI)
+            .setLootItem(() -> Items.BOWL));
+    public static final Identifier QINGTUAN_PLATE = registerPlateData("qingtuan_plate", PlateData.create(4)
+            .setServingItems(() -> ModItems.QINGTUAN)
+            .setLootItem(() -> Items.BOWL));
+    public static final Identifier STICKY_CANDY_PLATE = registerPlateData(
+            "sticky_candy_plate", PlateData.create(4)
+                    .setServingItems(() -> ModItems.STICKY_CANDY)
+                    .setLootItem(() -> Items.BOWL));
+    public static final Identifier STICKY_RICE_CAKE_PLATE = registerPlateData(
+            "sticky_rice_cake_plate", PlateData.create(5)
+                    .setServingItems(() -> ModItems.STICKY_RICE_CAKE)
+                    .setLootItem(() -> Items.BOWL));
+    public static final Identifier ZONGZI_PLATE = registerPlateData("zongzi_plate", PlateData.create(4)
+            .setServingItems(() -> ModItems.ZONGZI)
+            .setLootItem(() -> Items.BOWL));
+    public static final Identifier BERRY_PLATTER = registerPlateData("berry_platter", PlateData.create(4)
+            .addServingItems(() -> Items.SWEET_BERRIES, () -> Items.GLOW_BERRIES)
+            .setLootItem(() -> Items.BOWL)
+            .platterAABB());
+    public static final Identifier APPLE_PLATTER = registerPlateData("apple_platter", PlateData.create(4)
+            .setServingItems(() -> Items.APPLE)
+            .setLootItem(() -> Items.BOWL)
+            .platterAABB());
+    public static final Identifier TOMATO_PLATTER = registerPlateData("tomato_platter", PlateData.create(5)
+            .setServingItems(() -> ModItems.TOMATO)
+            .setLootItem(() -> Items.BOWL)
+            .platterAABB());
+    public static final Identifier WATERMELON_PLATTER = registerPlateData(
+            "watermelon_platter", PlateData.create(3)
+                    .setServingItems(() -> Items.MELON_SLICE)
+                    .setLootItem(() -> Items.BOWL)
+                    .platterAABB());
+    public static final Identifier CHORUS_FRUIT_PLATTER = registerPlateData(
+            "chorus_fruit_platter", PlateData.create(5)
+                    .setServingItems(() -> Items.CHORUS_FRUIT)
+                    .setLootItem(() -> Items.BOWL)
+                    .platterAABB());
 
     private PlateRegistry() {
     }
 
     public static void init() {
-        registerData();
         registerBlocksAndItems();
     }
 
@@ -56,51 +87,6 @@ public final class PlateRegistry {
 
     public static void forEachData(BiConsumer<Identifier, PlateData> consumer) {
         PLATE_DATA_MAP.forEach(consumer);
-    }
-
-    private static void registerData() {
-        if (!PLATE_DATA_MAP.isEmpty()) {
-            return;
-        }
-
-        SHENGJIAN_MANTOU_PLATE = registerPlateData("shengjian_mantou_plate", PlateData.create(5)
-                .setServingItems(() -> FoodBiteRegistry.getItem(FoodBiteRegistry.SHENGJIAN_MANTOU))
-                .setLootItem(() -> Items.BOWL));
-        BAOZI_PLATE = registerPlateData("baozi_plate", PlateData.create(5)
-                .setServingItems(() -> ModItems.BAOZI)
-                .setLootItem(() -> Items.BOWL));
-        QINGTUAN_PLATE = registerPlateData("qingtuan_plate", PlateData.create(4)
-                .setServingItems(() -> ModItems.QINGTUAN)
-                .setLootItem(() -> Items.BOWL));
-        STICKY_CANDY_PLATE = registerPlateData("sticky_candy_plate", PlateData.create(4)
-                .setServingItems(() -> ModItems.STICKY_CANDY)
-                .setLootItem(() -> Items.BOWL));
-        STICKY_RICE_CAKE_PLATE = registerPlateData("sticky_rice_cake_plate", PlateData.create(5)
-                .setServingItems(() -> ModItems.STICKY_RICE_CAKE)
-                .setLootItem(() -> Items.BOWL));
-        ZONGZI_PLATE = registerPlateData("zongzi_plate", PlateData.create(4)
-                .setServingItems(() -> ModItems.ZONGZI)
-                .setLootItem(() -> Items.BOWL));
-        BERRY_PLATTER = registerPlateData("berry_platter", PlateData.create(4)
-                .addServingItems(() -> Items.SWEET_BERRIES, () -> Items.GLOW_BERRIES)
-                .setLootItem(() -> Items.BOWL)
-                .platterAABB());
-        APPLE_PLATTER = registerPlateData("apple_platter", PlateData.create(4)
-                .setServingItems(() -> Items.APPLE)
-                .setLootItem(() -> Items.BOWL)
-                .platterAABB());
-        TOMATO_PLATTER = registerPlateData("tomato_platter", PlateData.create(5)
-                .setServingItems(() -> ModItems.TOMATO)
-                .setLootItem(() -> Items.BOWL)
-                .platterAABB());
-        WATERMELON_PLATTER = registerPlateData("watermelon_platter", PlateData.create(3)
-                .setServingItems(() -> Items.MELON_SLICE)
-                .setLootItem(() -> Items.BOWL)
-                .platterAABB());
-        CHORUS_FRUIT_PLATTER = registerPlateData("chorus_fruit_platter", PlateData.create(5)
-                .setServingItems(() -> Items.CHORUS_FRUIT)
-                .setLootItem(() -> Items.BOWL)
-                .platterAABB());
     }
 
     private static void registerBlocksAndItems() {

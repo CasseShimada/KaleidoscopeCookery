@@ -24,41 +24,24 @@ import java.util.function.Supplier;
 public final class TeacupRegistry {
     private static final Map<Identifier, TeacupData> TEACUP_DATA_MAP = new LinkedHashMap<>();
 
-    public static Identifier BARLEY_TEA;
-    public static Identifier TIEGUANYIN;
-    public static Identifier BILUOCHUN;
-    public static Identifier OOLONG;
-    public static Identifier SAKURA_FUBUKI;
-    public static Identifier FLOWER_TEA;
+    public static final Identifier BARLEY_TEA = registerTeacupData("barley_tea", TeacupData.create(4)
+            .addEffect(() -> new MobEffectInstance(ModEffects.VITALITY, 8 * 60 * 20)));
+    public static final Identifier TIEGUANYIN = registerTeacupData("tieguanyin", TeacupData.create(4)
+            .addEffect(() -> new MobEffectInstance(ModEffects.INSTANT_SMELTING, 2 * 60 * 20)));
+    public static final Identifier BILUOCHUN = registerTeacupData("biluochun", TeacupData.create(4)
+            .addEffect(() -> new MobEffectInstance(ModEffects.PROJECTILE_DODGE, 2 * 60 * 20)));
+    public static final Identifier OOLONG = registerTeacupData("oolong", TeacupData.create(4)
+            .addEffect(() -> new MobEffectInstance(MobEffects.SLOW_FALLING, 6 * 60 * 20))
+            .addEffect(() -> new MobEffectInstance(MobEffects.JUMP_BOOST, 6 * 60 * 20)));
+    public static final Identifier SAKURA_FUBUKI = registerTeacupData("sakura_fubuki", TeacupData.create(4)
+            .addEffect(() -> new MobEffectInstance(ModEffects.HINDER, 6 * 60 * 20)));
+    public static final Identifier FLOWER_TEA = registerTeacupData("flower_tea", TeacupData.create(4)
+            .addEffect(() -> new MobEffectInstance(MobEffects.REGENERATION, 20 * 20)));
 
     private TeacupRegistry() {
     }
 
     public static void init() {
-        BARLEY_TEA = registerTeacupData("barley_tea", TeacupData.create(4).addEffect(() ->
-                new MobEffectInstance(ModEffects.VITALITY, 8 * 60 * 20))
-        );
-
-        TIEGUANYIN = registerTeacupData("tieguanyin", TeacupData.create(4).addEffect(() ->
-                new MobEffectInstance(ModEffects.INSTANT_SMELTING, 2 * 60 * 20))
-        );
-
-        BILUOCHUN = registerTeacupData("biluochun", TeacupData.create(4).addEffect(() ->
-                new MobEffectInstance(ModEffects.PROJECTILE_DODGE, 2 * 60 * 20))
-        );
-
-        OOLONG = registerTeacupData("oolong", TeacupData.create(4)
-                .addEffect(() -> new MobEffectInstance(MobEffects.SLOW_FALLING, 6 * 60 * 20))
-                .addEffect(() -> new MobEffectInstance(MobEffects.JUMP_BOOST, 6 * 60 * 20))
-        );
-
-        SAKURA_FUBUKI = registerTeacupData("sakura_fubuki", TeacupData.create(4).addEffect(() ->
-                new MobEffectInstance(ModEffects.HINDER, 6 * 60 * 20))
-        );
-
-        FLOWER_TEA = registerTeacupData("flower_tea", TeacupData.create(4).addEffect(() ->
-                new MobEffectInstance(MobEffects.REGENERATION, 20 * 20))
-        );
     }
 
     public static List<Identifier> ids() {
