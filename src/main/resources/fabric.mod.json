@@ -12,9 +12,6 @@
   "entrypoints": {
     "main": ["com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery"],
     "client": ["com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookeryClient"],
-    "fabric-datagen": [
-      "com.github.ysbbbbbb.kaleidoscopecookery.datagen.DataGenerators"
-    ],
     "jei_mod_plugin": [
       "com.github.ysbbbbbb.kaleidoscopecookery.compat.jei.ModJeiPlugin"
     ],

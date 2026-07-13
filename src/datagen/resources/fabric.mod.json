@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "kaleidoscope_cookery-datagen",
+  "version": "1.0.0",
+  "name": "Kaleidoscope Cookery Data Generation",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "com.github.ysbbbbbb.kaleidoscopecookery.datagen.DataGenerators"
+    ]
+  },
+  "depends": {
+    "fabricloader": "*",
+    "fabric-api": "*",
+    "kaleidoscope_cookery": "*"
+  }
+}

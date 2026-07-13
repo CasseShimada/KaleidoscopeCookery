@@ -26,6 +26,8 @@ fabricApi {
     configureDataGeneration {
         outputDirectory.set(file("src/main/generated"))
         addToResources.set(true)
+        createSourceSet.set(true)
+        modId.set("kaleidoscope_cookery-datagen")
     }
 
     configureTests {

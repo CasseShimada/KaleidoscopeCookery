@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
 CLIENT_SRC = ROOT / "src/client/java/com/github/ysbbbbbb/kaleidoscopecookery"
+DATAGEN_SRC = ROOT / "src/datagen/java/com/github/ysbbbbbb/kaleidoscopecookery"
 MIXINS = ROOT / "src/main/resources/kaleidoscope_cookery.mixins.json"
 CLIENT_MIXINS = ROOT / "src/client/resources/kaleidoscope_cookery.client.mixins.json"
 FABRIC_MOD = ROOT / "src/main/resources/fabric.mod.json"
@@ -96,8 +97,8 @@ RICE_CROP_BLOCK = SRC / "block/crop/RiceCropBlock.java"
 BASE_CROP_BLOCK = SRC / "block/crop/BaseCropBlock.java"
 CHILI_CROP_BLOCK = SRC / "block/crop/ChiliCropBlock.java"
 MOD_LOOT_TABLES = SRC / "init/ModLootTables.java"
-LOOT_TABLE_GENERATOR = SRC / "datagen/LootTableGenerator.java"
-BLOCK_INTERACT_LOOT_TABLES = SRC / "datagen/lootable/BlockInteractLootTables.java"
+LOOT_TABLE_GENERATOR = DATAGEN_SRC / "datagen/LootTableGenerator.java"
+BLOCK_INTERACT_LOOT_TABLES = DATAGEN_SRC / "datagen/lootable/BlockInteractLootTables.java"
 SICKLE_HARVEST_BLACKLIST = (
     ROOT / "src/main/resources/data/kaleidoscope_cookery/tags/block/sickle_harvest_blacklist.json"
 )
