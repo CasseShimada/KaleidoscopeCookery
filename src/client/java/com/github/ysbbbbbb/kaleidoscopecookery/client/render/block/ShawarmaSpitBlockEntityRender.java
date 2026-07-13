@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.Util;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -51,7 +52,7 @@ public class ShawarmaSpitBlockEntityRender implements BlockEntityRenderer<Shawar
         }
 
         // 如果是充能状态，那么一直旋转
-        state.spin = state.powered ? (System.currentTimeMillis() % 3600L) / 10f : 0f;
+        state.spin = state.powered ? (Util.getMillis() % 3600L) / 10f : 0f;
     }
 
     @Override

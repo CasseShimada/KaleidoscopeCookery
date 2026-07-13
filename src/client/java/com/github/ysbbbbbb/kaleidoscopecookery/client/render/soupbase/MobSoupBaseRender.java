@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -60,7 +61,7 @@ public class MobSoupBaseRender extends FluidSoupBaseRender {
 
         renderEntity.tickCount = (int) world.getGameTime();
         int random = renderEntity.hashCode();
-        float entityY = (float) (Math.sin(random + System.currentTimeMillis() * 0.0005) * 0.25);
+        float entityY = (float) (Math.sin(random + Util.getMillis() * 0.0005) * 0.25);
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);

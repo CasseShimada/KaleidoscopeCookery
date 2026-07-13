@@ -128,7 +128,7 @@ public class StockpotBlockEntityRender implements BlockEntityRenderer<StockpotBl
                 continue;
             }
             int random = stack.hashCode();
-            long time = random + System.currentTimeMillis();
+            long time = random + Util.getMillis();
             float offsetX = (random % 100) * 0.002f;
             float offsetZ = (float) (Math.sin(time * 0.0005) * 0.2);
             float offsetY = random % 50 * 0.004f;

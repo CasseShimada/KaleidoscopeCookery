@@ -202,6 +202,14 @@ def validate_resource_reloaders() -> list[str]:
     return errors
 
 
+def validate_animation_clocks() -> list[str]:
+    errors: list[str] = []
+    for path in sorted((CLIENT_ROOT / "render").rglob("*.java")):
+        if "System.currentTimeMillis()" in strip_comments(read(path)):
+            errors.append(f"{path.relative_to(ROOT)} uses the system wall clock for rendering.")
+    return errors
+
+
 def validate_textures() -> list[str]:
     errors: list[str] = []
     for path, texture in collect_mod_texture_refs():
@@ -394,6 +402,7 @@ def main() -> int:
     errors.extend(validate_renderers())
     errors.extend(validate_model_layers())
     errors.extend(validate_resource_reloaders())
+    errors.extend(validate_animation_clocks())
     errors.extend(validate_textures())
     errors.extend(validate_equipment_assets())
     errors.extend(validate_particles())
