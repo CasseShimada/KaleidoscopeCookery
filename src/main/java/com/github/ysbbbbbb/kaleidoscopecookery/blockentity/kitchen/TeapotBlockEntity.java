@@ -168,6 +168,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
         }
         level.playSound(null, worldPosition, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
         this.setChangedAndSync();
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
         return true;
     }
 
@@ -192,14 +193,15 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
         if (level.isClientSide()) {
             return true;
         }
+        this.teaFluidId = TeapotRecipeSerializer.EMPTY_TEA_FLUID;
+        this.currentTick = -1;
+        this.setChangedAndSync();
         if (!user.hasInfiniteMaterials()) {
             stack.consume(1, user);
             ItemUtils.getItemToLivingEntity(user, filled);
         }
         level.playSound(null, worldPosition, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
-        this.teaFluidId = TeapotRecipeSerializer.EMPTY_TEA_FLUID;
-        this.currentTick = -1;
-        this.setChangedAndSync();
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
         return true;
     }
 
@@ -233,6 +235,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
                 stack.consume(count, user);
             }
             this.setChangedAndSync();
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
             return true;
         }
         this.sendActionBarMessage(user, "tooltip.kaleidoscope_cookery.teapot.add_ingredient.recipe_incorrect");
@@ -247,8 +250,10 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
         if (level.isClientSide()) {
             return true;
         }
-        ItemUtils.getItemToLivingEntity(user, this.input.copyAndClear());
+        ItemStack ingredient = this.input.copyAndClear();
         this.setChangedAndSync();
+        ItemUtils.getItemToLivingEntity(user, ingredient);
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
         return true;
     }
 

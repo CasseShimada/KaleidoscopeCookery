@@ -242,6 +242,8 @@ def main() -> int:
         errors.append("TeapotBlockEntity returns its drops before confirming block removal.")
     if "level.gameEvent(GameEvent.BLOCK_DESTROY, worldPosition" not in teapot:
         errors.append("TeapotBlockEntity does not emit a block-destroy event when taken.")
+    if teapot.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 4:
+        errors.append("TeapotBlockEntity does not emit block-change events for all content mutations.")
     millstone = read(BLOCK_ENTITY_ROOT / "kitchen/MillstoneBlockEntity.java")
     if "this.progress--;\n            this.setChanged();" not in millstone:
         errors.append("MillstoneBlockEntity does not persist grinding progress each tick.")
