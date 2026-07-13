@@ -33,7 +33,7 @@ public class ScarecrowRender extends LivingEntityRenderer<ScarecrowEntity, Scare
     public void extractRenderState(ScarecrowEntity scarecrow, ScarecrowRenderState state, float partialTick) {
         super.extractRenderState(scarecrow, state, partialTick);
         ArmedEntityRenderState.extractArmedEntityRenderState(scarecrow, state, this.itemModelResolver, partialTick);
-        state.timeSinceHit = (float) (scarecrow.level().getGameTime() - scarecrow.lastHit) + partialTick;
+        state.timeSinceHit = (float) (scarecrow.level().getGameTime() - scarecrow.getLastHitTime()) + partialTick;
         state.shoulderEntity = scarecrow.getShoulderEntity().copy();
     }
 

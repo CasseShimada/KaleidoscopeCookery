@@ -66,7 +66,7 @@ public class ScarecrowEntity extends LivingEntity {
     private final NonNullList<ItemStack> armorItems = NonNullList.withSize(4, ItemStack.EMPTY);
     private CompoundTag shoulderEntity = new CompoundTag();
 
-    public long lastHit;
+    private long lastHit;
     private int cooldown;
     private long timeEntitySatOnShoulder;
 
@@ -77,6 +77,10 @@ public class ScarecrowEntity extends LivingEntity {
     public ScarecrowEntity(Level level, double pX, double pY, double pZ) {
         this(ModEntities.SCARECROW, level);
         this.setPos(pX, pY, pZ);
+    }
+
+    public long getLastHitTime() {
+        return this.lastHit;
     }
 
     public static AttributeSupplier.Builder createAttributes() {

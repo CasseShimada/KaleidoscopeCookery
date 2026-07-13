@@ -226,6 +226,17 @@ def validate_stable_render_seeds() -> list[str]:
     return errors
 
 
+def validate_entity_render_snapshots() -> list[str]:
+    errors: list[str] = []
+    scarecrow = read(JAVA_ROOT / "entity/ScarecrowEntity.java")
+    renderer = read(CLIENT_ROOT / "render/entity/ScarecrowRender.java")
+    if "public long lastHit" in scarecrow:
+        errors.append("ScarecrowEntity still exposes mutable hit animation state.")
+    if "scarecrow.getLastHitTime()" not in renderer or "scarecrow.lastHit" in renderer:
+        errors.append("Scarecrow renderer does not read hit timing through the entity snapshot API.")
+    return errors
+
+
 def validate_textures() -> list[str]:
     errors: list[str] = []
     for path, texture in collect_mod_texture_refs():
@@ -420,6 +431,7 @@ def main() -> int:
     errors.extend(validate_resource_reloaders())
     errors.extend(validate_animation_clocks())
     errors.extend(validate_stable_render_seeds())
+    errors.extend(validate_entity_render_snapshots())
     errors.extend(validate_textures())
     errors.extend(validate_equipment_assets())
     errors.extend(validate_particles())
