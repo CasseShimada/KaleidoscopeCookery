@@ -2,6 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.gametest;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
@@ -35,6 +36,7 @@ import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 
 import java.util.List;
+import java.util.Map;
 
 public final class KaleidoscopeCookeryGameTests {
     @GameTest
@@ -94,6 +96,14 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(SoupBaseManager.getSoupBase(vanillaId("lava_bucket"))
                         == SoupBaseManager.getSoupBase(lava),
                 "Migrated lava bucket soup-base ID did not resolve to lava");
+        Map<Identifier, ISoupBase> soupBases = SoupBaseManager.getAllSoupBases();
+        boolean mutationRejected = false;
+        try {
+            soupBases.put(water, soupBases.get(water));
+        } catch (UnsupportedOperationException expected) {
+            mutationRejected = true;
+        }
+        helper.assertTrue(mutationRejected, "Soup-base registry exposed mutable internal state");
 
         ResourceKey<Recipe<?>> recipeKey = ResourceKey.create(
                 Registries.RECIPE, id("stockpot/four_joy_meatball_soup"));

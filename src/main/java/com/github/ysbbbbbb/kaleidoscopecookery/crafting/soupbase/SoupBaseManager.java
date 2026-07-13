@@ -5,11 +5,13 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class SoupBaseManager {
     private static final Map<Identifier, ISoupBase> ALL_SOUP_BASES = new LinkedHashMap<>();
+    private static final Map<Identifier, ISoupBase> SOUP_BASES_VIEW = Collections.unmodifiableMap(ALL_SOUP_BASES);
 
     private SoupBaseManager() {
     }
@@ -42,6 +44,6 @@ public final class SoupBaseManager {
     }
 
     public static Map<Identifier, ISoupBase> getAllSoupBases() {
-        return ALL_SOUP_BASES;
+        return SOUP_BASES_VIEW;
     }
 }
