@@ -71,6 +71,7 @@ public class StockpotBlockEntityRender implements BlockEntityRenderer<StockpotBl
         state.finishedTexture = null;
         state.soupHeight = 0.38f;
         state.renderCount = 0;
+        state.randomSeed = stockpot.getBlockPos().asLong();
         StockpotVisuals visuals = stockpot.getVisuals();
 
         if (state.status == StockpotBlockEntity.FINISHED) {
@@ -127,7 +128,7 @@ public class StockpotBlockEntityRender implements BlockEntityRenderer<StockpotBl
             if (stack.isEmpty()) {
                 continue;
             }
-            int random = stack.hashCode();
+            int random = Long.hashCode(state.randomSeed ^ (long) i * 31L ^ ItemStack.hashItemAndComponents(stack));
             long time = random + Util.getMillis();
             float offsetX = (random % 100) * 0.002f;
             float offsetZ = (float) (Math.sin(time * 0.0005) * 0.2);
@@ -157,6 +158,7 @@ public class StockpotBlockEntityRender implements BlockEntityRenderer<StockpotBl
         Identifier finishedTexture;
         float soupHeight;
         int renderCount;
+        long randomSeed;
 
         public RenderState() {
             for (int i = 0; i < itemStates.length; i++) {

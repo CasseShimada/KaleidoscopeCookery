@@ -60,7 +60,7 @@ public class MobSoupBaseRender extends FluidSoupBaseRender {
         }
 
         renderEntity.tickCount = (int) world.getGameTime();
-        int random = renderEntity.hashCode();
+        int random = Long.hashCode(stockpot.getBlockPos().asLong());
         float entityY = (float) (Math.sin(random + Util.getMillis() * 0.0005) * 0.25);
 
         poseStack.pushPose();

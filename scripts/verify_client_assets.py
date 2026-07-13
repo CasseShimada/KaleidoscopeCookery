@@ -217,6 +217,12 @@ def validate_stable_render_seeds() -> list[str]:
         errors.append("Millstone renderer does not derive item layout from the stable block position.")
     if "millstone.hashCode()" in millstone_renderer:
         errors.append("Millstone renderer still seeds item layout from object identity.")
+    stockpot_renderer = read(CLIENT_ROOT / "render/block/StockpotBlockEntityRender.java")
+    if "ItemStack.hashItemAndComponents(stack)" not in stockpot_renderer or "stack.hashCode()" in stockpot_renderer:
+        errors.append("Stockpot renderer does not derive item layout from stable item components.")
+    mob_soup_renderer = read(CLIENT_ROOT / "render/soupbase/MobSoupBaseRender.java")
+    if "stockpot.getBlockPos().asLong()" not in mob_soup_renderer or "renderEntity.hashCode()" in mob_soup_renderer:
+        errors.append("Mob soup renderer still derives animation phase from entity object identity.")
     return errors
 
 
