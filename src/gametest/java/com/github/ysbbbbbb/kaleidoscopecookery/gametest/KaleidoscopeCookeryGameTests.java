@@ -43,6 +43,7 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -55,6 +56,8 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
@@ -65,6 +68,7 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.component.UseRemainder;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
@@ -76,6 +80,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -252,6 +258,30 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(trashCanPlayer.getVehicle() instanceof SitEntity sitEntity
                         && sitEntity.getSitType() == SitEntity.TRASH_CAN,
                 "Trash can did not mount the player on its specialized seat entity");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void scarecrowPlacementCommitsAfterEntityCreation(GameTestHelper helper) {
+        BlockPos floorPos = new BlockPos(1, 1, 1);
+        BlockPos scarecrowPos = floorPos.above();
+        helper.setBlock(floorPos, Blocks.STONE);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(4, 1, 4));
+        ItemStack stack = new ItemStack(ModItems.SCARECROW, 2);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        BlockPos absoluteFloorPos = helper.absolutePos(floorPos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absoluteFloorPos), Direction.UP, absoluteFloorPos, false);
+
+        InteractionResult result = ModItems.SCARECROW.useOn(
+                new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult));
+
+        helper.assertValueEqual(result, InteractionResult.CONSUME,
+                "Successful scarecrow placement did not consume the interaction");
+        helper.assertValueEqual(stack.getCount(), 1,
+                "Successful scarecrow placement consumed the wrong item count");
+        helper.assertEntityPresent(ModEntities.SCARECROW, scarecrowPos);
         helper.succeed();
     }
 

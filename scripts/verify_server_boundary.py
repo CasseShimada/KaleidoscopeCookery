@@ -677,12 +677,22 @@ def main() -> int:
     scarecrow_item_text = SCARECROW_ITEM.read_text(encoding="utf-8")
     for required_reference in (
         "if (!level.isClientSide())",
+        "if (!serverLevel.tryAddFreshEntityWithPassengers(scarecrow))",
         "stack.consume(1, context.getPlayer())",
     ):
         if required_reference not in scarecrow_item_text:
             errors.append(f"ScarecrowItem placement consumption is missing {required_reference}.")
     if "stack.shrink(" in scarecrow_item_text:
         errors.append("ScarecrowItem still manually shrinks the placement stack.")
+    confirmed_spawn = scarecrow_item_text.find("if (!serverLevel.tryAddFreshEntityWithPassengers(scarecrow))")
+    for side_effect in (
+        "level.playSound(",
+        "scarecrow.gameEvent(",
+        "ModTrigger.EVENT.trigger(",
+        "stack.consume(1, context.getPlayer())",
+    ):
+        if confirmed_spawn > scarecrow_item_text.find(side_effect):
+            errors.append(f"ScarecrowItem performs {side_effect} before confirming entity creation.")
 
     enamel_basin_text = ENAMEL_BASIN_BLOCK.read_text(encoding="utf-8")
     if "mainHandItem.consume(consumeCount, player)" not in enamel_basin_text:

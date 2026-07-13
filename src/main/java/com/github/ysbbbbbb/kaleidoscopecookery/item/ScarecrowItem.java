@@ -56,7 +56,9 @@ public class ScarecrowItem extends CookeryTooltipItem {
                 }
                 float rotation = Mth.floor((Mth.wrapDegrees(context.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;
                 scarecrow.moveOrInterpolateTo(scarecrow.position(), rotation, 0.0F);
-                serverLevel.addFreshEntityWithPassengers(scarecrow);
+                if (!serverLevel.tryAddFreshEntityWithPassengers(scarecrow)) {
+                    return InteractionResult.FAIL;
+                }
                 level.playSound(null, scarecrow.getX(), scarecrow.getY(), scarecrow.getZ(), SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 0.75F, 0.8F);
                 scarecrow.gameEvent(GameEvent.ENTITY_PLACE, context.getPlayer());
                 ModTrigger.EVENT.trigger(context.getPlayer(), ModEventTriggerType.PLACE_SCARECROW);
