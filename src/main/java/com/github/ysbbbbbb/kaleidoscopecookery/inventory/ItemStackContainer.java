@@ -22,14 +22,6 @@ public class ItemStackContainer {
         this.stacks = NonNullList.withSize(size, ItemStack.EMPTY);
     }
 
-    private ItemStackContainer(NonNullList<ItemStack> stacks) {
-        this.stacks = stacks;
-    }
-
-    public static ItemStackContainer wrap(NonNullList<ItemStack> stacks) {
-        return new ItemStackContainer(stacks);
-    }
-
     public static ItemStackContainer copyOf(NonNullList<ItemStack> stacks) {
         return copyOf(stacks, stacks.size());
     }
@@ -42,15 +34,11 @@ public class ItemStackContainer {
         return copy;
     }
 
-    public static ItemStackContainer copyOf(ItemStackContainer items) {
-        return copyOf(items.stacks);
-    }
-
     public static ItemStackContainer copyOf(ItemStackContainer items, int size) {
         return copyOf(items.stacks, size);
     }
 
-    public void setSize(int size) {
+    private void setSize(int size) {
         this.stacks = NonNullList.withSize(size, ItemStack.EMPTY);
     }
 
