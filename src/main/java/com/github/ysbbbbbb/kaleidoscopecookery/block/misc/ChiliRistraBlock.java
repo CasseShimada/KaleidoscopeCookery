@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
@@ -66,11 +67,13 @@ public class ChiliRistraBlock extends Block {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        if (state.getValue(SHEARED)) {
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
-        } else {
-            level.setBlock(pos, state.setValue(SHEARED, true), Block.UPDATE_ALL);
+        boolean sheared = state.getValue(SHEARED);
+        BlockState updatedState = sheared ? Blocks.AIR.defaultBlockState() : state.setValue(SHEARED, true);
+        if (!level.setBlock(pos, updatedState, Block.UPDATE_ALL)) {
+            return InteractionResult.FAIL;
         }
+        level.gameEvent(sheared ? GameEvent.BLOCK_DESTROY : GameEvent.BLOCK_CHANGE,
+                pos, GameEvent.Context.of(player, state));
         ItemStack redChili = new ItemStack(ModItems.RED_CHILI, 3);
         ItemUtils.giveItemToPlayer(player, redChili, player.getInventory().getSelectedSlot());
         level.playSound(null, pos,

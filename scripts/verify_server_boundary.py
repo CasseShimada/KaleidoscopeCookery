@@ -114,6 +114,8 @@ TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
 TRASH_CAN_RENDERER = CLIENT_SRC / "client/render/block/TrashCanBlockEntityRender.java"
 FRUIT_BASKET_BLOCK = SRC / "block/decoration/FruitBasketBlock.java"
 RECIPE_BLOCK = SRC / "block/misc/RecipeBlock.java"
+STRUNG_MUSHROOMS_BLOCK = SRC / "block/misc/StrungMushroomsBlock.java"
+CHILI_RISTRA_BLOCK = SRC / "block/misc/ChiliRistraBlock.java"
 OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
 SICKLE_HARVEST_CALLBACK = SRC / "api/event/SickleHarvestCallback.java"
@@ -810,6 +812,20 @@ def main() -> int:
         errors.append("BaseCropBlock drops harvest loot before confirming the crop-state reset.")
     if "this.result" in base_crop_text:
         errors.append("BaseCropBlock still retains the legacy manual harvest result supplier.")
+
+    for name, path, delivery in (
+        ("StrungMushroomsBlock", STRUNG_MUSHROOMS_BLOCK, "ItemUtils.giveItemToPlayer(player, mushrooms"),
+        ("ChiliRistraBlock", CHILI_RISTRA_BLOCK, "ItemUtils.giveItemToPlayer(player, redChili"),
+    ):
+        hanging_harvest = path.read_text(encoding="utf-8")
+        state_update = "if (!level.setBlock(pos, updatedState, Block.UPDATE_ALL))"
+        if state_update not in hanging_harvest:
+            errors.append(f"{name} does not confirm its harvest state update.")
+        if hanging_harvest.find(state_update) > hanging_harvest.find(delivery):
+            errors.append(f"{name} gives harvest items before confirming its state update.")
+        for required_event in ("GameEvent.BLOCK_CHANGE", "GameEvent.BLOCK_DESTROY", "GameEvent.Context.of(player, state)"):
+            if required_event not in hanging_harvest:
+                errors.append(f"{name} harvest events are missing {required_event}.")
 
     chili_crop_text = CHILI_CROP_BLOCK.read_text(encoding="utf-8")
     if "ModLootTables.HARVEST_CHILI_CROP" not in chili_crop_text:
