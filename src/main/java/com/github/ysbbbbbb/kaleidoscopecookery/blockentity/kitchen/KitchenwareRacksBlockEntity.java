@@ -83,11 +83,11 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
 
     @Override
     public ItemStack getItemLeft() {
-        return itemLeft;
+        return this.itemLeft.copy();
     }
 
     @Override
     public ItemStack getItemRight() {
-        return itemRight;
+        return this.itemRight.copy();
     }
 }

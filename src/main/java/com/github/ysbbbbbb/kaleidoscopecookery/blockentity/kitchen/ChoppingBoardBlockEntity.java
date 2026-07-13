@@ -232,6 +232,6 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
     }
 
     public ItemStack getCurrentCutStack() {
-        return currentCutStack;
+        return this.currentCutStack.copy();
     }
 }

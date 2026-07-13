@@ -452,7 +452,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
     }
 
     public ItemStack getInput() {
-        return this.input;
+        return this.input.copy();
     }
 
     public MillstoneInputStorage getInputStorage() {
@@ -460,7 +460,7 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
     }
 
     public ItemStack getOutput() {
-        return this.output;
+        return this.output.copy();
     }
 
     public Optional<Ingredient> getCarrier() {

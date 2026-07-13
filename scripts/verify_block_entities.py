@@ -45,6 +45,34 @@ SNAPSHOT_CONTAINER_GETTERS = {
     BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java": "return copyStacks(this.inputs);",
 }
 
+SNAPSHOT_STATE_RETURNS = {
+    BLOCK_ENTITY_ROOT / "kitchen/ChoppingBoardBlockEntity.java": (
+        "return this.currentCutStack.copy();",
+    ),
+    BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java": (
+        "return this.itemLeft.copy();",
+        "return this.itemRight.copy();",
+    ),
+    BLOCK_ENTITY_ROOT / "kitchen/MillstoneBlockEntity.java": (
+        "return this.input.copy();",
+        "return this.output.copy();",
+    ),
+    BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java": (
+        "return this.result.copy();",
+    ),
+    BLOCK_ENTITY_ROOT / "kitchen/SteamerBlockEntity.java": (
+        "return this.cookingProgress.clone();",
+        "return this.cookingTime.clone();",
+    ),
+    BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java": (
+        "return this.result.copy();",
+    ),
+    BLOCK_ENTITY_ROOT / "kitchen/TeapotBlockEntity.java": (
+        "return this.input.copy();",
+        "return this.result.copy();",
+    ),
+}
+
 EXPECTED_BLOCK_ENTITY_IDS = {
     "POT_BE": "pot",
     "STOCKPOT_BE": "stockpot",
@@ -153,6 +181,11 @@ def main() -> int:
     for path, expected_return in SNAPSHOT_CONTAINER_GETTERS.items():
         if expected_return not in read(path):
             errors.append(f"{path.name} exposes mutable block entity inventory state.")
+    for path, expected_returns in SNAPSHOT_STATE_RETURNS.items():
+        block_entity_text = read(path)
+        for expected_return in expected_returns:
+            if expected_return not in block_entity_text:
+                errors.append(f"{path.name} exposes mutable block entity state: {expected_return}")
     for path in EXPLICIT_CLIENT_SYNC_BLOCK_ENTITIES:
         block_entity_text = read(path)
         if "this.refresh();" in block_entity_text:
@@ -316,6 +349,7 @@ def main() -> int:
     print(f"  stateless block entities: {stateless_count}")
     print(f"  block classes checked: {len(block_classes_checked)}")
     print(f"  inventory snapshot getters: {len(SNAPSHOT_CONTAINER_GETTERS)}")
+    print(f"  item/array snapshot getters: {sum(map(len, SNAPSHOT_STATE_RETURNS.values()))}")
     print("  legacy block entity ids: recipe_book -> RECIPE_BLOCK_BE")
     return 0
 

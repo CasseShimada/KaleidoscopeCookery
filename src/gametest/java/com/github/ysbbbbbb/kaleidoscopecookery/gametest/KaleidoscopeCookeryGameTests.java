@@ -133,6 +133,10 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(millstone.getInput().is(Items.WHEAT)
                         && millstone.getInput().getCount() == 3,
                 "Committed millstone insertion did not reach the block entity");
+        ItemStack inputSnapshot = millstone.getInput();
+        inputSnapshot.shrink(1);
+        helper.assertValueEqual(millstone.getInput().getCount(), 3,
+                "Mutating a millstone input snapshot changed the stored stack");
         helper.succeed();
     }
 

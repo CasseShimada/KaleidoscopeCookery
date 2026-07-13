@@ -516,10 +516,10 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
     }
 
     public int[] getCookingProgress() {
-        return cookingProgress;
+        return this.cookingProgress.clone();
     }
 
     public int[] getCookingTime() {
-        return cookingTime;
+        return this.cookingTime.clone();
     }
 }

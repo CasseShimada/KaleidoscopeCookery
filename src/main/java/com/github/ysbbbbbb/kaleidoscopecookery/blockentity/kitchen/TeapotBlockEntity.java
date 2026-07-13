@@ -396,7 +396,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
     }
 
     public ItemStack getInput() {
-        return input;
+        return this.input.copy();
     }
 
     public Identifier getTeaFluidId() {
@@ -404,7 +404,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
     }
 
     public ItemStack getResult() {
-        return result;
+        return this.result.copy();
     }
 
     public int getCurrentTick() {

@@ -603,7 +603,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     }
 
     public ItemStack getResult() {
-        return result;
+        return this.result.copy();
     }
 
     public long getSeed() {

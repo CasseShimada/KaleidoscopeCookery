@@ -672,7 +672,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     }
 
     public ItemStack getResult() {
-        return result;
+        return this.result.copy();
     }
 
     public Identifier getSoupBaseId() {
