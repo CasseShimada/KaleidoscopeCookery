@@ -115,6 +115,7 @@ MILLSTONE_BLOCK = SRC / "block/kitchen/MillstoneBlock.java"
 STOVE_BLOCK = SRC / "block/kitchen/StoveBlock.java"
 ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
+SCARECROW_ENTITY = SRC / "entity/ScarecrowEntity.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
 TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
 TRASH_CAN_RENDERER = CLIENT_SRC / "client/render/block/TrashCanBlockEntityRender.java"
@@ -693,6 +694,17 @@ def main() -> int:
     ):
         if confirmed_spawn > scarecrow_item_text.find(side_effect):
             errors.append(f"ScarecrowItem performs {side_effect} before confirming entity creation.")
+
+    scarecrow_entity_text = SCARECROW_ENTITY.read_text(encoding="utf-8")
+    if "private void releaseShoulderEntity()" not in scarecrow_entity_text:
+        errors.append("ScarecrowEntity does not expose a forced shoulder-entity release path.")
+    kill_start = scarecrow_entity_text.find("public void kill(ServerLevel level)")
+    kill_end = scarecrow_entity_text.find("public boolean isPushable()", kill_start)
+    kill_text = scarecrow_entity_text[kill_start:kill_end]
+    if "this.releaseShoulderEntity();" not in kill_text:
+        errors.append("ScarecrowEntity death still respects the voluntary shoulder release delay.")
+    if "this.removeEntitiesOnShoulder();" in kill_text:
+        errors.append("ScarecrowEntity death still routes through the delayed shoulder release path.")
 
     enamel_basin_text = ENAMEL_BASIN_BLOCK.read_text(encoding="utf-8")
     if "mainHandItem.consume(consumeCount, player)" not in enamel_basin_text:

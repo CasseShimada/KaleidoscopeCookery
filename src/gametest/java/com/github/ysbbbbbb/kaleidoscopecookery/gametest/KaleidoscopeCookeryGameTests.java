@@ -22,6 +22,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SimpleSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
+import com.github.ysbbbbbb.kaleidoscopecookery.entity.ScarecrowEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.effect.WarmthEffect;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
@@ -59,6 +60,7 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -80,6 +82,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -445,6 +448,25 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(ItemStack.isSameItemSameComponents(
                         ItemUtils.getContainerStack(componentCarrier), namedBowl),
                 "Container lookup discarded remainder stack components");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void scarecrowDeathReleasesFreshShoulderEntity(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ScarecrowEntity scarecrow = helper.spawn(ModEntities.SCARECROW, pos);
+        CompoundTag parrot = new CompoundTag();
+        parrot.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(EntityTypes.PARROT).toString());
+        parrot.putInt("Variant", 2);
+        scarecrow.setShoulderEntity(parrot);
+
+        scarecrow.kill(helper.getLevel());
+
+        helper.assertTrue(scarecrow.isRemoved(), "Killed scarecrow remained in the world");
+        helper.assertTrue(scarecrow.getShoulderEntity().isEmpty(),
+                "Killed scarecrow retained its shoulder entity data");
+        helper.assertEntityPresent(EntityTypes.PARROT,
+                new AABB(pos).inflate(2.0));
         helper.succeed();
     }
 

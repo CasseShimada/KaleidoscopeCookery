@@ -342,9 +342,13 @@ public class ScarecrowEntity extends LivingEntity {
 
     private void removeEntitiesOnShoulder() {
         if (this.timeEntitySatOnShoulder + 20 < this.level().getGameTime()) {
-            this.respawnEntityOnShoulder(this.getShoulderEntity());
-            this.setShoulderEntity(new CompoundTag());
+            this.releaseShoulderEntity();
         }
+    }
+
+    private void releaseShoulderEntity() {
+        this.respawnEntityOnShoulder(this.getShoulderEntity());
+        this.setShoulderEntity(new CompoundTag());
     }
 
     private void respawnEntityOnShoulder(CompoundTag tag) {
@@ -397,7 +401,7 @@ public class ScarecrowEntity extends LivingEntity {
     @Override
     public void kill(ServerLevel level) {
         if (!this.getShoulderEntity().isEmpty()) {
-            this.removeEntitiesOnShoulder();
+            this.releaseShoulderEntity();
         }
         this.remove(RemovalReason.KILLED);
         this.gameEvent(GameEvent.ENTITY_DIE);
