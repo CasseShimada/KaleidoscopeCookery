@@ -105,6 +105,7 @@ CHAIR_BLOCK = SRC / "block/decoration/ChairBlock.java"
 PLATE_BLOCK = SRC / "block/decoration/PlateBlock.java"
 STACKABLE_FOOD_BLOCK = SRC / "block/decoration/StackableFoodBlock.java"
 STOVE_BLOCK = SRC / "block/kitchen/StoveBlock.java"
+ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
 TRASH_CAN_BLOCK_ENTITY = SRC / "blockentity/misc/TrashCanBlockEntity.java"
@@ -485,6 +486,12 @@ def main() -> int:
             errors.append(f"ScarecrowItem placement consumption is missing {required_reference}.")
     if "stack.shrink(" in scarecrow_item_text:
         errors.append("ScarecrowItem still manually shrinks the placement stack.")
+
+    enamel_basin_text = ENAMEL_BASIN_BLOCK.read_text(encoding="utf-8")
+    if "mainHandItem.consume(consumeCount, player)" not in enamel_basin_text:
+        errors.append("EnamelBasinBlock does not use vanilla ItemStack.consume() for bulk oil insertion.")
+    if "mainHandItem.shrink(" in enamel_basin_text:
+        errors.append("EnamelBasinBlock still manually shrinks inserted oil stacks.")
 
     recipe_block_text = RECIPE_BLOCK.read_text(encoding="utf-8")
     for required_reference in (

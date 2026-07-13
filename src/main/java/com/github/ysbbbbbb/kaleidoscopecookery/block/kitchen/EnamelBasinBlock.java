@@ -119,9 +119,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
             int consumeCount = Math.min(needCount, mainHandItem.getCount());
             if (!level.isClientSide()) {
                 level.playSound(null, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
-                if (!player.hasInfiniteMaterials()) {
-                    mainHandItem.shrink(consumeCount);
-                }
+                mainHandItem.consume(consumeCount, player);
                 level.setBlockAndUpdate(pos, state.setValue(OIL_COUNT, value + consumeCount));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
