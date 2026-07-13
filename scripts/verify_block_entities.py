@@ -133,6 +133,8 @@ def main() -> int:
     block_entity_registrations = collect_block_entity_registrations(mod_blocks)
 
     base_block_entity = read(BASE_BLOCK_ENTITY)
+    if "void refresh()" in base_block_entity:
+        errors.append("BaseBlockEntity still exposes the legacy combined refresh path.")
     if "protected final void setChangedAndSync()" not in base_block_entity:
         errors.append("BaseBlockEntity is missing an explicit dirty-and-client-sync path.")
     if "Block.UPDATE_CLIENTS" not in base_block_entity:
