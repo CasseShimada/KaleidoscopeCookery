@@ -22,6 +22,8 @@ public interface ISoupBase {
 
     /**
      * 主要用于 JEI 显示，表示该汤底对应的物品
+     *
+     * @return 可由调用方安全修改的独立物品栈
      */
     ItemStack getDisplayStack();
 

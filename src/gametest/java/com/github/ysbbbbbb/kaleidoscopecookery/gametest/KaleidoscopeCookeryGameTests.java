@@ -16,6 +16,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.StockpotInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.TeapotInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SimpleSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
@@ -479,6 +480,24 @@ public final class KaleidoscopeCookeryGameTests {
                 "Migrated stockpot NBT did not normalize the water bucket alias");
         helper.assertTrue(stockpot.getSoupBase() == SoupBaseManager.getSoupBase(water),
                 "Normalized stockpot NBT did not resolve its soup base");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void simpleSoupBaseCopiesDisplayStacks(GameTestHelper helper) {
+        ItemStack source = new ItemStack(Items.HONEY_BOTTLE, 2);
+        SimpleSoupBase soupBase = new SimpleSoupBase(
+                id("test_soup_base"), source, id("block/test_soup_base"), 0xFFFFFF,
+                stack -> true, stack -> true,
+                (level, user, stack) -> ItemStack.EMPTY,
+                (level, user, stack) -> ItemStack.EMPTY);
+
+        source.setCount(1);
+        ItemStack exposed = soupBase.getDisplayStack();
+        exposed.setCount(1);
+
+        helper.assertValueEqual(soupBase.getDisplayStack().getCount(), 2,
+                "Simple soup base exposed its mutable display stack");
         helper.succeed();
     }
 

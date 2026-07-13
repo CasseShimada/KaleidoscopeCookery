@@ -33,7 +33,7 @@ public class SimpleSoupBase implements ISoupBase {
             TriFunction<Level, LivingEntity, ItemStack, ItemStack> returnSoupBaseFunction
     ) {
         this.name = name;
-        this.displayStack = displayStack;
+        this.displayStack = displayStack.copy();
         this.soupBaseTexture = soupBaseTexture;
         this.bubbleColor = bubbleColor;
         this.soupBasePredicate = soupBasePredicate;
@@ -54,7 +54,7 @@ public class SimpleSoupBase implements ISoupBase {
 
     @Override
     public ItemStack getDisplayStack() {
-        return displayStack;
+        return displayStack.copy();
     }
 
     @Override
