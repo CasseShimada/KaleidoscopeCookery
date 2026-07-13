@@ -3,6 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.gametest;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
@@ -115,6 +116,40 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(millstone.getInput().is(Items.WHEAT)
                         && millstone.getInput().getCount() == 3,
                 "Committed millstone insertion did not reach the block entity");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void fruitBasketUsesVanillaContainerOperations(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.FRUIT_BASKET);
+        FruitBasketBlockEntity basket = helper.getBlockEntity(pos, FruitBasketBlockEntity.class);
+
+        ItemStack firstApples = new ItemStack(Items.APPLE, 63);
+        basket.putOn(firstApples, true);
+        ItemStack moreApples = new ItemStack(Items.APPLE, 3);
+        basket.putOn(moreApples, true);
+
+        helper.assertTrue(firstApples.isEmpty() && moreApples.isEmpty(),
+                "Fruit basket did not consume inserted survival stacks");
+        helper.assertValueEqual(basket.getItems().get(0).getCount(), 64,
+                "Fruit basket did not merge into its matching stack first");
+        helper.assertValueEqual(basket.getItems().get(1).getCount(), 2,
+                "Fruit basket did not place the insertion remainder into an empty slot");
+
+        ItemStack creativeCarrots = new ItemStack(Items.CARROT, 4);
+        basket.putOn(creativeCarrots, false);
+        helper.assertValueEqual(creativeCarrots.getCount(), 4,
+                "Creative fruit basket insertion mutated the source stack");
+        helper.assertValueEqual(basket.getItems().get(2).getCount(), 4,
+                "Creative fruit basket insertion did not copy items into storage");
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        basket.takeOut(player);
+        helper.assertTrue(basket.getItems().get(0).isEmpty(),
+                "Fruit basket did not remove the first occupied slot");
+        helper.assertValueEqual(countItem(player, Items.APPLE), 64,
+                "Fruit basket did not give the extracted stack to the player");
         helper.succeed();
     }
 
@@ -439,6 +474,10 @@ public final class KaleidoscopeCookeryGameTests {
         for (int slot = 0; slot < player.getInventory().getNonEquipmentItems().size(); slot++) {
             player.getInventory().setItem(slot, new ItemStack(item, item.asItem().getDefaultMaxStackSize()));
         }
+    }
+
+    private static int countItem(Player player, net.minecraft.world.level.ItemLike item) {
+        return player.getInventory().countItem(item.asItem());
     }
 
     private static void moveIntoTest(GameTestHelper helper, Player player, BlockPos relativePos) {
