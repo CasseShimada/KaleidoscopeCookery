@@ -16,6 +16,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -28,6 +29,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -109,6 +111,35 @@ public final class KaleidoscopeCookeryGameTests {
                         .anyMatch(stack -> stack.is(ModItems.EMPTY_CUP)),
                 "Stacked tea did not return the empty cup through vanilla use handling");
         helper.succeed();
+    }
+
+    @GameTest
+    public void playerItemInsertionPreservesFallbackAndRemainders(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(1, 1, 1));
+        player.getInventory().setItem(4, new ItemStack(Items.CARROT, 63));
+
+        ItemUtils.giveItemToPlayer(player, new ItemStack(Items.CARROT, 2), 4);
+        helper.assertValueEqual(player.getInventory().getItem(4).getCount(), 64,
+                "Preferred inventory slot did not fill first");
+        helper.assertTrue(player.getInventory().getItem(0).is(Items.CARROT)
+                        && player.getInventory().getItem(0).getCount() == 1,
+                "Preferred-slot remainder did not fall back to the regular inventory");
+
+        fillInventory(player, Items.STONE);
+        ItemUtils.giveItemToPlayer(player, new ItemStack(Items.POTATO));
+
+        Player creativePlayer = helper.makeMockPlayer(GameType.CREATIVE);
+        moveIntoTest(helper, creativePlayer, new BlockPos(2, 1, 1));
+        fillInventory(creativePlayer, Items.STONE);
+        ItemUtils.giveItemToPlayer(creativePlayer, new ItemStack(Items.BEETROOT));
+        helper.runAfterDelay(1, () -> {
+            helper.assertTrue(hasDroppedItem(helper, player, Items.POTATO),
+                    "Full survival inventory did not drop the remaining item");
+            helper.assertTrue(hasDroppedItem(helper, creativePlayer, Items.BEETROOT),
+                    "Full creative inventory silently discarded the remaining item");
+            helper.succeed();
+        });
     }
 
     @GameTest
@@ -232,6 +263,22 @@ public final class KaleidoscopeCookeryGameTests {
 
     private static Identifier vanillaId(String path) {
         return Identifier.fromNamespaceAndPath("minecraft", path);
+    }
+
+    private static void fillInventory(Player player, net.minecraft.world.level.ItemLike item) {
+        for (int slot = 0; slot < player.getInventory().getNonEquipmentItems().size(); slot++) {
+            player.getInventory().setItem(slot, new ItemStack(item, item.asItem().getDefaultMaxStackSize()));
+        }
+    }
+
+    private static void moveIntoTest(GameTestHelper helper, Player player, BlockPos relativePos) {
+        BlockPos absolutePos = helper.absolutePos(relativePos);
+        player.setPos(absolutePos.getX() + 0.5, absolutePos.getY(), absolutePos.getZ() + 0.5);
+    }
+
+    private static boolean hasDroppedItem(GameTestHelper helper, Player player, net.minecraft.world.level.ItemLike item) {
+        return !helper.getLevel().getEntitiesOfClass(ItemEntity.class, player.getBoundingBox().inflate(2.0),
+                entity -> entity.getItem().is(item.asItem())).isEmpty();
     }
 
     private static CompoundTag foodDataTag(Player player) {

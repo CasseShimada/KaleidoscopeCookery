@@ -80,11 +80,11 @@ public final class ItemUtils {
             int originalCount = stack.getCount();
             ItemStack remainder = stack;
             if (preferredSlot >= 0 && preferredSlot < slotCount) {
-                remainder = insertIntoPlayerSlot(inventory, preferredSlot, stack);
+                remainder = insertIntoPlayerInventory(inventory, preferredSlot, stack);
             }
 
             if (!remainder.isEmpty()) {
-                remainder = insertItemStacked(inventory, remainder, slotCount);
+                remainder = insertIntoPlayerInventory(inventory, -1, remainder);
             }
 
             if (remainder.isEmpty() || remainder.getCount() != originalCount) {
@@ -111,75 +111,23 @@ public final class ItemUtils {
         }
     }
 
-    private static ItemStack insertItemStacked(Inventory inventory, ItemStack stack, int slotCount) {
+    private static ItemStack insertIntoPlayerInventory(Inventory inventory, int slot, ItemStack stack) {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        if (!stack.isStackable()) {
-            return insertItem(inventory, stack, slotCount);
-        }
-        for (int i = 0; i < slotCount; ++i) {
-            ItemStack slot = inventory.getItem(i);
-            if (ItemStack.isSameItemSameComponents(slot, stack)) {
-                stack = insertIntoPlayerSlot(inventory, i, stack);
-                if (stack.isEmpty()) {
-                    return ItemStack.EMPTY;
-                }
-            }
-        }
-
-        return insertItem(inventory, stack, slotCount);
+        int countBefore = countMatchingItems(inventory, stack);
+        inventory.add(slot, stack.copy());
+        int inserted = countMatchingItems(inventory, stack) - countBefore;
+        return inserted >= stack.getCount()
+                ? ItemStack.EMPTY
+                : stack.copyWithCount(stack.getCount() - inserted);
     }
 
-    private static ItemStack insertItem(Inventory inventory, ItemStack stack, int slotCount) {
-        for (int i = 0; i < slotCount; ++i) {
-            if (inventory.getItem(i).isEmpty()) {
-                stack = insertIntoPlayerSlot(inventory, i, stack);
-                if (stack.isEmpty()) {
-                    return ItemStack.EMPTY;
-                }
-            }
-        }
-        return stack;
-    }
-
-    private static ItemStack insertIntoPlayerSlot(Inventory inventory, int slot, ItemStack stack) {
-        if (stack.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack existing = inventory.getItem(slot);
-        int slotLimit = inventory.getMaxStackSize();
-        if (!existing.isEmpty()) {
-            if (!ItemStack.isSameItemSameComponents(stack, existing) || !inventory.canPlaceItem(slot, stack)) {
-                return stack;
-            }
-            int limit = Math.min(existing.getMaxStackSize(), slotLimit);
-            int space = limit - existing.getCount();
-            if (space <= 0) {
-                return stack;
-            }
-            int inserted = Math.min(space, stack.getCount());
-            ItemStack remainder = stack.copy();
-            ItemStack merged = remainder.split(inserted);
-            merged.grow(existing.getCount());
-            inventory.setItem(slot, merged);
-            inventory.setChanged();
-            return remainder.isEmpty() ? ItemStack.EMPTY : remainder;
-        }
-
-        if (!inventory.canPlaceItem(slot, stack)) {
-            return stack;
-        }
-        int inserted = Math.min(Math.min(stack.getMaxStackSize(), slotLimit), stack.getCount());
-        if (inserted >= stack.getCount()) {
-            inventory.setItem(slot, stack);
-            inventory.setChanged();
-            return ItemStack.EMPTY;
-        }
-        ItemStack remainder = stack.copy();
-        inventory.setItem(slot, remainder.split(inserted));
-        inventory.setChanged();
-        return remainder;
+    private static int countMatchingItems(Inventory inventory, ItemStack stack) {
+        return inventory.getNonEquipmentItems().stream()
+                .filter(slot -> ItemStack.isSameItemSameComponents(slot, stack))
+                .mapToInt(ItemStack::getCount)
+                .sum();
     }
 
     private static ItemStack insertItem(ItemStackContainer dest, ItemStack stack) {
