@@ -2,12 +2,8 @@ package com.github.ysbbbbbb.kaleidoscopecookery.inventory;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 
-public class ItemStackContainer {
-    protected NonNullList<ItemStack> stacks;
-
-    public ItemStackContainer() {
-        this(1);
-    }
+public final class ItemStackContainer {
+    private final NonNullList<ItemStack> stacks;
 
     public ItemStackContainer(int size) {
         this.stacks = NonNullList.withSize(size, ItemStack.EMPTY);
@@ -17,7 +13,7 @@ public class ItemStackContainer {
         return copyOf(stacks, stacks.size());
     }
 
-    public static ItemStackContainer copyOf(NonNullList<ItemStack> stacks, int size) {
+    private static ItemStackContainer copyOf(NonNullList<ItemStack> stacks, int size) {
         ItemStackContainer copy = new ItemStackContainer(size);
         for (int i = 0; i < Math.min(stacks.size(), copy.size()); i++) {
             copy.set(i, stacks.get(i));
@@ -40,7 +36,7 @@ public class ItemStackContainer {
 
     public ItemStack get(int slot) {
         this.validateSlotIndex(slot);
-        return this.stacks.get(slot);
+        return this.stacks.get(slot).copy();
     }
 
     public ItemStack insertItem(int slot, ItemStack stack) {
@@ -98,11 +94,11 @@ public class ItemStackContainer {
         return 99;
     }
 
-    protected int getStackLimit(int slot, ItemStack stack) {
+    private int getStackLimit(int slot, ItemStack stack) {
         return Math.min(this.getSlotLimit(slot), stack.getMaxStackSize());
     }
 
-    protected void validateSlotIndex(int slot) {
+    private void validateSlotIndex(int slot) {
         if (slot < 0 || slot >= this.stacks.size()) {
             throw new IndexOutOfBoundsException("Slot " + slot + " not in valid range [0, " + this.stacks.size() + ")");
         }
