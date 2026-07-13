@@ -410,6 +410,10 @@ def validate_village_structures() -> tuple[list[str], int]:
     mod_events = read(JAVA_ROOT / "init/ModEvents.java")
     if "AddVillageStructuresEvent.register()" not in mod_events:
         errors.append("AddVillageStructuresEvent is not registered from ModEvents.")
+    if "ServerLifecycleEvents.SERVER_STARTING.register" not in event_text:
+        errors.append("Village structures are not injected before server world setup.")
+    if "ServerLifecycleEvents.SERVER_STARTED.register" in event_text:
+        errors.append("Village structures are injected after spawn chunks may have generated.")
 
     return errors, len(structure_paths)
 

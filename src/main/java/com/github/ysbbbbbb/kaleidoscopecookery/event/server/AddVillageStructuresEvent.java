@@ -38,7 +38,7 @@ public final class AddVillageStructuresEvent {
     }
 
     public static void register() {
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> addVillageStructures(server.registryAccess()));
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> addVillageStructures(server.registryAccess()));
     }
 
     /**
