@@ -99,8 +99,10 @@ def main() -> int:
         errors.append("Baozi throwing does not check server-side cooldown.")
     if "player.getCooldowns().addCooldown(stack" not in network_handler:
         errors.append("Baozi throwing does not add server-side cooldown.")
-    if "stack.shrink(THROWN_BAOZI_COUNT)" not in network_handler:
-        errors.append("Baozi throwing does not consume the server-side stack.")
+    if "stack.consume(THROWN_BAOZI_COUNT, player)" not in network_handler:
+        errors.append("Baozi throwing does not use vanilla server-side item consumption.")
+    if "stack.shrink(THROWN_BAOZI_COUNT)" in network_handler:
+        errors.append("Baozi throwing still manually shrinks the held stack.")
     if "if (!level.addFreshEntity(baozi))" not in network_handler:
         errors.append("Baozi throwing mutates player state without checking projectile spawn success.")
     if "public static boolean sendThrowBaozi()" not in client_network_handler:

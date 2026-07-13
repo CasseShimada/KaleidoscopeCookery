@@ -155,9 +155,7 @@ public final class NetworkHandler {
                 SoundEvents.SNOWBALL_THROW, SoundSource.NEUTRAL,
                 BAOZI_THROW_SOUND_VOLUME, getBaoziThrowSoundPitch(level));
         player.getCooldowns().addCooldown(stack, BAOZI_THROW_COOLDOWN_TICKS);
-        if (!player.hasInfiniteMaterials()) {
-            stack.shrink(THROWN_BAOZI_COUNT);
-        }
+        stack.consume(THROWN_BAOZI_COUNT, player);
     }
 
     private static float getBaoziThrowSoundPitch(ServerLevel level) {
