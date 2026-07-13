@@ -559,6 +559,12 @@ def main() -> int:
         errors.append("EnamelBasinBlock still manually shrinks inserted oil stacks.")
     if enamel_basin_text.count("GameEvent.BLOCK_CHANGE") != 5:
         errors.append("EnamelBasinBlock does not emit a block-change game event for every stateful interaction.")
+    if enamel_basin_text.count("if (!level.setBlockAndUpdate(pos,") != 5:
+        errors.append("EnamelBasinBlock does not guard every state update before moving items.")
+    if "if (!level.destroyBlock(pos, true, player))" not in enamel_basin_text:
+        errors.append("EnamelBasinBlock does not confirm empty basin removal.")
+    if "GameEvent.BLOCK_DESTROY" not in enamel_basin_text:
+        errors.append("EnamelBasinBlock does not emit a block-destroy event when removed by a shovel.")
     if "GameEvent.Context.of(player, state)" not in enamel_basin_text:
         errors.append("EnamelBasinBlock game events do not include the interacting player and prior block state.")
 
