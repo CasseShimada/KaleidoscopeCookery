@@ -2,14 +2,10 @@ package com.github.ysbbbbbb.kaleidoscopecookery.inventory.transfer;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.Iterator;
-import java.util.List;
 
 public class MillstoneInputStorage extends SnapshotParticipant<ItemStack> implements SingleSlotStorage<ItemVariant> {
     private final MillstoneBlockEntity millstone;
@@ -62,11 +58,6 @@ public class MillstoneInputStorage extends SnapshotParticipant<ItemStack> implem
     @Override
     public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
         return 0;
-    }
-
-    @Override
-    public Iterator<StorageView<ItemVariant>> iterator() {
-        return List.<StorageView<ItemVariant>>of(this).iterator();
     }
 
     @Override

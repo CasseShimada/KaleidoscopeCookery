@@ -4,6 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
@@ -25,6 +26,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -82,6 +85,36 @@ public final class KaleidoscopeCookeryGameTests {
         PotBlockEntity blockEntity = helper.getBlockEntity(pos, PotBlockEntity.class);
         helper.assertTrue(blockEntity.getType() == ModBlocks.POT_BE,
                 "Placed pot created an unexpected block entity type");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void millstoneStorageCommitsThroughFabricTransactions(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.MILLSTONE);
+        MillstoneBlockEntity millstone = helper.getBlockEntity(pos, MillstoneBlockEntity.class);
+        var storage = millstone.getInputStorage();
+        ItemVariant wheat = ItemVariant.of(Items.WHEAT);
+
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertValueEqual(storage.insert(wheat, 3, transaction), 3L,
+                    "Millstone storage rejected a valid transactional insertion");
+            helper.assertTrue(millstone.getInput().isEmpty(),
+                    "Millstone storage changed block-entity state before commit");
+            helper.assertValueEqual(storage.getAmount(), 3L,
+                    "Millstone storage did not expose its pending transaction amount");
+        }
+        helper.assertTrue(millstone.getInput().isEmpty() && storage.getAmount() == 0,
+                "Aborted millstone insertion was not rolled back");
+
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertValueEqual(storage.insert(wheat, 3, transaction), 3L,
+                    "Millstone storage rejected the committed insertion");
+            transaction.commit();
+        }
+        helper.assertTrue(millstone.getInput().is(Items.WHEAT)
+                        && millstone.getInput().getCount() == 3,
+                "Committed millstone insertion did not reach the block entity");
         helper.succeed();
     }
 
