@@ -23,9 +23,9 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
         super(ModBlocks.FRUIT_BASKET_BE, pPos, pBlockState);
     }
 
-    public void putOn(ItemStack stack, boolean consumeSourceStack) {
+    public boolean putOn(ItemStack stack, boolean consumeSourceStack) {
         if (!stack.getItem().canFitInsideContainerItems()) {
-            return;
+            return false;
         }
         ItemStack remainder = this.items.addItem(stack);
         int inserted = stack.getCount() - remainder.getCount();
@@ -37,10 +37,12 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
                 this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS);
             }
             this.setChangedAndSync();
+            return true;
         }
+        return false;
     }
 
-    public void takeOut(Player player) {
+    public boolean takeOut(Player player) {
         for (int i = 0; i < items.getContainerSize(); i++) {
             ItemStack stack = items.getItem(i);
             if (stack.isEmpty()) {
@@ -48,14 +50,16 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
             }
             ItemStack extracted = this.items.removeItem(i, stack.getCount());
             if (!extracted.isEmpty()) {
+                this.setChangedAndSync();
                 ItemUtils.giveItemToPlayer(player, extracted);
                 if (this.level != null) {
                     this.level.playSound(null, this.worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS);
                 }
-                this.setChangedAndSync();
+                return true;
             }
-            return;
+            return false;
         }
+        return false;
     }
 
     @Override

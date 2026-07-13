@@ -203,6 +203,12 @@ def main() -> int:
         errors.append("TransmutationLunchBagItem still mutates the fruit basket inventory directly.")
     if "fruitBasket.refresh()" in transmutation_lunch_bag:
         errors.append("TransmutationLunchBagItem still calls the legacy block entity refresh API.")
+    fruit_basket = read(BLOCK_ENTITY_ROOT / "decoration/FruitBasketBlockEntity.java")
+    fruit_basket_block = read(BLOCK_ROOT / "decoration/FruitBasketBlock.java")
+    if "public boolean putOn(" not in fruit_basket or "public boolean takeOut(" not in fruit_basket:
+        errors.append("FruitBasketBlockEntity does not report whether inventory interactions changed state.")
+    if fruit_basket_block.count("level.gameEvent(GameEvent.BLOCK_CHANGE, pos") < 3:
+        errors.append("FruitBasketBlock does not emit block-change events for successful inventory interactions.")
     shawarma_spit = read(BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java")
     if "cookTime--;\n            this.setChanged();" not in shawarma_spit:
         errors.append("ShawarmaSpitBlockEntity does not mark cooking progress dirty.")

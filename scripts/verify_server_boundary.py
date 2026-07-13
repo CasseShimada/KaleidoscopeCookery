@@ -445,11 +445,12 @@ def main() -> int:
     for required_reference in (
         "useItemOn",
         "useWithoutItem",
-        "if (!level.isClientSide())",
         "!player.hasInfiniteMaterials()",
     ):
         if required_reference not in fruit_basket_text:
             errors.append(f"Fruit basket native interaction is missing {required_reference}.")
+    if "if (!level.isClientSide())" not in fruit_basket_text and "if (level.isClientSide())" not in fruit_basket_text:
+        errors.append("Fruit basket native interaction is missing an explicit logical-side boundary.")
 
     for name, path, expected_consumes in (
         ("TeacupBlock", TEACUP_BLOCK, 2),

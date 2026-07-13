@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
@@ -94,16 +95,24 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
         }
         if (level.getBlockEntity(pos) instanceof FruitBasketBlockEntity fruitBasket) {
             if (player.isSecondaryUseActive()) {
-                if (!level.isClientSide()) {
-                    fruitBasket.takeOut(player);
+                if (level.isClientSide()) {
+                    return InteractionResult.SUCCESS;
                 }
-                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+                if (fruitBasket.takeOut(player)) {
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+                    return InteractionResult.CONSUME;
+                }
+                return InteractionResult.TRY_WITH_EMPTY_HAND;
             }
             if (!player.getMainHandItem().isEmpty()) {
-                if (!level.isClientSide()) {
-                    fruitBasket.putOn(player.getMainHandItem(), !player.hasInfiniteMaterials());
+                if (level.isClientSide()) {
+                    return InteractionResult.SUCCESS;
                 }
-                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+                if (fruitBasket.putOn(player.getMainHandItem(), !player.hasInfiniteMaterials())) {
+                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+                    return InteractionResult.CONSUME;
+                }
+                return InteractionResult.TRY_WITH_EMPTY_HAND;
             }
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
@@ -114,10 +123,14 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
         if (!player.isSecondaryUseActive() || !(level.getBlockEntity(pos) instanceof FruitBasketBlockEntity fruitBasket)) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide()) {
-            fruitBasket.takeOut(player);
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
-        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        if (fruitBasket.takeOut(player)) {
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            return InteractionResult.CONSUME;
+        }
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
