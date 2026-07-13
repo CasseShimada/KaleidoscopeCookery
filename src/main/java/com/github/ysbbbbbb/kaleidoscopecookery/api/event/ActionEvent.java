@@ -16,8 +16,5 @@ package com.github.ysbbbbbb.kaleidoscopecookery.api.event;
  * All the parents of abstract event classes until {@link ActionEvent} must also be abstract.
  */
 public abstract class ActionEvent {
-
-    boolean isCanceled = false;
-
     protected ActionEvent() {}
 }

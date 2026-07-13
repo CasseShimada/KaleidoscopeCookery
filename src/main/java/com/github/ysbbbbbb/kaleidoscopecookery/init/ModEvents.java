@@ -33,13 +33,6 @@ public final class ModEvents {
                 }
             });
 
-    public static final Event<ActionEventCallback.MillstoneTakeItem> MILLSTONE_TAKE_ITEM =
-            EventFactory.createArrayBacked(ActionEventCallback.MillstoneTakeItem.class, call -> action -> {
-                for (ActionEventCallback.MillstoneTakeItem listener : call) {
-                    listener.onMillstoneTakeItem(action);
-                }
-            });
-
     public static final Event<ActionEventCallback.CheckSpecialItem> CHECK_SPECIAL_ITEM =
             EventFactory.createArrayBacked(ActionEventCallback.CheckSpecialItem.class, call -> action -> {
                 for (ActionEventCallback.CheckSpecialItem listener : call) {

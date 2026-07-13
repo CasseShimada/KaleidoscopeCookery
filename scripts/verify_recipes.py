@@ -19,6 +19,8 @@ JAVA_ROOT = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
 RESOURCES = ROOT / "src/main/resources"
 MOD_RECIPES = JAVA_ROOT / "init/ModRecipes.java"
 MOD_EVENTS = JAVA_ROOT / "init/ModEvents.java"
+MILLSTONE_BLOCK_ENTITY = JAVA_ROOT / "blockentity/kitchen/MillstoneBlockEntity.java"
+MILLSTONE_TAKE_ITEM_CALLBACK = JAVA_ROOT / "api/event/MillstoneTakeItemCallback.java"
 RECIPE_ROOT = JAVA_ROOT / "crafting/recipe"
 SERIALIZER_ROOT = JAVA_ROOT / "crafting/serializer"
 RECIPE_EVENT_FILES = {
@@ -157,6 +159,38 @@ def main() -> int:
             errors.append(f"{event_class} still exposes a legacy action-named registration method.")
 
     millstone_special_event = strip_comments(read(RECIPE_EVENT_FILES["MillstoneSpecialRecipeEvent"]))
+    millstone_block_entity = strip_comments(read(MILLSTONE_BLOCK_ENTITY))
+    if not MILLSTONE_TAKE_ITEM_CALLBACK.exists():
+        errors.append("Millstone take-item callback is missing.")
+    else:
+        millstone_callback = strip_comments(read(MILLSTONE_TAKE_ITEM_CALLBACK))
+        for required_reference in (
+            "Event<MillstoneTakeItemCallback> EVENT = EventFactory.createArrayBacked(",
+            "PASS(false, false)",
+            "FAILURE(true, false)",
+            "SUCCESS(true, true)",
+        ):
+            if required_reference not in millstone_callback:
+                errors.append(f"Millstone take-item callback is missing {required_reference}.")
+    for required_reference in (
+        "MillstoneTakeItemCallback.EVENT.register(MillstoneSpecialRecipeEvent::onTakeItem)",
+        "MillstoneTakeItemCallback.Result.PASS",
+        "MillstoneTakeItemCallback.Result.FAILURE",
+        "MillstoneTakeItemCallback.Result.SUCCESS",
+    ):
+        if required_reference not in millstone_special_event:
+            errors.append(f"Millstone special extraction is missing {required_reference}.")
+    for required_reference in (
+        "MillstoneTakeItemCallback.EVENT.invoker().takeItem(user, heldItem, this)",
+        "callbackResult.handled()",
+        "callbackResult.succeeds()",
+    ):
+        if required_reference not in millstone_block_entity:
+            errors.append(f"Millstone block entity callback handling is missing {required_reference}.")
+    for legacy_reference in ("MILLSTONE_TAKE_ITEM", "MillstoneTakeItemEvent", "IActionCancelable"):
+        if legacy_reference in mod_events or legacy_reference in millstone_special_event or legacy_reference in millstone_block_entity:
+            errors.append(f"Millstone extraction still uses legacy mutable event state: {legacy_reference}.")
+
     creative_container_guard = re.search(
         r"if\s*\(\s*!user\.hasInfiniteMaterials\(\)\s*\)\s*\{.*?"
         r"ItemUtils\.getContainerItem\(heldItem\.split\(1\)\)",

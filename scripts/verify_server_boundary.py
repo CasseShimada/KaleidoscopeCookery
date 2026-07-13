@@ -62,7 +62,9 @@ LEGACY_INTERACTION_EVENT_PATHS = (
 )
 
 UNWIRED_LEGACY_EVENT_PATHS = (
+    SRC / "api/event/IActionCancelable.java",
     SRC / "api/event/LivingDamageEvent.java",
+    SRC / "api/event/MillstoneTakeItemEvent.java",
     SRC / "api/event/SickleHarvestEvent.java",
     SRC / "api/event/StockpotMatchRecipeEvent.java",
 )
@@ -202,6 +204,10 @@ def main() -> int:
     for path in UNWIRED_LEGACY_EVENT_PATHS:
         if path.exists():
             errors.append(f"Unwired legacy event still exists: {path.relative_to(ROOT)}")
+
+    action_event_text = (SRC / "api/event/ActionEvent.java").read_text(encoding="utf-8")
+    if "isCanceled" in action_event_text:
+        errors.append("ActionEvent still stores legacy mutable cancellation state.")
 
     satiated_shield_text = (SRC / "event/server/effect/SatiatedShieldEvent.java").read_text(encoding="utf-8")
     for required_reference in (

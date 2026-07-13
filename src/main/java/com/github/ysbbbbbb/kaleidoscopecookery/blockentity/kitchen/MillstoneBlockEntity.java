@@ -2,7 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IMillstone;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.MillstoneFinishEvent;
-import com.github.ysbbbbbb.kaleidoscopecookery.api.event.MillstoneTakeItemEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.event.MillstoneTakeItemCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.datamap.MillstoneBindableData;
@@ -290,10 +290,10 @@ public class MillstoneBlockEntity extends BaseBlockEntity implements IMillstone 
         // 先尝试取出输出槽
         if (!this.output.isEmpty()) {
             // 事件系统处理特殊情况
-            var event = new MillstoneTakeItemEvent(user, heldItem, this);
-            ModEvents.MILLSTONE_TAKE_ITEM.invoker().onMillstoneTakeItem(event);
-            if (event.isCanceled()) {
-                return event.isSuccess();
+            MillstoneTakeItemCallback.Result callbackResult =
+                    MillstoneTakeItemCallback.EVENT.invoker().takeItem(user, heldItem, this);
+            if (callbackResult.handled()) {
+                return callbackResult.succeeds();
             }
             // 兼容容器是否正确
             int consumeCount = this.output.getCount();

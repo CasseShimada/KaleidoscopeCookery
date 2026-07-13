@@ -8,11 +8,6 @@ public interface ActionEventCallback {
     }
 
     @FunctionalInterface
-    interface MillstoneTakeItem {
-        void onMillstoneTakeItem(MillstoneTakeItemEvent event);
-    }
-
-    @FunctionalInterface
     interface CheckSpecialItem {
         void onCheckItemEvent(RecipeItemEvent.CheckItem event);
     }
