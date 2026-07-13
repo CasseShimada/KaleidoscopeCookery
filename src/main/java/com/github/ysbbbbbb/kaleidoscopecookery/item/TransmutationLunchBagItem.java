@@ -49,7 +49,8 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
     }
 
     public static boolean hasItems(ItemStack bag) {
-        return bag.has(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS);
+        ItemContainerContents contents = bag.get(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS);
+        return contents != null && !contents.equals(ItemContainerContents.EMPTY);
     }
 
     public static ItemStackContainer getItems(ItemStack bag) {
@@ -61,18 +62,11 @@ public class TransmutationLunchBagItem extends CookeryTooltipItem {
     }
 
     public static void setItems(ItemStack bag, ItemStackContainer items) {
-        // 先判断是否全空
-        boolean allEmpty = true;
-        for (int i = 0; i < items.size(); i++) {
-            if (!items.get(i).isEmpty()) {
-                allEmpty = false;
-                break;
-            }
-        }
-        if (allEmpty) {
+        ItemContainerContents contents = items.toContents();
+        if (contents.equals(ItemContainerContents.EMPTY)) {
             bag.remove(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS);
         } else {
-            bag.set(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS, items.toContents());
+            bag.set(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS, contents);
         }
     }
 

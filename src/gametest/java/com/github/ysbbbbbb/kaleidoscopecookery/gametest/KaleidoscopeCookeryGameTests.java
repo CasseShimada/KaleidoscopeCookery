@@ -14,11 +14,13 @@ import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.TransmutationLunchBagItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -40,6 +42,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.component.UseRemainder;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -230,6 +233,26 @@ public final class KaleidoscopeCookeryGameTests {
                 "Legacy component contents lost an empty slot");
         helper.assertTrue(ItemStack.isSameItemSameComponents(decoded.get(2), namedApple),
                 "Legacy component contents lost item components");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void lunchBagOmitsEmptyContainerComponents(GameTestHelper helper) {
+        ItemStack bag = ModItems.TRANSMUTATION_LUNCH_BAG.getDefaultInstance();
+        bag.set(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS,
+                ItemContainerContents.EMPTY);
+        helper.assertFalse(TransmutationLunchBagItem.hasItems(bag),
+                "Empty lunch-bag contents were reported as stored items");
+
+        ItemStackContainer items = new ItemStackContainer(16);
+        TransmutationLunchBagItem.setItems(bag, items);
+        helper.assertFalse(bag.has(ModDataComponents.TRANSMUTATION_LUNCH_BAG_ITEMS),
+                "Empty lunch-bag contents left a data component behind");
+
+        items.set(0, new ItemStack(Items.APPLE));
+        TransmutationLunchBagItem.setItems(bag, items);
+        helper.assertTrue(TransmutationLunchBagItem.hasItems(bag),
+                "Non-empty lunch-bag contents were not stored");
         helper.succeed();
     }
 
