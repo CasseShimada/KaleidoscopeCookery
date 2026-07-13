@@ -71,8 +71,8 @@ public class SitEntity extends Entity {
 
     @Override
     public void tick() {
-        if (!this.level().isClientSide()) {
-            this.checkBelowWorld();
+        super.tick();
+        if (this.level() instanceof ServerLevel) {
             this.checkPassengers();
         }
     }

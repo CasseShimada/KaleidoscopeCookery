@@ -269,6 +269,33 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
+    public void seatEntitiesFollowVanillaTickLifecycle(GameTestHelper helper) {
+        BlockPos emptySeatPos = helper.absolutePos(new BlockPos(1, 1, 1));
+        SitEntity emptySeat = new SitEntity(helper.getLevel(), emptySeatPos);
+        helper.assertTrue(helper.getLevel().addFreshEntity(emptySeat),
+                "Empty seat entity could not be added to the test world");
+
+        BlockPos occupiedSeatPos = helper.absolutePos(new BlockPos(3, 1, 1));
+        SitEntity occupiedSeat = new SitEntity(helper.getLevel(), occupiedSeatPos);
+        helper.assertTrue(helper.getLevel().addFreshEntity(occupiedSeat),
+                "Occupied seat entity could not be added to the test world");
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(3, 1, 1));
+        helper.assertTrue(player.startRiding(occupiedSeat, true, true),
+                "Player could not mount the occupied test seat");
+
+        helper.runAfterDelay(12, () -> {
+            helper.assertTrue(emptySeat.tickCount > 0,
+                    "Seat entity did not run the vanilla entity tick lifecycle");
+            helper.assertTrue(emptySeat.isRemoved(),
+                    "Empty seat entity remained after its cleanup timeout");
+            helper.assertTrue(!occupiedSeat.isRemoved() && player.getVehicle() == occupiedSeat,
+                    "Occupied seat entity was removed during passenger cleanup");
+            helper.succeed();
+        });
+    }
+
+    @GameTest
     public void scarecrowPlacementCommitsAfterEntityCreation(GameTestHelper helper) {
         BlockPos floorPos = new BlockPos(1, 1, 1);
         BlockPos scarecrowPos = floorPos.above();

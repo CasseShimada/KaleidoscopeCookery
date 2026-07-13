@@ -116,6 +116,7 @@ STOVE_BLOCK = SRC / "block/kitchen/StoveBlock.java"
 ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
 SCARECROW_ENTITY = SRC / "entity/ScarecrowEntity.java"
+SIT_ENTITY = SRC / "entity/SitEntity.java"
 RAW_DOUGH_ITEM = SRC / "item/RawDoughItem.java"
 THROWABLE_BAOZI_ENTITY = SRC / "entity/ThrowableBaoziEntity.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
@@ -585,6 +586,17 @@ def main() -> int:
             errors.append(f"{path.name} does not handle mounting failure.")
         if "entitySit.discard();" not in seating_text:
             errors.append(f"{path.name} does not discard an unusable seat entity.")
+
+    sit_entity_text = SIT_ENTITY.read_text(encoding="utf-8")
+    sit_tick_start = sit_entity_text.find("public void tick()")
+    sit_tick_end = sit_entity_text.find("private void checkPassengers()", sit_tick_start)
+    sit_tick = sit_entity_text[sit_tick_start:sit_tick_end]
+    if "super.tick();" not in sit_tick:
+        errors.append("SitEntity does not run the vanilla entity tick lifecycle.")
+    if "instanceof ServerLevel" not in sit_tick:
+        errors.append("SitEntity passenger cleanup is not guarded by the authoritative server level.")
+    if "checkBelowWorld()" in sit_tick:
+        errors.append("SitEntity duplicates the vanilla baseTick below-world check.")
 
     plate_block_text = PLATE_BLOCK.read_text(encoding="utf-8")
     if plate_block_text.count("GameEvent.BLOCK_CHANGE") != 2:
