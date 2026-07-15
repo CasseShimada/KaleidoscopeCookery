@@ -18,6 +18,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.SteamerBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.TeapotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.ChiliRistraBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
@@ -28,6 +29,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntit
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.SteamerBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.TeapotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc.TrashCanBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfigTestAccess;
@@ -519,6 +521,56 @@ public final class KaleidoscopeCookeryGameTests {
                 "Filled teacup takeout retained the wrong cup count");
         helper.assertValueEqual(remainingTeaState.getValue(TeacupBlock.TEA_COUNT), 1,
                 "Filled teacup takeout retained the wrong tea count");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void teapotUsesSuppliedStackAndNativeEmptyHandTakeout(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.TEAPOT);
+        TeapotBlockEntity teapot = helper.getBlockEntity(pos, TeapotBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack waterBucket = Items.WATER_BUCKET.getDefaultInstance();
+        player.setItemInHand(InteractionHand.MAIN_HAND, waterBucket);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        TeapotBlock block = (TeapotBlock) ModBlocks.TEAPOT;
+
+        InteractionResult fillResult = block.useItemOn(
+                waterBucket, helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos,
+                player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(fillResult, InteractionResult.CONSUME,
+                "Teapot water insertion did not report success");
+        helper.assertValueEqual(teapot.getTeaFluidId(), vanillaId("water"),
+                "Teapot stored the wrong fluid");
+        helper.assertTrue(player.getMainHandItem().is(Items.BUCKET),
+                "Teapot water insertion returned the wrong container");
+
+        ItemStack bucket = player.getMainHandItem();
+        InteractionResult drainResult = block.useItemOn(
+                bucket, helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos,
+                player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(drainResult, InteractionResult.CONSUME,
+                "Teapot water removal did not report success");
+        helper.assertFalse(teapot.getTeaFluidId().equals(vanillaId("water")),
+                "Teapot retained its removed fluid");
+        helper.assertTrue(player.getMainHandItem().is(Items.WATER_BUCKET),
+                "Teapot water removal returned the wrong filled container");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        InteractionResult takeResult = block.useWithoutItem(
+                helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(takeResult, InteractionResult.CONSUME,
+                "Teapot empty-hand takeout did not report success");
+        helper.assertTrue(helper.getLevel().getBlockState(absolutePos).isAir(),
+                "Teapot empty-hand takeout did not remove the block");
+        helper.assertTrue(player.getMainHandItem().is(ModItems.TEAPOT),
+                "Teapot empty-hand takeout returned the wrong item");
         helper.succeed();
     }
 

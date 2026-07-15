@@ -283,6 +283,23 @@ def main() -> int:
     teapot_block = TEAPOT_BLOCK.read_text(encoding="utf-8")
     if "level.isClientSide() || blockEntityType != ModBlocks.TEAPOT_BE" not in teapot_block:
         errors.append("TeapotBlock still installs its block entity ticker on the client.")
+    teapot_use_item = teapot_block.split("public @NotNull InteractionResult useItemOn(", 1)[-1].split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[0]
+    if "ItemStack mainHandItem = stack;" not in teapot_use_item:
+        errors.append("TeapotBlock does not use the stack supplied to its item interaction entry point.")
+    if "player.getMainHandItem()" in teapot_use_item or "mainHandItem.isEmpty()" in teapot_use_item:
+        errors.append("TeapotBlock retains legacy hand lookup or empty-stack handling in useItemOn.")
+    for required_reference in (
+        "mainHandItem.is(Items.WATER_BUCKET) || mainHandItem.is(Items.LAVA_BUCKET)",
+        "mainHandItem.is(Items.BUCKET)",
+    ):
+        if required_reference not in teapot_use_item:
+            errors.append(f"TeapotBlock item-specific fluid dispatch is missing {required_reference}.")
+    filled_bucket_check = teapot_use_item.find("mainHandItem.is(Items.WATER_BUCKET)")
+    add_fluid_call = teapot_use_item.find("teapot.addTeaFluid(")
+    if add_fluid_call < filled_bucket_check:
+        errors.append("TeapotBlock still probes addTeaFluid before identifying a filled bucket.")
     teapot_renderer = TEAPOT_RENDERER.read_text(encoding="utf-8")
     if "new WeakHashMap<>()" not in teapot_renderer or "boilingStates.computeIfAbsent(teapot" not in teapot_renderer:
         errors.append("Teapot renderer does not own weakly keyed boiling animation state.")
