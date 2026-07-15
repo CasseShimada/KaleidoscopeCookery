@@ -372,12 +372,23 @@ def main() -> int:
     if "useWithCarpets(state, level, pos, player, stack)" not in chair_use_item:
         errors.append("ChairBlock does not use the stack supplied to its carpet interaction entry point.")
     table_block = read(BLOCK_ROOT / "decoration/TableBlock.java")
+    table_use_item = table_block.split("public InteractionResult useItemOn(", 1)[-1].split(
+        "private InteractionResult useWithItem(", 1
+    )[0]
+    if "useWithCarpets(state, level, pos, player, stack)" not in table_use_item \
+            or "useWithItem(state, level, pos, player, table, stack)" not in table_use_item:
+        errors.append("TableBlock does not use the stack supplied to its item interaction entry point.")
     if ".refresh()" in chair_block or ".refresh()" in table_block:
         errors.append("Furniture blocks still call the legacy block entity refresh API.")
     if "tableItems.set(" in table_block:
         errors.append("TableBlock still mutates the table block entity inventory directly.")
     if "public InteractionResult useWithoutItem(" not in table_block:
         errors.append("TableBlock does not route empty-hand takeout through the native interaction entry point.")
+    table_use_without_item = table_block.split("public InteractionResult useWithoutItem(", 1)[-1].split(
+        "private InteractionResult useWithCarpets(", 1
+    )[0]
+    if "InteractionResult.TRY_WITH_EMPTY_HAND" in table_use_without_item:
+        errors.append("TableBlock recursively requests empty-hand dispatch from useWithoutItem.")
     if "boolean handEmpty" in table_block:
         errors.append("TableBlock still handles unreachable empty-hand takeout in useItemOn.")
     table_block_entity = read(BLOCK_ENTITY_ROOT / "decoration/TableBlockEntity.java")

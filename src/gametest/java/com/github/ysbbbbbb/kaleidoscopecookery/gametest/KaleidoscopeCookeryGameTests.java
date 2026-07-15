@@ -734,7 +734,7 @@ public final class KaleidoscopeCookeryGameTests {
         ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
         moveIntoTest(helper, player, new BlockPos(2, 1, 1));
         ItemStack apples = new ItemStack(Items.APPLE, 2);
-        player.setItemInHand(InteractionHand.MAIN_HAND, apples);
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
         BlockPos absolutePos = helper.absolutePos(pos);
         BlockHitResult hitResult = new BlockHitResult(
                 Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
@@ -744,10 +744,12 @@ public final class KaleidoscopeCookeryGameTests {
         InteractionResult insertResult = block.useItemOn(
                 apples, state, helper.getLevel(), absolutePos, player, InteractionHand.MAIN_HAND, hitResult);
 
-        helper.assertValueEqual(insertResult, InteractionResult.SUCCESS,
+        helper.assertValueEqual(insertResult, InteractionResult.CONSUME,
                 "Table did not report a successful item insertion");
         helper.assertValueEqual(apples.getCount(), 1,
                 "Table insertion consumed the wrong item count");
+        helper.assertTrue(player.getMainHandItem().is(Items.STONE),
+                "Table reread the player's hand instead of using the supplied stack");
         helper.assertTrue(table.getLastItem().is(Items.APPLE),
                 "Table did not store the inserted item");
 
@@ -755,7 +757,7 @@ public final class KaleidoscopeCookeryGameTests {
         InteractionResult takeResult = block.useWithoutItem(
                 state, helper.getLevel(), absolutePos, player, hitResult);
 
-        helper.assertValueEqual(takeResult, InteractionResult.SUCCESS,
+        helper.assertValueEqual(takeResult, InteractionResult.CONSUME,
                 "Table empty-hand takeout did not report success");
         helper.assertTrue(player.getMainHandItem().is(Items.APPLE),
                 "Table empty-hand takeout returned the wrong item");

@@ -89,7 +89,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
     @NotNull
     private InteractionResult useWithItem(BlockState state, Level level, BlockPos pos, Player player,
-                                          TableBlockEntity table, ItemStack itemInHand) {
+                                          TableBlockEntity table, ItemStack stack) {
         ItemStack tableItem = table.getLastItem();
 
         // 玩家手有物品，并且可以放入物品时
@@ -97,13 +97,13 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            if (!table.addItem(itemInHand.copyWithCount(1))) {
+            if (!table.addItem(stack.copyWithCount(1))) {
                 return InteractionResult.TRY_WITH_EMPTY_HAND;
             }
-            itemInHand.consume(1, player);
+            stack.consume(1, player);
             level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
 
         // 桌子已满时，拦截后续物品交互，避免物品直接放到桌面上方
@@ -130,12 +130,12 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         ItemUtils.getItemToLivingEntity(player, removed, player.getInventory().getSelectedSlot());
         level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, player.getSoundSource(), 1.0F, 1.0F);
         level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-        return InteractionResult.SUCCESS;
+        return InteractionResult.CONSUME;
     }
 
     @NotNull
-    private InteractionResult useWithCarpets(BlockState state, Level level, BlockPos pos, Player player, ItemStack itemInHand) {
-        @Nullable DyeColor dyeColor = getColorByCarpet(itemInHand.getItem());
+    private InteractionResult useWithCarpets(BlockState state, Level level, BlockPos pos, Player player, ItemStack stack) {
+        @Nullable DyeColor dyeColor = getColorByCarpet(stack.getItem());
         boolean hasCarpet = state.getValue(HAS_CARPET);
         if (dyeColor == null) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -153,7 +153,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
                 return InteractionResult.FAIL;
             }
             tableBlockEntity.setColor(dyeColor);
-            itemInHand.consume(1, player);
+            stack.consume(1, player);
             level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
@@ -167,7 +167,7 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
             DyeColor originalColor = tableBlockEntity.getColor();
             ItemStack carpetItem = getCarpetByColor(originalColor).getDefaultInstance();
             tableBlockEntity.setColor(dyeColor);
-            itemInHand.consume(1, player);
+            stack.consume(1, player);
             BlockDrop.popResource(level, pos, 0.75, carpetItem);
             level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));

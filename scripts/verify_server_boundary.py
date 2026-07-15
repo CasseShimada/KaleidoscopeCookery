@@ -594,7 +594,7 @@ def main() -> int:
             errors.append(f"{name} game events do not include the interacting player and prior block state.")
 
     for name, path, consume_expression, expected_consumes, shrink_expression in (
-        ("TableBlock", TABLE_BLOCK, "itemInHand.consume(1, player)", 3, "itemInHand.shrink("),
+        ("TableBlock", TABLE_BLOCK, "stack.consume(1, player)", 3, "stack.shrink("),
         ("ChairBlock", CHAIR_BLOCK, "carpetStack.consume(1, player)", 2, "carpetStack.shrink("),
         ("PlateBlock", PLATE_BLOCK, "stack.consume(1, player)", 1, "stack.shrink("),
         ("StackableFoodBlock", STACKABLE_FOOD_BLOCK, "stack.consume(1, player)", 1, "stack.shrink("),
