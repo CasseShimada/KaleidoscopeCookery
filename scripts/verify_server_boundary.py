@@ -523,6 +523,8 @@ def main() -> int:
             "UseEntityCallback.EVENT",
             "player.isSpectator()",
             "player.getItemInHand(hand)",
+            "return InteractionResult.CONSUME;",
+            "return InteractionResult.SUCCESS_SERVER;",
             "stack.consume(1, player)",
             "USE_CATERPILLAR_FEED_CHICKEN",
         ):
@@ -530,6 +532,8 @@ def main() -> int:
                 errors.append(f"Caterpillar chicken feed event is missing {required_reference}.")
         if "stack.shrink(" in chicken_feed_text:
             errors.append("Caterpillar chicken feed event still manually shrinks feed stacks.")
+        if "level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME" in chicken_feed_text:
+            errors.append("Caterpillar chicken feed event still uses legacy sided swing results.")
 
     fruit_basket_text = FRUIT_BASKET_BLOCK.read_text(encoding="utf-8")
     for required_reference in (

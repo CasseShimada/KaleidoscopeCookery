@@ -42,10 +42,11 @@ public final class CaterpillarChickenFeedEvent {
             return InteractionResult.PASS;
         }
 
-        if (level instanceof ServerLevel serverLevel) {
-            feedBabyChicken(serverLevel, player, chicken, stack);
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return InteractionResult.CONSUME;
         }
-        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        feedBabyChicken(serverLevel, player, chicken, stack);
+        return InteractionResult.SUCCESS_SERVER;
     }
 
     private static void feedBabyChicken(ServerLevel level, Player player, Chicken chicken, ItemStack stack) {

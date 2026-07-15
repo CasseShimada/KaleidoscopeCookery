@@ -45,6 +45,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.item.TransmutationLunchBagItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import com.mojang.serialization.JsonOps;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -69,6 +70,7 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
+import net.minecraft.world.entity.animal.chicken.Chicken;
 import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -91,6 +93,7 @@ import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -973,6 +976,31 @@ public final class KaleidoscopeCookeryGameTests {
 
         helper.assertValueEqual(player.getHealth(), initialHealth + 1.0F,
                 "Warmth effect did not find a lit block at the scan boundary");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void caterpillarFeedUsesServerInteractionResult(GameTestHelper helper) {
+        Chicken chicken = helper.spawn(EntityTypes.CHICKEN, new BlockPos(1, 1, 1));
+        chicken.setAge(-24000);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack caterpillars = new ItemStack(ModItems.CATERPILLAR, 2);
+        player.setItemInHand(InteractionHand.MAIN_HAND, caterpillars);
+
+        InteractionResult result = UseEntityCallback.EVENT.invoker().interact(
+                player, helper.getLevel(), InteractionHand.MAIN_HAND, chicken, new EntityHitResult(chicken));
+
+        helper.assertValueEqual(result, InteractionResult.SUCCESS_SERVER,
+                "Caterpillar feeding did not request a server-authoritative swing");
+        helper.assertFalse(chicken.isBaby(), "Caterpillar feeding did not mature the baby chicken");
+        helper.assertValueEqual(caterpillars.getCount(), 1,
+                "Caterpillar feeding consumed the wrong stack count");
+        helper.assertValueEqual(UseEntityCallback.EVENT.invoker().interact(
+                        player, helper.getLevel(), InteractionHand.MAIN_HAND, chicken, new EntityHitResult(chicken)),
+                InteractionResult.PASS, "Caterpillar feeding intercepted an adult chicken");
+        helper.assertValueEqual(caterpillars.getCount(), 1,
+                "Rejected caterpillar feeding mutated the source stack");
         helper.succeed();
     }
 
