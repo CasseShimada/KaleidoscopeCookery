@@ -7,6 +7,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.FruitBasketBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.EmptyCupBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.TeacupBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.EnamelBasinBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.KitchenwareRacksBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
@@ -440,6 +442,83 @@ public final class KaleidoscopeCookeryGameTests {
                 "Strung mushrooms did not advance to their sheared state");
         helper.assertValueEqual(countItem(mushroomPlayer, Items.BROWN_MUSHROOM), 3,
                 "Strung mushrooms empty-hand harvest returned the wrong item count");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void cupBlocksUseNativeHeldAndEmptyHandInteractions(GameTestHelper helper) {
+        BlockPos emptyCupPos = new BlockPos(1, 1, 1);
+        helper.setBlock(emptyCupPos, ModBlocks.EMPTY_CUP);
+        ServerPlayer emptyCupPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, emptyCupPlayer, new BlockPos(1, 1, 2));
+        ItemStack emptyCups = new ItemStack(ModItems.EMPTY_CUP, 2);
+        emptyCupPlayer.setItemInHand(InteractionHand.MAIN_HAND, emptyCups);
+        BlockPos absoluteEmptyCupPos = helper.absolutePos(emptyCupPos);
+        BlockHitResult emptyCupHit = new BlockHitResult(
+                Vec3.atCenterOf(absoluteEmptyCupPos), Direction.UP, absoluteEmptyCupPos, false);
+        EmptyCupBlock emptyCupBlock = (EmptyCupBlock) ModBlocks.EMPTY_CUP;
+
+        InteractionResult emptyCupStackResult = emptyCupBlock.useItemOn(
+                emptyCups, helper.getLevel().getBlockState(absoluteEmptyCupPos), helper.getLevel(),
+                absoluteEmptyCupPos, emptyCupPlayer, InteractionHand.MAIN_HAND, emptyCupHit);
+
+        helper.assertValueEqual(emptyCupStackResult, InteractionResult.CONSUME,
+                "Empty cup stacking did not report success");
+        helper.assertValueEqual(emptyCups.getCount(), 1,
+                "Empty cup stacking consumed the wrong item count");
+        helper.assertValueEqual(helper.getLevel().getBlockState(absoluteEmptyCupPos).getValue(EmptyCupBlock.CUP_COUNT),
+                2, "Empty cup stacking stored the wrong cup count");
+
+        emptyCupPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        InteractionResult emptyCupTakeResult = emptyCupBlock.useWithoutItem(
+                helper.getLevel().getBlockState(absoluteEmptyCupPos), helper.getLevel(),
+                absoluteEmptyCupPos, emptyCupPlayer, emptyCupHit);
+
+        helper.assertValueEqual(emptyCupTakeResult, InteractionResult.CONSUME,
+                "Empty cup takeout did not report success");
+        helper.assertTrue(emptyCupPlayer.getMainHandItem().is(ModItems.EMPTY_CUP),
+                "Empty cup takeout returned the wrong item");
+        helper.assertValueEqual(helper.getLevel().getBlockState(absoluteEmptyCupPos).getValue(EmptyCupBlock.CUP_COUNT),
+                1, "Empty cup takeout retained the wrong cup count");
+
+        BlockPos teaCupPos = new BlockPos(2, 1, 1);
+        TeacupBlock teaCupBlock = (TeacupBlock) TeacupRegistry.getBlock(TeacupRegistry.BARLEY_TEA);
+        helper.setBlock(teaCupPos, teaCupBlock);
+        ServerPlayer teaCupPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, teaCupPlayer, new BlockPos(2, 1, 2));
+        ItemStack teaCups = new ItemStack(TeacupRegistry.getItem(TeacupRegistry.BARLEY_TEA), 2);
+        teaCupPlayer.setItemInHand(InteractionHand.MAIN_HAND, teaCups);
+        BlockPos absoluteTeaCupPos = helper.absolutePos(teaCupPos);
+        BlockHitResult teaCupHit = new BlockHitResult(
+                Vec3.atCenterOf(absoluteTeaCupPos), Direction.UP, absoluteTeaCupPos, false);
+
+        InteractionResult teaCupStackResult = teaCupBlock.useItemOn(
+                teaCups, helper.getLevel().getBlockState(absoluteTeaCupPos), helper.getLevel(),
+                absoluteTeaCupPos, teaCupPlayer, InteractionHand.MAIN_HAND, teaCupHit);
+
+        helper.assertValueEqual(teaCupStackResult, InteractionResult.CONSUME,
+                "Filled teacup stacking did not report success");
+        helper.assertValueEqual(teaCups.getCount(), 1,
+                "Filled teacup stacking consumed the wrong item count");
+        BlockState stackedTeaState = helper.getLevel().getBlockState(absoluteTeaCupPos);
+        helper.assertValueEqual(stackedTeaState.getValue(TeacupBlock.CUP_COUNT), 2,
+                "Filled teacup stacking stored the wrong cup count");
+        helper.assertValueEqual(stackedTeaState.getValue(TeacupBlock.TEA_COUNT), 2,
+                "Filled teacup stacking stored the wrong tea count");
+
+        teaCupPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        InteractionResult teaCupTakeResult = teaCupBlock.useWithoutItem(
+                stackedTeaState, helper.getLevel(), absoluteTeaCupPos, teaCupPlayer, teaCupHit);
+
+        helper.assertValueEqual(teaCupTakeResult, InteractionResult.CONSUME,
+                "Filled teacup takeout did not report success");
+        helper.assertTrue(teaCupPlayer.getMainHandItem().is(TeacupRegistry.getItem(TeacupRegistry.BARLEY_TEA)),
+                "Filled teacup takeout returned the wrong item");
+        BlockState remainingTeaState = helper.getLevel().getBlockState(absoluteTeaCupPos);
+        helper.assertValueEqual(remainingTeaState.getValue(TeacupBlock.CUP_COUNT), 1,
+                "Filled teacup takeout retained the wrong cup count");
+        helper.assertValueEqual(remainingTeaState.getValue(TeacupBlock.TEA_COUNT), 1,
+                "Filled teacup takeout retained the wrong tea count");
         helper.succeed();
     }
 

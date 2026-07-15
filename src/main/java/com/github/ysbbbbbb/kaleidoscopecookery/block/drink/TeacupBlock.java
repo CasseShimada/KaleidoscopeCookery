@@ -100,7 +100,7 @@ public class TeacupBlock extends HorizontalDirectionalBlock {
         if (hand != InteractionHand.MAIN_HAND) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        ItemStack itemInHand = player.getItemInHand(hand);
+        ItemStack itemInHand = stack;
         if (itemInHand.is(ModItems.TEAPOT)) {
             ItemStack pourOut = TeapotItem.getPourOut(itemInHand, level);
             if (pourOut.isEmpty() || pourOut.getItem() != this.asItem()) {
@@ -165,8 +165,8 @@ public class TeacupBlock extends HorizontalDirectionalBlock {
     }
 
     @Override
-    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
-                                                       Player player, BlockHitResult hitResult) {
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                                      Player player, BlockHitResult hitResult) {
         int cupCountNum = state.getValue(CUP_COUNT);
         int teaCountNum = state.getValue(TEA_COUNT);
         int emptyCountNum = cupCountNum - teaCountNum;

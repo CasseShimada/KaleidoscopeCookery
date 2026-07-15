@@ -551,6 +551,13 @@ def main() -> int:
         ("EmptyCupBlock", EMPTY_CUP_BLOCK, 1),
     ):
         drink_block_text = path.read_text(encoding="utf-8")
+        use_item = drink_block_text.split("public @NotNull InteractionResult useItemOn(", 1)[-1].split(
+            "public @NotNull InteractionResult useWithoutItem(", 1
+        )[0]
+        if "ItemStack itemInHand = stack;" not in use_item:
+            errors.append(f"{name} does not use the stack supplied to its item interaction entry point.")
+        if "player.getItemInHand(hand)" in use_item:
+            errors.append(f"{name} still reads the player's hand instead of its supplied interaction stack.")
         if drink_block_text.count("itemInHand.consume(1, player)") < expected_consumes:
             errors.append(f"{name} does not use vanilla ItemStack.consume() for cup stacking.")
         if "itemInHand.shrink(" in drink_block_text:

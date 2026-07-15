@@ -69,7 +69,7 @@ public class EmptyCupBlock extends HorizontalDirectionalBlock {
         if (hand != InteractionHand.MAIN_HAND) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        ItemStack itemInHand = player.getItemInHand(hand);
+        ItemStack itemInHand = stack;
         if (itemInHand.is(ModItems.TEAPOT)) {
             ItemStack pourOut = TeapotItem.getPourOut(itemInHand, level);
             if (!(pourOut.getItem() instanceof TeacupItem teacupItem) || !(teacupItem.getBlock() instanceof TeacupBlock teacupBlock)) {
@@ -115,8 +115,8 @@ public class EmptyCupBlock extends HorizontalDirectionalBlock {
     }
 
     @Override
-    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
-                                                       Player player, BlockHitResult hitResult) {
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                                      Player player, BlockHitResult hitResult) {
         int count = state.getValue(CUP_COUNT);
         if (!level.isClientSide()) {
             BlockState updatedState = count == 1 ? Blocks.AIR.defaultBlockState() : state.setValue(CUP_COUNT, count - 1);
