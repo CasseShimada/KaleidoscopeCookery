@@ -275,7 +275,23 @@ def main() -> int:
         errors.append("ShawarmaSpitBlockEntity does not mark cooking progress dirty.")
     if "public ItemStack cookingItem" in shawarma_spit or "public ItemStack cookedItem" in shawarma_spit or "public int cookTime" in shawarma_spit:
         errors.append("ShawarmaSpitBlockEntity still exposes mutable cooking state.")
+    if "public boolean canPutCookingItem(" not in shawarma_spit or "public boolean canTakeCookedItem()" not in shawarma_spit:
+        errors.append("ShawarmaSpitBlockEntity does not expose read-only interaction prediction.")
+    if "public boolean onTakeCookedItem(Level level, LivingEntity entity) {\n        if (!(level instanceof ServerLevel))" not in shawarma_spit:
+        errors.append("ShawarmaSpitBlockEntity can still mutate cooking state on the client.")
+    if shawarma_spit.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 2:
+        errors.append("ShawarmaSpitBlockEntity does not emit block-change events for inventory mutations.")
     shawarma_block = read(BLOCK_ROOT / "kitchen/ShawarmaSpitBlock.java")
+    shawarma_use_item = shawarma_block.split(
+        "public @NotNull InteractionResult useItemOn(", 1
+    )[-1].split("public @NotNull InteractionResult useWithoutItem(", 1)[0]
+    if "shawarmaSpit.onPutCookingItem(level, stack)" not in shawarma_use_item:
+        errors.append("ShawarmaSpitBlock does not use the stack supplied to its item interaction entry point.")
+    shawarma_use_without_item = shawarma_block.split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[-1].split("public <T extends BlockEntity> BlockEntityTicker<T> getTicker(", 1)[0]
+    if "InteractionResult.TRY_WITH_EMPTY_HAND" in shawarma_use_without_item:
+        errors.append("ShawarmaSpitBlock recursively requests empty-hand dispatch from useWithoutItem.")
     set_placed_start = shawarma_block.find("public void setPlacedBy(")
     set_placed_end = shawarma_block.find("public @NotNull FluidState getFluidState(", set_placed_start)
     set_placed_by = shawarma_block[set_placed_start:set_placed_end]

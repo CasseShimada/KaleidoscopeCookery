@@ -1,6 +1,5 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen;
 
-import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IShawarmaSpit;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ShawarmaSpitBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.mojang.serialization.MapCodec;
@@ -87,18 +86,35 @@ public class ShawarmaSpitBlock extends HorizontalDirectionalBlock implements Sim
         }
         BlockPos storagePos = getStoragePos(pos, state);
         BlockEntity blockEntity = level.getBlockEntity(storagePos);
-        if (blockEntity instanceof IShawarmaSpit shawarmaSpit) {
-            ItemStack heldItem = player.getItemInHand(hand);
+        if (blockEntity instanceof ShawarmaSpitBlockEntity shawarmaSpit) {
             if (level.isClientSide()) {
-                return InteractionResult.SUCCESS;
+                return shawarmaSpit.canPutCookingItem(level, stack) || shawarmaSpit.canTakeCookedItem()
+                        ? InteractionResult.SUCCESS
+                        : InteractionResult.TRY_WITH_EMPTY_HAND;
             }
-            if (shawarmaSpit.onPutCookingItem(level, heldItem)) {
+            if (shawarmaSpit.onPutCookingItem(level, stack)) {
                 return InteractionResult.CONSUME;
             } else if (shawarmaSpit.onTakeCookedItem(level, player)) {
                 return InteractionResult.CONSUME;
             }
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                                      BlockHitResult hitResult) {
+        if (player.isSecondaryUseActive()) {
+            return InteractionResult.PASS;
+        }
+        BlockPos storagePos = getStoragePos(pos, state);
+        if (!(level.getBlockEntity(storagePos) instanceof ShawarmaSpitBlockEntity shawarmaSpit)) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide()) {
+            return shawarmaSpit.canTakeCookedItem() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        }
+        return shawarmaSpit.onTakeCookedItem(level, player) ? InteractionResult.CONSUME : InteractionResult.PASS;
     }
 
     @Override

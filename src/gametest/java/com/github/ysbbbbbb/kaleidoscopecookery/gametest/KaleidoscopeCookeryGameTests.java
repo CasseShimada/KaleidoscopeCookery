@@ -30,6 +30,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ChoppingBoard
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.KitchenwareRacksBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ShawarmaSpitBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.SteamerBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.TeapotBlockEntity;
@@ -717,6 +718,50 @@ public final class KaleidoscopeCookeryGameTests {
                 DoubleBlockHalf.UPPER, "Shawarma spit placed an invalid upper-half state");
         helper.assertTrue(upperState.getValue(ShawarmaSpitBlock.WATERLOGGED),
                 "Shawarma spit did not preserve water at its upper position");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void shawarmaSpitUsesSuppliedStackAndNativeEmptyHandTakeout(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.SHAWARMA_SPIT);
+        ShawarmaSpitBlockEntity shawarmaSpit = helper.getBlockEntity(pos, ShawarmaSpitBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(1, 1, 2));
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        ShawarmaSpitBlock block = (ShawarmaSpitBlock) ModBlocks.SHAWARMA_SPIT;
+        ItemStack beef = Items.BEEF.getDefaultInstance();
+
+        InteractionResult putResult = block.useItemOn(
+                beef, helper.getBlockState(pos), helper.getLevel(), absolutePos,
+                player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(putResult, InteractionResult.CONSUME,
+                "Shawarma spit did not accept the stack supplied to useItemOn");
+        helper.assertTrue(beef.isEmpty()
+                        && player.getMainHandItem().is(Items.STONE)
+                        && shawarmaSpit.getStoredItem().is(Items.BEEF),
+                "Shawarma spit reread the player's hand instead of using the supplied stack");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+        InteractionResult takeResult = block.useWithoutItem(
+                helper.getBlockState(pos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(takeResult, InteractionResult.CONSUME,
+                "Shawarma spit empty-hand takeout did not report success");
+        helper.assertTrue(player.getMainHandItem().is(Items.BEEF) && shawarmaSpit.getStoredItem().isEmpty(),
+                "Shawarma spit did not return and clear its uncooked ingredient");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        helper.assertValueEqual(block.useWithoutItem(
+                        helper.getBlockState(pos), helper.getLevel(), absolutePos, player, hitResult),
+                InteractionResult.PASS, "Empty shawarma spit did not pass empty-hand handling onward");
+        player.setShiftKeyDown(true);
+        helper.assertValueEqual(block.useWithoutItem(
+                        helper.getBlockState(pos), helper.getLevel(), absolutePos, player, hitResult),
+                InteractionResult.PASS, "Shawarma spit did not preserve secondary-use bypass behavior");
         helper.succeed();
     }
 

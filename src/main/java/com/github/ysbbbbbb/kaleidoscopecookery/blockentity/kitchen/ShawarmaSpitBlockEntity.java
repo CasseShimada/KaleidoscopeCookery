@@ -18,6 +18,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -41,14 +42,12 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
     @Override
     public boolean onPutCookingItem(Level level, ItemStack itemStack) {
         // 先判断能否放入物品
-        if (!this.cookingItem.isEmpty() || !this.cookedItem.isEmpty()) {
+        if (!(level instanceof ServerLevel serverLevel)
+                || !this.cookingItem.isEmpty() || !this.cookedItem.isEmpty()) {
             return false;
         }
         // 尝试通过输入的物品寻找营火配方
         SingleRecipeInput singleRecipeInput = new SingleRecipeInput(itemStack);
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return false;
-        }
         return this.quickCheck.getRecipeFor(singleRecipeInput, serverLevel).map(recipe -> {
             // 如果找到了配方，则设置正在烹饪的物品和烹饪时间
             this.cookingItem = itemStack.split(MAX_ITEMS);
@@ -56,22 +55,40 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
             this.cookedItem.setCount(this.cookingItem.getCount());
             this.cookTime = recipe.value().cookingTime();
             this.setChangedAndSync();
-            if (level instanceof ServerLevel) {
-                level.playSound(null,
-                        worldPosition.getX() + 0.5,
-                        worldPosition.getY() + 0.5,
-                        worldPosition.getZ() + 0.5,
-                        SoundEvents.ITEM_FRAME_ADD_ITEM,
-                        SoundSource.BLOCKS,
-                        0.5F + level.getRandom().nextFloat(),
-                        level.getRandom().nextFloat() * 0.7F + 0.6F);
-            }
+            level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(this.getBlockState()));
+            level.playSound(null,
+                    worldPosition.getX() + 0.5,
+                    worldPosition.getY() + 0.5,
+                    worldPosition.getZ() + 0.5,
+                    SoundEvents.ITEM_FRAME_ADD_ITEM,
+                    SoundSource.BLOCKS,
+                    0.5F + level.getRandom().nextFloat(),
+                    level.getRandom().nextFloat() * 0.7F + 0.6F);
             return true;
         }).orElse(false);
     }
 
+    public boolean canPutCookingItem(Level level, ItemStack itemStack) {
+        if (itemStack.isEmpty() || !this.cookingItem.isEmpty() || !this.cookedItem.isEmpty()) {
+            return false;
+        }
+        if (level.recipeAccess() instanceof RecipeManager recipeManager) {
+            return recipeManager.getRecipeFor(
+                    RecipeType.CAMPFIRE_COOKING, new SingleRecipeInput(itemStack), level).isPresent();
+        }
+        return false;
+    }
+
+    public boolean canTakeCookedItem() {
+        return this.cookTime <= 0 && !this.cookedItem.isEmpty()
+                || this.cookTime > 0 && !this.cookingItem.isEmpty();
+    }
+
     @Override
     public boolean onTakeCookedItem(Level level, LivingEntity entity) {
+        if (!(level instanceof ServerLevel)) {
+            return false;
+        }
         ItemStack mainHandItem = entity.getMainHandItem();
 
         // 如果有烹饪完成的物品，则将其取出
@@ -94,6 +111,7 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
         this.cookedItem = ItemStack.EMPTY;
         this.cookTime = 0;
         this.setChangedAndSync();
+        level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(entity, this.getBlockState()));
 
         if (!mainHandItem.is(TagMod.KITCHEN_KNIFE)
             && this.getBlockState().getValue(ShawarmaSpitBlock.POWERED)
