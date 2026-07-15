@@ -695,9 +695,14 @@ def main() -> int:
             errors.append(f"{path.name} does not confirm matching satellite removal.")
 
     stove_block_text = STOVE_BLOCK.read_text(encoding="utf-8")
-    if "itemInHand.consume(1, player)" not in stove_block_text:
+    stove_use_item = stove_block_text.split(
+        "public @NotNull InteractionResult useItemOn(", 1
+    )[-1].split("public void onProjectileHit(", 1)[0]
+    if "stack.consume(1, player)" not in stove_use_item:
         errors.append("StoveBlock does not use vanilla ItemStack.consume() for fire charges.")
-    if "itemInHand.shrink(" in stove_block_text:
+    if "player.getItemInHand(hand)" in stove_use_item:
+        errors.append("StoveBlock does not use the stack supplied to its item interaction entry point.")
+    if "stack.shrink(" in stove_use_item:
         errors.append("StoveBlock still manually shrinks fire charges.")
     if stove_block_text.count("GameEvent.BLOCK_CHANGE") != 4:
         errors.append("StoveBlock does not emit a block-change game event for every distinct lit-state update path.")

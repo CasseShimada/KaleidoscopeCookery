@@ -19,6 +19,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.SteamerBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StoveBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.TeapotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.ChiliRistraBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
@@ -247,6 +248,46 @@ public final class KaleidoscopeCookeryGameTests {
                 "Pot reread the player's hand instead of using the supplied stack");
         helper.assertTrue(helper.getBlockState(potPos).getValue(PotBlock.HAS_OIL),
                 "Pot did not commit oil from the supplied stack");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void stoveUsesStackSuppliedToHeldInteraction(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.STOVE);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(1, 1, 2));
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        StoveBlock block = (StoveBlock) ModBlocks.STOVE;
+        ItemStack fireCharges = new ItemStack(Items.FIRE_CHARGE, 2);
+
+        InteractionResult lightResult = block.useItemOn(
+                fireCharges, helper.getBlockState(pos), helper.getLevel(), absolutePos,
+                player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(lightResult, InteractionResult.CONSUME,
+                "Stove ignition did not report a server-side mutation");
+        helper.assertTrue(helper.getBlockState(pos).getValue(StoveBlock.LIT)
+                        && fireCharges.getCount() == 1
+                        && player.getMainHandItem().is(Items.STONE),
+                "Stove reread the player's hand instead of consuming the supplied fire charge");
+        ItemStack shovel = Items.IRON_SHOVEL.getDefaultInstance();
+
+        InteractionResult extinguishResult = block.useItemOn(
+                shovel, helper.getBlockState(pos), helper.getLevel(), absolutePos,
+                player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(extinguishResult, InteractionResult.CONSUME,
+                "Stove extinguishing did not report a server-side mutation");
+        helper.assertFalse(helper.getBlockState(pos).getValue(StoveBlock.LIT),
+                "Stove did not extinguish from the supplied shovel");
+        helper.assertValueEqual(shovel.getDamageValue(), 1,
+                "Stove did not damage the supplied extinguishing tool");
+        helper.assertTrue(player.getMainHandItem().is(Items.STONE),
+                "Stove mutated the player's unrelated held stack");
         helper.succeed();
     }
 
