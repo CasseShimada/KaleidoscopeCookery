@@ -59,9 +59,10 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
         }
     }
 
-    public void putItem(ItemStack stack, boolean consumeSourceStack) {
-        if (stack.isEmpty() || !stack.getItem().canFitInsideContainerItems()) {
-            return;
+    public boolean putItem(ItemStack stack, boolean consumeSourceStack) {
+        if (!(this.level instanceof ServerLevel)
+                || stack.isEmpty() || !stack.getItem().canFitInsideContainerItems()) {
+            return false;
         }
         int storedCount = storeItem(stack);
         if (consumeSourceStack) {
@@ -72,6 +73,7 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
             level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_PUT, 0);
         }
         this.setChangedAndSync();
+        return true;
     }
 
     private int storeItem(ItemStack stack) {
@@ -90,9 +92,10 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
         this.storage.setItem(2, stack.copy());
     }
 
-    public void withdrawItem(LivingEntity user) {
-        if (!user.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
-            return;
+    public boolean withdrawItem(LivingEntity user) {
+        if (!(this.level instanceof ServerLevel)
+                || !user.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
+            return false;
         }
         for (int i = storage.getContainerSize() - 1; i >= 0; i--) {
             ItemStack stack = storage.removeItemNoUpdate(i);
@@ -103,9 +106,10 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
                     level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_WITHDRAW, 0);
                 }
                 this.setChangedAndSync();
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     private boolean absorbMatchingItem(ItemStack itemStack) {

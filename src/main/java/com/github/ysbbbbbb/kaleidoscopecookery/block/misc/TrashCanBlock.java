@@ -96,11 +96,13 @@ public class TrashCanBlock extends HorizontalDirectionalBlock implements SimpleW
         }
         if (level.getBlockEntity(pos) instanceof TrashCanBlockEntity trashCan) {
             ItemStack itemInHand = player.getItemInHand(hand);
-            if (!itemInHand.isEmpty()) {
-                if (!level.isClientSide()) {
-                    trashCan.putItem(itemInHand, !player.hasInfiniteMaterials());
+            if (!itemInHand.isEmpty() && itemInHand.getItem().canFitInsideContainerItems()) {
+                if (level.isClientSide()) {
+                    return InteractionResult.SUCCESS;
                 }
-                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+                return trashCan.putItem(itemInHand, !player.hasInfiniteMaterials())
+                        ? InteractionResult.SUCCESS
+                        : InteractionResult.TRY_WITH_EMPTY_HAND;
             }
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -109,10 +111,10 @@ public class TrashCanBlock extends HorizontalDirectionalBlock implements SimpleW
     @Override
     public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.getBlockEntity(pos) instanceof TrashCanBlockEntity trashCan && player.isSecondaryUseActive()) {
-            if (!level.isClientSide()) {
-                trashCan.withdrawItem(player);
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
             }
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+            return trashCan.withdrawItem(player) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         }
         return InteractionResult.PASS;
     }

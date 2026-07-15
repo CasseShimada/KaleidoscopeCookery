@@ -283,6 +283,14 @@ def main() -> int:
         errors.append("TrashCanBlockEntity still mutates absorbed item entities on the client.")
     if "level.blockEvent" not in trash_can or "boolean triggerEvent" not in trash_can:
         errors.append("TrashCanBlockEntity does not synchronize animations through block events.")
+    for required_reference in (
+        "public boolean putItem(",
+        "public boolean withdrawItem(",
+    ):
+        if required_reference not in trash_can:
+            errors.append(f"TrashCanBlockEntity mutation result contract is missing {required_reference}.")
+    if trash_can.count("if (!(this.level instanceof ServerLevel)") != 2:
+        errors.append("TrashCanBlockEntity manual inventory mutations are not server-authoritative.")
     chair_block = read(BLOCK_ROOT / "decoration/ChairBlock.java")
     table_block = read(BLOCK_ROOT / "decoration/TableBlock.java")
     if ".refresh()" in chair_block or ".refresh()" in table_block:

@@ -463,10 +463,13 @@ public final class KaleidoscopeCookeryGameTests {
         TrashCanBlockEntity trashCan = helper.getBlockEntity(pos, TrashCanBlockEntity.class);
 
         ItemStack firstApples = new ItemStack(Items.APPLE, 63);
-        trashCan.putItem(firstApples, true);
+        helper.assertTrue(trashCan.putItem(firstApples, true),
+                "Trash can rejected a valid survival insertion");
         ItemStack moreApples = new ItemStack(Items.APPLE, 3);
-        trashCan.putItem(moreApples, true);
-        trashCan.putItem(Items.POTATO.getDefaultInstance(), true);
+        helper.assertTrue(trashCan.putItem(moreApples, true),
+                "Trash can rejected a mergeable survival insertion");
+        helper.assertTrue(trashCan.putItem(Items.POTATO.getDefaultInstance(), true),
+                "Trash can rejected a valid history insertion");
 
         List<ItemStack> initialItems = trashCan.getStoredItems();
         helper.assertTrue(firstApples.isEmpty() && moreApples.isEmpty(),
@@ -479,7 +482,8 @@ public final class KaleidoscopeCookeryGameTests {
                 "Trash can did not preserve the insertion remainder");
 
         ItemStack creativeCarrot = Items.CARROT.getDefaultInstance();
-        trashCan.putItem(creativeCarrot, false);
+        helper.assertTrue(trashCan.putItem(creativeCarrot, false),
+                "Trash can rejected a valid creative insertion");
         List<ItemStack> rotatedItems = trashCan.getStoredItems();
         helper.assertValueEqual(creativeCarrot.getCount(), 1,
                 "Creative trash-can insertion mutated the source stack");
@@ -488,12 +492,21 @@ public final class KaleidoscopeCookeryGameTests {
                         && rotatedItems.get(2).is(Items.CARROT),
                 "Full trash can did not rotate out only its oldest stack");
 
+        ItemStack shulkerBox = Items.SHULKER_BOX.getDefaultInstance();
+        helper.assertFalse(trashCan.putItem(shulkerBox, true),
+                "Trash can accepted an item that cannot be nested in containers");
+        helper.assertValueEqual(shulkerBox.getCount(), 1,
+                "Rejected trash-can insertion mutated the source stack");
+
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        trashCan.withdrawItem(player);
+        helper.assertTrue(trashCan.withdrawItem(player),
+                "Trash can rejected a valid withdrawal");
         helper.assertTrue(player.getMainHandItem().is(Items.CARROT),
                 "Trash can did not withdraw its newest stack first");
         helper.assertValueEqual(trashCan.getStoredItems().size(), 2,
                 "Trash can retained the withdrawn stack");
+        helper.assertFalse(trashCan.withdrawItem(player),
+                "Trash can withdrew another stack into an occupied hand");
         helper.succeed();
     }
 
