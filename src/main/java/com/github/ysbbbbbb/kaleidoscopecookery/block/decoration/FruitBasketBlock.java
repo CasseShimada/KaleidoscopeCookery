@@ -87,50 +87,45 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
 
     @Override
     public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (hand == InteractionHand.OFF_HAND) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
-        }
-        if (stack.isEmpty()) {
-            return this.useWithoutItem(state, level, pos, player, hitResult);
+        if (hand != InteractionHand.MAIN_HAND) {
+            return InteractionResult.PASS;
         }
         if (level.getBlockEntity(pos) instanceof FruitBasketBlockEntity fruitBasket) {
             if (player.isSecondaryUseActive()) {
-                if (level.isClientSide()) {
-                    return InteractionResult.SUCCESS;
-                }
-                if (fruitBasket.takeOut(player)) {
-                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-                    return InteractionResult.CONSUME;
-                }
-                return InteractionResult.TRY_WITH_EMPTY_HAND;
+                return takeOut(state, level, pos, player, fruitBasket);
             }
-            if (!player.getMainHandItem().isEmpty()) {
-                if (level.isClientSide()) {
-                    return InteractionResult.SUCCESS;
-                }
-                if (fruitBasket.putOn(player.getMainHandItem(), !player.hasInfiniteMaterials())) {
-                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-                    return InteractionResult.CONSUME;
-                }
-                return InteractionResult.TRY_WITH_EMPTY_HAND;
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
             }
+            if (fruitBasket.putOn(stack, !player.hasInfiniteMaterials())) {
+                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+                return InteractionResult.CONSUME;
+            }
+            return InteractionResult.PASS;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     @Override
-    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!player.isSecondaryUseActive() || !(level.getBlockEntity(pos) instanceof FruitBasketBlockEntity fruitBasket)) {
             return InteractionResult.PASS;
         }
+        return takeOut(state, level, pos, player, fruitBasket);
+    }
+
+    private static InteractionResult takeOut(BlockState state, Level level, BlockPos pos, Player player,
+                                             FruitBasketBlockEntity fruitBasket) {
         if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+            return fruitBasket.getItems().stream().anyMatch(item -> !item.isEmpty())
+                    ? InteractionResult.SUCCESS
+                    : InteractionResult.PASS;
         }
         if (fruitBasket.takeOut(player)) {
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
         }
-        return InteractionResult.TRY_WITH_EMPTY_HAND;
+        return InteractionResult.PASS;
     }
 
     @Override

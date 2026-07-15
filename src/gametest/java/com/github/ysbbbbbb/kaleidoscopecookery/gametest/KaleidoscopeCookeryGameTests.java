@@ -5,6 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.FruitBasketBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.EnamelBasinBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.KitchenwareRacksBlock;
@@ -346,6 +347,52 @@ public final class KaleidoscopeCookeryGameTests {
                 "Steamer empty-hand food takeout returned the wrong item");
         helper.assertTrue(steamer.getItems().stream().allMatch(ItemStack::isEmpty),
                 "Steamer retained the withdrawn food");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void fruitBasketUsesNativeHeldAndEmptyHandInteractions(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.FRUIT_BASKET);
+        FruitBasketBlockEntity basket = helper.getBlockEntity(pos, FruitBasketBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack apples = new ItemStack(Items.APPLE, 3);
+        player.setItemInHand(InteractionHand.MAIN_HAND, apples);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        BlockState state = helper.getLevel().getBlockState(absolutePos);
+        FruitBasketBlock block = (FruitBasketBlock) ModBlocks.FRUIT_BASKET;
+
+        InteractionResult insertResult = block.useItemOn(
+                apples, state, helper.getLevel(), absolutePos, player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(insertResult, InteractionResult.CONSUME,
+                "Fruit basket item insertion did not report success");
+        helper.assertTrue(player.getMainHandItem().isEmpty(),
+                "Fruit basket did not consume the inserted stack");
+        helper.assertValueEqual(basket.getItems().getFirst().getCount(), 3,
+                "Fruit basket stored the wrong item count");
+
+        player.setShiftKeyDown(true);
+        InteractionResult takeResult = block.useWithoutItem(
+                state, helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(takeResult, InteractionResult.CONSUME,
+                "Fruit basket empty-hand takeout did not report success");
+        helper.assertTrue(player.getMainHandItem().is(Items.APPLE)
+                        && player.getMainHandItem().getCount() == 3,
+                "Fruit basket empty-hand takeout returned the wrong stack");
+        helper.assertTrue(basket.getItems().stream().allMatch(ItemStack::isEmpty),
+                "Fruit basket retained the withdrawn stack");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        InteractionResult emptyResult = block.useWithoutItem(
+                state, helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(emptyResult, InteractionResult.PASS,
+                "Empty fruit basket takeout did not pass interaction handling onward");
         helper.succeed();
     }
 

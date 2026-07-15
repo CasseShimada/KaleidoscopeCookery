@@ -235,7 +235,19 @@ def main() -> int:
     fruit_basket_block = read(BLOCK_ROOT / "decoration/FruitBasketBlock.java")
     if "public boolean putOn(" not in fruit_basket or "public boolean takeOut(" not in fruit_basket:
         errors.append("FruitBasketBlockEntity does not report whether inventory interactions changed state.")
-    if fruit_basket_block.count("level.gameEvent(GameEvent.BLOCK_CHANGE, pos") < 3:
+    fruit_basket_use_item = fruit_basket_block.split("public @NotNull InteractionResult useItemOn(", 1)[-1].split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[0]
+    if "stack.isEmpty()" in fruit_basket_use_item or "this.useWithoutItem(" in fruit_basket_use_item:
+        errors.append("FruitBasketBlock still manually forwards empty stacks from useItemOn.")
+    if "fruitBasket.putOn(stack, !player.hasInfiniteMaterials())" not in fruit_basket_use_item:
+        errors.append("FruitBasketBlock does not use the stack supplied to its item interaction entry point.")
+    fruit_basket_use_without_item = fruit_basket_block.split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[-1].split("private static InteractionResult takeOut(", 1)[0]
+    if "InteractionResult.TRY_WITH_EMPTY_HAND" in fruit_basket_use_without_item:
+        errors.append("FruitBasketBlock recursively requests empty-hand dispatch from useWithoutItem.")
+    if fruit_basket_block.count("level.gameEvent(GameEvent.BLOCK_CHANGE, pos") < 2:
         errors.append("FruitBasketBlock does not emit block-change events for successful inventory interactions.")
     kitchenware_racks = read(BLOCK_ENTITY_ROOT / "kitchen/KitchenwareRacksBlockEntity.java")
     if "if (this.level == null || this.level.isClientSide())" not in kitchenware_racks:
