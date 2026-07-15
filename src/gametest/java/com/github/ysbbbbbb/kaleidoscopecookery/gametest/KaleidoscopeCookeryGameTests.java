@@ -5,6 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.KitchenwareRacksBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.NinePart;
@@ -12,6 +13,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.OilPotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.KitchenwareRacksBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
@@ -252,6 +254,44 @@ public final class KaleidoscopeCookeryGameTests {
                 "Kitchenware rack empty-hand takeout returned the wrong tool");
         helper.assertTrue(racks.getItemLeft().isEmpty() && racks.getItemRight().isEmpty(),
                 "Kitchenware rack retained the withdrawn tool");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void tableSupportsNativeEmptyHandTakeout(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.TABLE_OAK);
+        TableBlockEntity table = helper.getBlockEntity(pos, TableBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack apples = new ItemStack(Items.APPLE, 2);
+        player.setItemInHand(InteractionHand.MAIN_HAND, apples);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        BlockState state = helper.getLevel().getBlockState(absolutePos);
+        TableBlock block = (TableBlock) ModBlocks.TABLE_OAK;
+
+        InteractionResult insertResult = block.useItemOn(
+                apples, state, helper.getLevel(), absolutePos, player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(insertResult, InteractionResult.SUCCESS,
+                "Table did not report a successful item insertion");
+        helper.assertValueEqual(apples.getCount(), 1,
+                "Table insertion consumed the wrong item count");
+        helper.assertTrue(table.getLastItem().is(Items.APPLE),
+                "Table did not store the inserted item");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        InteractionResult takeResult = block.useWithoutItem(
+                state, helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(takeResult, InteractionResult.SUCCESS,
+                "Table empty-hand takeout did not report success");
+        helper.assertTrue(player.getMainHandItem().is(Items.APPLE),
+                "Table empty-hand takeout returned the wrong item");
+        helper.assertTrue(table.getLastItem().isEmpty(),
+                "Table retained the withdrawn item");
         helper.succeed();
     }
 

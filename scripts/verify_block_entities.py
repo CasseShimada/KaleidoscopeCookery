@@ -307,6 +307,13 @@ def main() -> int:
         errors.append("Furniture blocks still call the legacy block entity refresh API.")
     if "tableItems.set(" in table_block:
         errors.append("TableBlock still mutates the table block entity inventory directly.")
+    if "public InteractionResult useWithoutItem(" not in table_block:
+        errors.append("TableBlock does not route empty-hand takeout through the native interaction entry point.")
+    if "boolean handEmpty" in table_block:
+        errors.append("TableBlock still handles unreachable empty-hand takeout in useItemOn.")
+    table_block_entity = read(BLOCK_ENTITY_ROOT / "decoration/TableBlockEntity.java")
+    if table_block_entity.count("this.level == null || this.level.isClientSide()") != 2:
+        errors.append("TableBlockEntity inventory mutations are not server-authoritative.")
     if table_block.count("setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true))") != 1:
         errors.append("TableBlock does not reserve block-state updates for initial carpet placement.")
     if chair_block.count("setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true))") != 1:

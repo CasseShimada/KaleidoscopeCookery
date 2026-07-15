@@ -77,55 +77,60 @@ public class TableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
     @Override
     public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack itemInHand = player.getItemInHand(hand);
         if (hand == InteractionHand.MAIN_HAND) {
-            if (itemInHand.is(ItemTags.WOOL_CARPETS)) {
-                return useWithCarpets(state, level, pos, player, itemInHand);
+            if (stack.is(ItemTags.WOOL_CARPETS)) {
+                return useWithCarpets(state, level, pos, player, stack);
             } else if (level.getBlockEntity(pos) instanceof TableBlockEntity table) {
-                return useWithOther(state, level, pos, player, table, itemInHand);
+                return useWithItem(state, level, pos, player, table, stack);
             }
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
     @NotNull
-    private InteractionResult useWithOther(BlockState state, Level level, BlockPos pos, Player player,
-                                           TableBlockEntity table, ItemStack itemInHand) {
+    private InteractionResult useWithItem(BlockState state, Level level, BlockPos pos, Player player,
+                                          TableBlockEntity table, ItemStack itemInHand) {
         ItemStack tableItem = table.getLastItem();
 
-        boolean handEmpty = itemInHand.isEmpty();
-
-        // 玩家手为空，桌子有物品：取出桌子物品
-        if (handEmpty && !tableItem.isEmpty()) {
-            if (!level.isClientSide()) {
-                level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, player.getSoundSource(), 1.0F, 1.0F);
-                ItemUtils.getItemToLivingEntity(player, table.removeLastItem(), player.getInventory().getSelectedSlot());
-                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            }
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
-        }
-
         // 玩家手有物品，并且可以放入物品时
-        if (!handEmpty && table.canAddItem()) {
-            if (!level.isClientSide()) {
-                ItemStack split = itemInHand.copyWithCount(1);
-                if (table.addItem(split)) {
-                    if (!player.hasInfiniteMaterials()) {
-                        itemInHand.consume(1, player);
-                    }
-                    level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
-                    level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-                }
+        if (table.canAddItem()) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
             }
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+            if (!table.addItem(itemInHand.copyWithCount(1))) {
+                return InteractionResult.TRY_WITH_EMPTY_HAND;
+            }
+            itemInHand.consume(1, player);
+            level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, player.getSoundSource(), 1.0F, 1.0F);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            return InteractionResult.SUCCESS;
         }
 
         // 桌子已满时，拦截后续物品交互，避免物品直接放到桌面上方
-        if (!handEmpty && !table.canAddItem() && !tableItem.isEmpty()) {
+        if (!tableItem.isEmpty()) {
             return InteractionResult.CONSUME.withoutItem();
         }
 
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                            BlockHitResult hit) {
+        if (!(level.getBlockEntity(pos) instanceof TableBlockEntity table) || table.getLastItem().isEmpty()) {
+            return super.useWithoutItem(state, level, pos, player, hit);
+        }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        ItemStack removed = table.removeLastItem();
+        if (removed.isEmpty()) {
+            return super.useWithoutItem(state, level, pos, player, hit);
+        }
+        ItemUtils.getItemToLivingEntity(player, removed, player.getInventory().getSelectedSlot());
+        level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, player.getSoundSource(), 1.0F, 1.0F);
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        return InteractionResult.SUCCESS;
     }
 
     @NotNull

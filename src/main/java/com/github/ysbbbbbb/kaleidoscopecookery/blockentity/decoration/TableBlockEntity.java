@@ -59,7 +59,7 @@ public class TableBlockEntity extends BaseBlockEntity {
     }
 
     public boolean addItem(ItemStack stack) {
-        if (stack.isEmpty()) {
+        if (this.level == null || this.level.isClientSide() || stack.isEmpty()) {
             return false;
         }
         int index = this.getLastItemIndex() + 1;
@@ -72,6 +72,9 @@ public class TableBlockEntity extends BaseBlockEntity {
     }
 
     public ItemStack removeLastItem() {
+        if (this.level == null || this.level.isClientSide()) {
+            return ItemStack.EMPTY;
+        }
         int index = this.getLastItemIndex();
         if (index < 0) {
             return ItemStack.EMPTY;
