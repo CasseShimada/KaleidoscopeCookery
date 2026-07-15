@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.UseRemainder;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -133,9 +134,12 @@ public final class ItemUtils {
             }
         }
         Item item = stack.getItem();
-        ItemStack remainingItem = item.getCraftingRemainder().create();
-        if (!remainingItem.isEmpty()) {
-            return remainingItem;
+        ItemStackTemplate craftingRemainder = item.getCraftingRemainder();
+        if (craftingRemainder != null) {
+            ItemStack remainingItem = craftingRemainder.create();
+            if (!remainingItem.isEmpty()) {
+                return remainingItem;
+            }
         }
         if (stack.is(TagMod.BOWL_CONTAINER)) {
             return Items.BOWL.getDefaultInstance();

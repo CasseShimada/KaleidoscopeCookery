@@ -117,17 +117,13 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
         }
         ItemStack itemInHand = player.getItemInHand(hand);
         if (level.isClientSide()) {
-            if (itemInHand.isEmpty() || itemInHand.is(ModItems.KITCHEN_SHOVEL) || state.getValue(HAS_OIL)) {
+            if (itemInHand.is(ModItems.KITCHEN_SHOVEL) || state.getValue(HAS_OIL)) {
                 return InteractionResult.SUCCESS;
             }
             return pot.hasHeatSource(level) ? InteractionResult.SUCCESS : InteractionResult.FAIL;
         }
         RandomSource random = level.getRandom();
-        // 先检查执行配菜取出逻辑
-        if (itemInHand.isEmpty() && pot.removeIngredient(level, player)) {
-            return InteractionResult.SUCCESS;
-        }
-        // 再检查成品取出逻辑
+        // 先检查成品取出逻辑
         if (pot.takeOutProduct(level, player, player.getMainHandItem())) {
             return InteractionResult.SUCCESS;
         }
@@ -160,6 +156,32 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
             return InteractionResult.CONSUME;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                            BlockHitResult hitResult) {
+        if (!(level.getBlockEntity(pos) instanceof IPot pot)) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (pot.removeIngredient(level, player)) {
+            return InteractionResult.SUCCESS;
+        }
+        if (pot.takeOutProduct(level, player, ItemStack.EMPTY)) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!pot.hasHeatSource(level)) {
+            this.sendBarMessage(player, "tip.kaleidoscope_cookery.pot.need_lit_stove");
+            return InteractionResult.FAIL;
+        }
+        if (!state.getValue(HAS_OIL)) {
+            this.sendBarMessage(player, "tip.kaleidoscope_cookery.pot.need_oil");
+            return InteractionResult.FAIL;
+        }
+        return InteractionResult.PASS;
     }
 
     private void sendBarMessage(Player player, String key) {

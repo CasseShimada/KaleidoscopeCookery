@@ -855,6 +855,27 @@ def main() -> int:
     if oil_pot_text.count("GameEvent.BLOCK_CHANGE") < 2:
         errors.append("OilPotBlock does not emit block-change events for both oil transfer directions.")
 
+    pot_block_text = (SRC / "block/kitchen/PotBlock.java").read_text(encoding="utf-8")
+    for required_reference in (
+        "public InteractionResult useWithoutItem(",
+        "pot.removeIngredient(level, player)",
+        "pot.takeOutProduct(level, player, ItemStack.EMPTY)",
+    ):
+        if required_reference not in pot_block_text:
+            errors.append(f"PotBlock native empty-hand interaction is missing {required_reference}.")
+    pot_use_item = pot_block_text.split("public InteractionResult useItemOn(", 1)[-1].split(
+        "public InteractionResult useWithoutItem(", 1
+    )[0]
+    if "itemInHand.isEmpty()" in pot_use_item:
+        errors.append("PotBlock still handles empty-hand ingredient removal through useItemOn.")
+
+    item_utils_text = (SRC / "util/ItemUtils.java").read_text(encoding="utf-8")
+    if "ItemStackTemplate craftingRemainder = item.getCraftingRemainder();" not in item_utils_text \
+            or "if (craftingRemainder != null)" not in item_utils_text:
+        errors.append("ItemUtils does not handle the nullable vanilla crafting remainder template.")
+    if "getCraftingRemainder().create()" in item_utils_text:
+        errors.append("ItemUtils still dereferences nullable crafting remainder templates directly.")
+
     if SICKLE_NETHER_WART_EVENT.exists():
         sickle_nether_wart_text = SICKLE_NETHER_WART_EVENT.read_text(encoding="utf-8")
         for required_reference in (

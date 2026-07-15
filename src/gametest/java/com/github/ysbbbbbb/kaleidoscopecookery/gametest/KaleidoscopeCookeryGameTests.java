@@ -10,6 +10,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.KitchenwareRacksBlo
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.NinePart;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.OilPotBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
@@ -177,6 +178,33 @@ public final class KaleidoscopeCookeryGameTests {
                 "Kitchen shovel takeout did not reset the finished pot");
         helper.assertTrue(player.getMainHandItem() == shovel && !shovel.isEmpty(),
                 "Kitchen shovel takeout consumed or replaced the shovel");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void potSupportsNativeEmptyHandIngredientRemoval(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.POT);
+        PotBlockEntity pot = helper.getBlockEntity(pos, PotBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack ingredient = Items.APPLE.getDefaultInstance();
+        helper.assertTrue(pot.addIngredient(helper.getLevel(), player, ingredient),
+                "Pot rejected the test ingredient");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+
+        InteractionResult result = ((PotBlock) ModBlocks.POT).useWithoutItem(
+                helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(result, InteractionResult.SUCCESS,
+                "Pot empty-hand ingredient removal did not report success");
+        helper.assertTrue(player.getMainHandItem().is(Items.APPLE),
+                "Pot empty-hand ingredient removal returned the wrong item");
+        helper.assertTrue(pot.getInputs().stream().allMatch(ItemStack::isEmpty),
+                "Pot retained the removed ingredient");
         helper.succeed();
     }
 
@@ -670,6 +698,8 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(ItemStack.isSameItemSameComponents(
                         ItemUtils.getContainerStack(componentCarrier), namedBowl),
                 "Container lookup discarded remainder stack components");
+        helper.assertTrue(ItemUtils.getContainerStack(Items.APPLE.getDefaultInstance()).isEmpty(),
+                "Container lookup did not accept an item without a crafting remainder");
         helper.succeed();
     }
 
