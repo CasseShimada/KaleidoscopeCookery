@@ -80,9 +80,9 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
     @Override
     public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (hand != InteractionHand.MAIN_HAND) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
+            return InteractionResult.PASS;
         }
-        ItemStack mainHandItem = player.getMainHandItem();
+        ItemStack mainHandItem = stack;
         // 先判断棍子敲
         if (mainHandItem.is(Items.STICK)) {
             if (!level.isClientSide()) {
@@ -94,27 +94,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
         // 再判断开盖
         boolean hasLid = state.getValue(HAS_LID);
         if (hasLid) {
-            if (level.isClientSide()) {
-                return InteractionResult.SUCCESS;
-            }
-            if (!level.setBlockAndUpdate(pos, state.setValue(HAS_LID, false))) {
-                return InteractionResult.FAIL;
-            }
-            level.playSound(null, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, 0.8f);
-            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            return InteractionResult.CONSUME;
-        }
-        // 没有盖子，并且是空手，那么盖上盖子
-        if (mainHandItem.isEmpty()) {
-            if (level.isClientSide()) {
-                return InteractionResult.SUCCESS;
-            }
-            if (!level.setBlockAndUpdate(pos, state.setValue(HAS_LID, true))) {
-                return InteractionResult.FAIL;
-            }
-            level.playSound(null, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, 0.4f);
-            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            return InteractionResult.CONSUME;
+            return setLid(state, level, pos, player, false);
         }
         // 手持油脂时，消耗油脂添加进去
         if (mainHandItem.is(ModItems.OIL)) {
@@ -141,7 +121,26 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
         if (mainHandItem.is(ModItems.KITCHEN_SHOVEL)) {
             return onShovelClick(state, level, pos, player, mainHandItem);
         }
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                                      BlockHitResult hitResult) {
+        return setLid(state, level, pos, player, !state.getValue(HAS_LID));
+    }
+
+    private static InteractionResult setLid(BlockState state, Level level, BlockPos pos, Player player,
+                                            boolean hasLid) {
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!level.setBlockAndUpdate(pos, state.setValue(HAS_LID, hasLid))) {
+            return InteractionResult.FAIL;
+        }
+        level.playSound(null, pos, SoundEvents.LANTERN_BREAK, SoundSource.BLOCKS, 0.8f, hasLid ? 0.4f : 0.8f);
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        return InteractionResult.CONSUME;
     }
 
     @NotNull

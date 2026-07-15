@@ -6,6 +6,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.EnamelBasinBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.KitchenwareRacksBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.NinePart;
@@ -248,6 +249,49 @@ public final class KaleidoscopeCookeryGameTests {
                 "Stockpot empty-hand ingredient removal returned the wrong item");
         helper.assertTrue(stockpot.getInputs().stream().allMatch(ItemStack::isEmpty),
                 "Stockpot retained the removed ingredient");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void enamelBasinSupportsNativeEmptyHandLidToggle(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.ENAMEL_BASIN);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        EnamelBasinBlock block = (EnamelBasinBlock) ModBlocks.ENAMEL_BASIN;
+
+        BlockState closedState = helper.getLevel().getBlockState(absolutePos);
+        InteractionResult openResult = block.useWithoutItem(
+                closedState, helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(openResult, InteractionResult.CONSUME,
+                "Enamel basin empty-hand opening did not report success");
+        helper.assertFalse(helper.getLevel().getBlockState(absolutePos).getValue(EnamelBasinBlock.HAS_LID),
+                "Enamel basin retained its lid after empty-hand opening");
+
+        ItemStack unrelatedItem = Items.APPLE.getDefaultInstance();
+        player.setItemInHand(InteractionHand.MAIN_HAND, unrelatedItem);
+        BlockState openState = helper.getLevel().getBlockState(absolutePos);
+        InteractionResult heldItemResult = block.useItemOn(
+                unrelatedItem, openState, helper.getLevel(), absolutePos, player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(heldItemResult, InteractionResult.PASS,
+                "Enamel basin incorrectly delegated an unrelated held item to empty-hand handling");
+        helper.assertFalse(helper.getLevel().getBlockState(absolutePos).getValue(EnamelBasinBlock.HAS_LID),
+                "Enamel basin closed its lid while the player held an unrelated item");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        InteractionResult closeResult = block.useWithoutItem(
+                openState, helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(closeResult, InteractionResult.CONSUME,
+                "Enamel basin empty-hand closing did not report success");
+        helper.assertTrue(helper.getLevel().getBlockState(absolutePos).getValue(EnamelBasinBlock.HAS_LID),
+                "Enamel basin did not restore its lid after empty-hand closing");
         helper.succeed();
     }
 

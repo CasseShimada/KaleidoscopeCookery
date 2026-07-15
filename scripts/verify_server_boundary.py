@@ -788,13 +788,24 @@ def main() -> int:
         errors.append("ThrowableBaoziEntity should play exactly one impact sound per collision.")
 
     enamel_basin_text = ENAMEL_BASIN_BLOCK.read_text(encoding="utf-8")
+    for required_reference in (
+        "public @NotNull InteractionResult useWithoutItem(",
+        "return setLid(state, level, pos, player, !state.getValue(HAS_LID));",
+    ):
+        if required_reference not in enamel_basin_text:
+            errors.append(f"EnamelBasinBlock native empty-hand lid interaction is missing {required_reference}.")
+    enamel_basin_use_item = enamel_basin_text.split("public @NotNull InteractionResult useItemOn(", 1)[-1].split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[0]
+    if "mainHandItem.isEmpty()" in enamel_basin_use_item:
+        errors.append("EnamelBasinBlock still handles empty-hand lid closing through useItemOn.")
     if "mainHandItem.consume(consumeCount, player)" not in enamel_basin_text:
         errors.append("EnamelBasinBlock does not use vanilla ItemStack.consume() for bulk oil insertion.")
     if "mainHandItem.shrink(" in enamel_basin_text:
         errors.append("EnamelBasinBlock still manually shrinks inserted oil stacks.")
-    if enamel_basin_text.count("GameEvent.BLOCK_CHANGE") != 5:
+    if enamel_basin_text.count("GameEvent.BLOCK_CHANGE") != 4:
         errors.append("EnamelBasinBlock does not emit a block-change game event for every stateful interaction.")
-    if enamel_basin_text.count("if (!level.setBlockAndUpdate(pos,") != 5:
+    if enamel_basin_text.count("if (!level.setBlockAndUpdate(pos,") != 4:
         errors.append("EnamelBasinBlock does not guard every state update before moving items.")
     if "if (!level.destroyBlock(pos, true, player))" not in enamel_basin_text:
         errors.append("EnamelBasinBlock does not confirm empty basin removal.")
