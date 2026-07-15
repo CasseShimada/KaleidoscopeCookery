@@ -214,12 +214,39 @@ public final class KaleidoscopeCookeryGameTests {
         InteractionResult result = ((PotBlock) ModBlocks.POT).useWithoutItem(
                 helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
 
-        helper.assertValueEqual(result, InteractionResult.SUCCESS,
+        helper.assertValueEqual(result, InteractionResult.CONSUME,
                 "Pot empty-hand ingredient removal did not report success");
         helper.assertTrue(player.getMainHandItem().is(Items.APPLE),
                 "Pot empty-hand ingredient removal returned the wrong item");
         helper.assertTrue(pot.getInputs().stream().allMatch(ItemStack::isEmpty),
                 "Pot retained the removed ingredient");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void potUsesStackSuppliedToHeldInteraction(GameTestHelper helper) {
+        BlockPos heatPos = new BlockPos(1, 1, 1);
+        BlockPos potPos = heatPos.above();
+        helper.setBlock(heatPos, Blocks.CAMPFIRE);
+        helper.setBlock(potPos, ModBlocks.POT);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 2, 1));
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
+        BlockPos absolutePos = helper.absolutePos(potPos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        ItemStack oil = ModItems.OIL.getDefaultInstance();
+
+        InteractionResult result = ((PotBlock) ModBlocks.POT).useItemOn(
+                oil, helper.getBlockState(potPos), helper.getLevel(), absolutePos,
+                player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(result, InteractionResult.CONSUME,
+                "Pot oil insertion did not report a server-side mutation");
+        helper.assertTrue(oil.isEmpty() && player.getMainHandItem().is(Items.STONE),
+                "Pot reread the player's hand instead of using the supplied stack");
+        helper.assertTrue(helper.getBlockState(potPos).getValue(PotBlock.HAS_OIL),
+                "Pot did not commit oil from the supplied stack");
         helper.succeed();
     }
 

@@ -431,6 +431,15 @@ def main() -> int:
     if stockpot.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 8:
         errors.append("StockpotBlockEntity does not emit block-change events for all interactive mutations.")
     pot = read(BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java")
+    for mutation_signature in (
+        "public boolean onPlaceOil(Level level, LivingEntity user, ItemStack stack)",
+        "public boolean takeOutProduct(Level level, LivingEntity user, ItemStack stack)",
+        "public boolean addIngredient(Level level, LivingEntity user, ItemStack itemStack)",
+        "public boolean removeIngredient(Level level, LivingEntity user)",
+    ):
+        mutation_body = pot.split(mutation_signature, 1)[-1].split("\n    }", 1)[0]
+        if "if (level.isClientSide())" not in mutation_body:
+            errors.append(f"PotBlockEntity mutation is not server-authoritative: {mutation_signature}.")
     if "if (!level.setBlockAndUpdate(worldPosition, updatedState))" not in pot:
         errors.append("PotBlockEntity consumes oil without confirming the block-state update.")
     if pot.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 4:

@@ -902,6 +902,16 @@ def main() -> int:
     )[0]
     if "itemInHand.isEmpty()" in pot_use_item:
         errors.append("PotBlock still handles empty-hand ingredient removal through useItemOn.")
+    for player_stack_read in ("player.getItemInHand(hand)", "player.getMainHandItem()"):
+        if player_stack_read in pot_use_item:
+            errors.append(f"PotBlock bypasses its supplied interaction stack: {player_stack_read}.")
+    for required_reference in (
+        "pot.takeOutProduct(level, player, stack)",
+        "pot.onPlaceOil(level, player, stack)",
+        "pot.addIngredient(level, player, stack)",
+    ):
+        if required_reference not in pot_use_item:
+            errors.append(f"PotBlock supplied-stack dispatch is missing {required_reference}.")
 
     item_utils_text = (SRC / "util/ItemUtils.java").read_text(encoding="utf-8")
     if "ItemStackTemplate craftingRemainder = item.getCraftingRemainder();" not in item_utils_text \

@@ -231,6 +231,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
     @Override
     public boolean onPlaceOil(Level level, LivingEntity user, ItemStack stack) {
+        if (level.isClientSide()) {
+            return false;
+        }
         if (stack.is(TagMod.OIL)) {
             // 普通情况油脂
             if (!placeOil(level, user, level.getRandom())) {
@@ -378,6 +381,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
     @Override
     public boolean takeOutProduct(Level level, LivingEntity user, ItemStack stack) {
+        if (level.isClientSide()) {
+            return false;
+        }
         // 仅在炒菜完成或炒糊阶段可以取出
         if (this.status != FINISHED && this.status != BURNT) {
             return false;
@@ -460,6 +466,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
     @Override
     public boolean addIngredient(Level level, LivingEntity user, ItemStack itemStack) {
+        if (level.isClientSide()) {
+            return false;
+        }
         if (this.status != PUT_INGREDIENT) {
             return false;
         }
@@ -489,6 +498,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
     @Override
     public boolean removeIngredient(Level level, LivingEntity user) {
+        if (level.isClientSide()) {
+            return false;
+        }
         if (this.status != PUT_INGREDIENT) {
             return false;
         }

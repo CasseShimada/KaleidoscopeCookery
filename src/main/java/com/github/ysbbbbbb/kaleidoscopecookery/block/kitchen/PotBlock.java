@@ -115,17 +115,16 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
         if (!(level.getBlockEntity(pos) instanceof IPot pot)) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        ItemStack itemInHand = player.getItemInHand(hand);
         if (level.isClientSide()) {
-            if (itemInHand.is(ModItems.KITCHEN_SHOVEL) || state.getValue(HAS_OIL)) {
+            if (stack.is(ModItems.KITCHEN_SHOVEL) || state.getValue(HAS_OIL)) {
                 return InteractionResult.SUCCESS;
             }
             return pot.hasHeatSource(level) ? InteractionResult.SUCCESS : InteractionResult.FAIL;
         }
         RandomSource random = level.getRandom();
         // 先检查成品取出逻辑
-        if (pot.takeOutProduct(level, player, player.getMainHandItem())) {
-            return InteractionResult.SUCCESS;
+        if (pot.takeOutProduct(level, player, stack)) {
+            return InteractionResult.CONSUME;
         }
         // 然后检查热源
         if (!pot.hasHeatSource(level)) {
@@ -134,25 +133,25 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
         }
         // 检查油
         if (!state.getValue(HAS_OIL)) {
-            if (pot.onPlaceOil(level, player, itemInHand)) {
-                return InteractionResult.SUCCESS;
+            if (pot.onPlaceOil(level, player, stack)) {
+                return InteractionResult.CONSUME;
             } else {
                 sendBarMessage(player, "tip.kaleidoscope_cookery.pot.need_oil");
                 return InteractionResult.FAIL;
             }
         }
         // 如果拿着锅铲，那么开始执行锅铲逻辑
-        if (itemInHand.is(ModItems.KITCHEN_SHOVEL)) {
+        if (stack.is(ModItems.KITCHEN_SHOVEL)) {
             if (!player.hasInfiniteMaterials() && level.getRandom().nextDouble() < DURABILITY_COST_PROBABILITY) {
-                itemInHand.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+                stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
             }
-            pot.onShovelHit(level, player, itemInHand);
+            pot.onShovelHit(level, player, stack);
             level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F,
                     1F + (random.nextFloat() - random.nextFloat()) * 0.8F);
             return InteractionResult.CONSUME;
         }
         // 放入配菜
-        if (pot.addIngredient(level, player, itemInHand)) {
+        if (pot.addIngredient(level, player, stack)) {
             return InteractionResult.CONSUME;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -168,10 +167,10 @@ public class PotBlock extends HorizontalDirectionalBlock implements EntityBlock,
             return InteractionResult.SUCCESS;
         }
         if (pot.removeIngredient(level, player)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         if (pot.takeOutProduct(level, player, ItemStack.EMPTY)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
         if (!pot.hasHeatSource(level)) {
             this.sendBarMessage(player, "tip.kaleidoscope_cookery.pot.need_lit_stove");
