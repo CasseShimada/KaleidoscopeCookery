@@ -193,7 +193,7 @@ public class MillstoneBlock extends HorizontalDirectionalBlock implements Entity
         if (!(te instanceof MillstoneBlockEntity millstone)) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        ItemStack mainHandItem = player.getMainHandItem();
+        ItemStack mainHandItem = stack;
         if (level.isClientSide()) {
             return millstone.canTakeItem(mainHandItem) || millstone.canPutItem(level, mainHandItem)
                     ? InteractionResult.SUCCESS
@@ -209,7 +209,7 @@ public class MillstoneBlock extends HorizontalDirectionalBlock implements Entity
     }
 
     @Override
-    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         NinePart part = state.getValue(PART);
         BlockPos centerPos = pos.subtract(new Vec3i(part.getPosX(), 0, part.getPosY()));
         BlockEntity blockEntity = level.getBlockEntity(centerPos);
@@ -217,9 +217,9 @@ public class MillstoneBlock extends HorizontalDirectionalBlock implements Entity
             return InteractionResult.PASS;
         }
         if (level.isClientSide()) {
-            return millstone.canTakeItem(ItemStack.EMPTY) ? InteractionResult.SUCCESS : InteractionResult.TRY_WITH_EMPTY_HAND;
+            return millstone.canTakeItem(ItemStack.EMPTY) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         }
-        return millstone.onTakeItem(player, ItemStack.EMPTY) ? InteractionResult.CONSUME : InteractionResult.TRY_WITH_EMPTY_HAND;
+        return millstone.onTakeItem(player, ItemStack.EMPTY) ? InteractionResult.CONSUME : InteractionResult.PASS;
     }
 
     @Override

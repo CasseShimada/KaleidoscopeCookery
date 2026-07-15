@@ -259,6 +259,17 @@ def main() -> int:
         errors.append("ChoppingBoardBlockEntity does not emit block-change events for all board mutations.")
     if "ItemStack returned = this.currentCutStack.copy();\n            this.resetBoardData();" not in chopping_board:
         errors.append("ChoppingBoardBlockEntity returns ingredients before clearing the board.")
+    chopping_board_block = read(BLOCK_ROOT / "kitchen/ChoppingBoardBlock.java")
+    chopping_board_use_item = chopping_board_block.split(
+        "public @NotNull InteractionResult useItemOn(", 1
+    )[-1].split("public @NotNull InteractionResult useWithoutItem(", 1)[0]
+    if "ItemStack itemInHand = stack;" not in chopping_board_use_item:
+        errors.append("ChoppingBoardBlock does not use the stack supplied to its item interaction entry point.")
+    chopping_board_use_without_item = chopping_board_block.split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[-1].split("public BlockEntity newBlockEntity(", 1)[0]
+    if "InteractionResult.TRY_WITH_EMPTY_HAND" in chopping_board_use_without_item:
+        errors.append("ChoppingBoardBlock recursively requests empty-hand dispatch from useWithoutItem.")
     shawarma_spit = read(BLOCK_ENTITY_ROOT / "kitchen/ShawarmaSpitBlockEntity.java")
     if "cookTime--;\n            this.setChanged();" not in shawarma_spit:
         errors.append("ShawarmaSpitBlockEntity does not mark cooking progress dirty.")
@@ -370,6 +381,17 @@ def main() -> int:
         errors.append("MillstoneBlockEntity does not normalize its world-time rotation phase.")
     if "this.rotSpeedTick = Math.max(data.rotSpeedTick(), 1);\n        this.cacheRot = getRotationOffset" not in millstone:
         errors.append("MillstoneBlockEntity does not preserve rotation when changing bindable speeds.")
+    millstone_block = read(BLOCK_ROOT / "kitchen/MillstoneBlock.java")
+    millstone_use_item = millstone_block.split(
+        "public @NotNull InteractionResult useItemOn(", 1
+    )[-1].split("public @NotNull InteractionResult useWithoutItem(", 1)[0]
+    if "ItemStack mainHandItem = stack;" not in millstone_use_item:
+        errors.append("MillstoneBlock does not use the stack supplied to its item interaction entry point.")
+    millstone_use_without_item = millstone_block.split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[-1].split("public void stepOn(", 1)[0]
+    if "InteractionResult.TRY_WITH_EMPTY_HAND" in millstone_use_without_item:
+        errors.append("MillstoneBlock recursively requests empty-hand dispatch from useWithoutItem.")
     stockpot = read(BLOCK_ENTITY_ROOT / "kitchen/StockpotBlockEntity.java")
     if "private void setLidItem(ItemStack lidItem)" not in stockpot:
         errors.append("StockpotBlockEntity still exposes direct lid item mutation.")

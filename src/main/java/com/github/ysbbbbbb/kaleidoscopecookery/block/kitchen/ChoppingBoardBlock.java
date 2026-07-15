@@ -78,7 +78,7 @@ public class ChoppingBoardBlock extends HorizontalDirectionalBlock implements En
     @Override
     public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (level.getBlockEntity(pos) instanceof ChoppingBoardBlockEntity choppingBoard) {
-            ItemStack itemInHand = player.getItemInHand(hand);
+            ItemStack itemInHand = stack;
             if (level.isClientSide()) {
                 if (hand == InteractionHand.OFF_HAND) {
                     return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -110,14 +110,14 @@ public class ChoppingBoardBlock extends HorizontalDirectionalBlock implements En
     }
 
     @Override
-    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!(level.getBlockEntity(pos) instanceof ChoppingBoardBlockEntity choppingBoard) || !player.isSecondaryUseActive()) {
             return InteractionResult.PASS;
         }
         if (level.isClientSide()) {
-            return choppingBoard.canTakeOut() ? InteractionResult.SUCCESS : InteractionResult.TRY_WITH_EMPTY_HAND;
+            return choppingBoard.canTakeOut() ? InteractionResult.SUCCESS : InteractionResult.PASS;
         }
-        return choppingBoard.onTakeOut(level, player) ? InteractionResult.CONSUME : InteractionResult.TRY_WITH_EMPTY_HAND;
+        return choppingBoard.onTakeOut(level, player) ? InteractionResult.CONSUME : InteractionResult.PASS;
     }
 
     @Override

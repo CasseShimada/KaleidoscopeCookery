@@ -9,6 +9,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.FruitBasketBlock
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.EmptyCupBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.TeacupBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ChoppingBoardBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.EnamelBasinBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.KitchenwareRacksBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
@@ -24,6 +25,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ChoppingBoardBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.KitchenwareRacksBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
@@ -748,6 +750,85 @@ public final class KaleidoscopeCookeryGameTests {
         inputSnapshot.shrink(1);
         helper.assertValueEqual(millstone.getInput().getCount(), 3,
                 "Mutating a millstone input snapshot changed the stored stack");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void kitchenWorkstationsUseSuppliedStacksAndNativeEmptyHandTakeout(GameTestHelper helper) {
+        BlockPos choppingBoardPos = new BlockPos(1, 1, 1);
+        helper.setBlock(choppingBoardPos, ModBlocks.CHOPPING_BOARD);
+        ChoppingBoardBlockEntity choppingBoard = helper.getBlockEntity(
+                choppingBoardPos, ChoppingBoardBlockEntity.class);
+        ServerPlayer choppingPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, choppingPlayer, new BlockPos(1, 1, 2));
+        choppingPlayer.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
+        BlockPos absoluteChoppingBoardPos = helper.absolutePos(choppingBoardPos);
+        BlockHitResult choppingHit = new BlockHitResult(
+                Vec3.atCenterOf(absoluteChoppingBoardPos), Direction.UP, absoluteChoppingBoardPos, false);
+        ChoppingBoardBlock choppingBlock = (ChoppingBoardBlock) ModBlocks.CHOPPING_BOARD;
+        ItemStack salmon = Items.SALMON.getDefaultInstance();
+
+        InteractionResult choppingPutResult = choppingBlock.useItemOn(
+                salmon, helper.getBlockState(choppingBoardPos), helper.getLevel(), absoluteChoppingBoardPos,
+                choppingPlayer, InteractionHand.MAIN_HAND, choppingHit);
+
+        helper.assertValueEqual(choppingPutResult, InteractionResult.CONSUME,
+                "Chopping board did not accept the stack supplied to useItemOn");
+        helper.assertTrue(salmon.isEmpty() && choppingBoard.getCurrentCutStack().is(Items.SALMON),
+                "Chopping board reread the player's hand instead of using the supplied stack");
+        choppingPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        choppingPlayer.setShiftKeyDown(true);
+
+        InteractionResult choppingTakeResult = choppingBlock.useWithoutItem(
+                helper.getBlockState(choppingBoardPos), helper.getLevel(), absoluteChoppingBoardPos,
+                choppingPlayer, choppingHit);
+
+        helper.assertValueEqual(choppingTakeResult, InteractionResult.CONSUME,
+                "Chopping board empty-hand takeout did not report success");
+        helper.assertTrue(choppingPlayer.getMainHandItem().is(Items.SALMON)
+                        && choppingBoard.getCurrentCutStack().isEmpty(),
+                "Chopping board did not return and clear its uncut ingredient");
+        choppingPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        helper.assertValueEqual(choppingBlock.useWithoutItem(
+                        helper.getBlockState(choppingBoardPos), helper.getLevel(), absoluteChoppingBoardPos,
+                        choppingPlayer, choppingHit),
+                InteractionResult.PASS, "Empty chopping board did not pass empty-hand handling onward");
+
+        BlockPos millstonePos = new BlockPos(2, 1, 1);
+        helper.setBlock(millstonePos, ModBlocks.MILLSTONE);
+        MillstoneBlockEntity millstone = helper.getBlockEntity(millstonePos, MillstoneBlockEntity.class);
+        ServerPlayer millstonePlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, millstonePlayer, new BlockPos(2, 1, 2));
+        millstonePlayer.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
+        BlockPos absoluteMillstonePos = helper.absolutePos(millstonePos);
+        BlockHitResult millstoneHit = new BlockHitResult(
+                Vec3.atCenterOf(absoluteMillstonePos), Direction.UP, absoluteMillstonePos, false);
+        MillstoneBlock millstoneBlock = (MillstoneBlock) ModBlocks.MILLSTONE;
+        ItemStack wheat = Items.WHEAT.getDefaultInstance();
+
+        InteractionResult millstonePutResult = millstoneBlock.useItemOn(
+                wheat, helper.getBlockState(millstonePos), helper.getLevel(), absoluteMillstonePos,
+                millstonePlayer, InteractionHand.MAIN_HAND, millstoneHit);
+
+        helper.assertValueEqual(millstonePutResult, InteractionResult.CONSUME,
+                "Millstone did not accept the stack supplied to useItemOn");
+        helper.assertTrue(wheat.isEmpty() && millstone.getInput().is(Items.WHEAT),
+                "Millstone reread the player's hand instead of using the supplied stack");
+        millstonePlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+        InteractionResult millstoneTakeResult = millstoneBlock.useWithoutItem(
+                helper.getBlockState(millstonePos), helper.getLevel(), absoluteMillstonePos,
+                millstonePlayer, millstoneHit);
+
+        helper.assertValueEqual(millstoneTakeResult, InteractionResult.CONSUME,
+                "Millstone empty-hand takeout did not report success");
+        helper.assertTrue(millstonePlayer.getMainHandItem().is(Items.WHEAT) && millstone.getInput().isEmpty(),
+                "Millstone did not return and clear its input");
+        millstonePlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        helper.assertValueEqual(millstoneBlock.useWithoutItem(
+                        helper.getBlockState(millstonePos), helper.getLevel(), absoluteMillstonePos,
+                        millstonePlayer, millstoneHit),
+                InteractionResult.PASS, "Empty millstone did not pass empty-hand handling onward");
         helper.succeed();
     }
 
