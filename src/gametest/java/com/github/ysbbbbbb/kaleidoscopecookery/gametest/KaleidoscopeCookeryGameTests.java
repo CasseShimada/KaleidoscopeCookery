@@ -141,6 +141,37 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
+    public void kitchenShovelUsesPotTakeoutResult(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.POT);
+        PotBlockEntity pot = helper.getBlockEntity(pos, PotBlockEntity.class);
+        CompoundTag tag = pot.saveCustomOnly(helper.getLevel().registryAccess());
+        tag.putInt("Status", PotBlockEntity.FINISHED);
+        pot.loadCustomOnly(TagValueInput.create(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
+
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        player.setShiftKeyDown(true);
+        ItemStack shovel = new ItemStack(ModItems.KITCHEN_SHOVEL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, shovel);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+
+        InteractionResult result = ModItems.KITCHEN_SHOVEL.useOn(
+                new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult));
+
+        helper.assertValueEqual(result, InteractionResult.SUCCESS,
+                "Kitchen shovel did not propagate the successful pot takeout result");
+        helper.assertValueEqual(pot.getStatus(), PotBlockEntity.PUT_INGREDIENT,
+                "Kitchen shovel takeout did not reset the finished pot");
+        helper.assertTrue(player.getMainHandItem() == shovel && !shovel.isEmpty(),
+                "Kitchen shovel takeout consumed or replaced the shovel");
+        helper.succeed();
+    }
+
+    @GameTest
     public void shawarmaSpitCopiesUpperWaterlogging(GameTestHelper helper) {
         BlockPos lowerPos = new BlockPos(1, 1, 1);
         BlockPos upperPos = lowerPos.above();

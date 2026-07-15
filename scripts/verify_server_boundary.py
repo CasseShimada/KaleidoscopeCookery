@@ -117,6 +117,7 @@ ENAMEL_BASIN_BLOCK = SRC / "block/kitchen/EnamelBasinBlock.java"
 SCARECROW_ITEM = SRC / "item/ScarecrowItem.java"
 SCARECROW_ENTITY = SRC / "entity/ScarecrowEntity.java"
 SIT_ENTITY = SRC / "entity/SitEntity.java"
+KITCHEN_SHOVEL_ITEM = SRC / "item/KitchenShovelItem.java"
 RAW_DOUGH_ITEM = SRC / "item/RawDoughItem.java"
 THROWABLE_BAOZI_ENTITY = SRC / "entity/ThrowableBaoziEntity.java"
 TRASH_CAN_BLOCK = SRC / "block/misc/TrashCanBlock.java"
@@ -711,6 +712,18 @@ def main() -> int:
     ):
         if confirmed_spawn > scarecrow_item_text.find(side_effect):
             errors.append(f"ScarecrowItem performs {side_effect} before confirming entity creation.")
+
+    kitchen_shovel_text = KITCHEN_SHOVEL_ITEM.read_text(encoding="utf-8")
+    for required_reference in (
+        "if (level.isClientSide())",
+        "potBlockEntity.takeOutProduct(level, player, stack)",
+        "? InteractionResult.SUCCESS",
+        ": InteractionResult.FAIL",
+    ):
+        if required_reference not in kitchen_shovel_text:
+            errors.append(f"KitchenShovelItem transactional takeout is missing {required_reference}.")
+    if "level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME" in kitchen_shovel_text:
+        errors.append("KitchenShovelItem still ignores the authoritative pot takeout result.")
 
     scarecrow_entity_text = SCARECROW_ENTITY.read_text(encoding="utf-8")
     if "private void releaseShoulderEntity()" not in scarecrow_entity_text:
