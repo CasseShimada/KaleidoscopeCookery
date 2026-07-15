@@ -54,12 +54,19 @@ public class StrungMushroomsBlock extends Block {
     @Override
     public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                        InteractionHand hand, BlockHitResult hitResult) {
-        if (hand != InteractionHand.MAIN_HAND) {
+        if (hand != InteractionHand.MAIN_HAND || !stack.is(Items.BROWN_MUSHROOM)) {
             return InteractionResult.PASS;
         }
-        if (!stack.isEmpty() && !stack.is(Items.BROWN_MUSHROOM)) {
-            return InteractionResult.PASS;
-        }
+        return harvest(state, level, pos, player);
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                            BlockHitResult hitResult) {
+        return harvest(state, level, pos, player);
+    }
+
+    private static InteractionResult harvest(BlockState state, Level level, BlockPos pos, Player player) {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }

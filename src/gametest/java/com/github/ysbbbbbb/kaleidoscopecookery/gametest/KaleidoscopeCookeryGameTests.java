@@ -16,6 +16,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.SteamerBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.ChiliRistraBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
@@ -393,6 +395,51 @@ public final class KaleidoscopeCookeryGameTests {
 
         helper.assertValueEqual(emptyResult, InteractionResult.PASS,
                 "Empty fruit basket takeout did not pass interaction handling onward");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void hangingProduceSupportsNativeEmptyHandHarvest(GameTestHelper helper) {
+        BlockPos chiliPos = new BlockPos(1, 1, 1);
+        BlockPos mushroomPos = new BlockPos(2, 1, 1);
+        helper.setBlock(chiliPos.above(), Blocks.STONE);
+        helper.setBlock(mushroomPos.above(), Blocks.STONE);
+        helper.setBlock(chiliPos, ModBlocks.CHILI_RISTRA);
+        helper.setBlock(mushroomPos, ModBlocks.STRUNG_MUSHROOMS);
+
+        ServerPlayer chiliPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, chiliPlayer, new BlockPos(1, 1, 2));
+        chiliPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        BlockPos absoluteChiliPos = helper.absolutePos(chiliPos);
+        BlockHitResult chiliHit = new BlockHitResult(
+                Vec3.atCenterOf(absoluteChiliPos), Direction.UP, absoluteChiliPos, false);
+        InteractionResult chiliResult = ((ChiliRistraBlock) ModBlocks.CHILI_RISTRA).useWithoutItem(
+                helper.getLevel().getBlockState(absoluteChiliPos), helper.getLevel(), absoluteChiliPos,
+                chiliPlayer, chiliHit);
+
+        helper.assertValueEqual(chiliResult, InteractionResult.CONSUME,
+                "Chili ristra empty-hand harvest did not report success");
+        helper.assertTrue(helper.getLevel().getBlockState(absoluteChiliPos).getValue(ChiliRistraBlock.SHEARED),
+                "Chili ristra did not advance to its sheared state");
+        helper.assertValueEqual(countItem(chiliPlayer, ModItems.RED_CHILI), 3,
+                "Chili ristra empty-hand harvest returned the wrong item count");
+
+        ServerPlayer mushroomPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, mushroomPlayer, new BlockPos(2, 1, 2));
+        mushroomPlayer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        BlockPos absoluteMushroomPos = helper.absolutePos(mushroomPos);
+        BlockHitResult mushroomHit = new BlockHitResult(
+                Vec3.atCenterOf(absoluteMushroomPos), Direction.UP, absoluteMushroomPos, false);
+        InteractionResult mushroomResult = ((StrungMushroomsBlock) ModBlocks.STRUNG_MUSHROOMS).useWithoutItem(
+                helper.getLevel().getBlockState(absoluteMushroomPos), helper.getLevel(), absoluteMushroomPos,
+                mushroomPlayer, mushroomHit);
+
+        helper.assertValueEqual(mushroomResult, InteractionResult.CONSUME,
+                "Strung mushrooms empty-hand harvest did not report success");
+        helper.assertTrue(helper.getLevel().getBlockState(absoluteMushroomPos).getValue(StrungMushroomsBlock.SHEARED),
+                "Strung mushrooms did not advance to their sheared state");
+        helper.assertValueEqual(countItem(mushroomPlayer, Items.BROWN_MUSHROOM), 3,
+                "Strung mushrooms empty-hand harvest returned the wrong item count");
         helper.succeed();
     }
 

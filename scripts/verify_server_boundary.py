@@ -1043,11 +1043,23 @@ def main() -> int:
     if "this.result" in base_crop_text:
         errors.append("BaseCropBlock still retains the legacy manual harvest result supplier.")
 
-    for name, path, delivery in (
-        ("StrungMushroomsBlock", STRUNG_MUSHROOMS_BLOCK, "ItemUtils.giveItemToPlayer(player, mushrooms"),
-        ("ChiliRistraBlock", CHILI_RISTRA_BLOCK, "ItemUtils.giveItemToPlayer(player, redChili"),
+    for name, path, delivery, accepted_item in (
+        ("StrungMushroomsBlock", STRUNG_MUSHROOMS_BLOCK,
+         "ItemUtils.giveItemToPlayer(player, mushrooms", "stack.is(Items.BROWN_MUSHROOM)"),
+        ("ChiliRistraBlock", CHILI_RISTRA_BLOCK,
+         "ItemUtils.giveItemToPlayer(player, redChili", "stack.is(ModItems.RED_CHILI)"),
     ):
         hanging_harvest = path.read_text(encoding="utf-8")
+        use_item = hanging_harvest.split("InteractionResult useItemOn(", 1)[-1].split(
+            "InteractionResult useWithoutItem(", 1
+        )[0]
+        for required_reference in (accepted_item, "return harvest(state, level, pos, player);"):
+            if required_reference not in use_item:
+                errors.append(f"{name} held-item harvest is missing {required_reference}.")
+        if ".isEmpty()" in use_item or "InteractionResult.TRY_WITH_EMPTY_HAND" in use_item:
+            errors.append(f"{name} still handles empty-hand harvest through useItemOn.")
+        if "public InteractionResult useWithoutItem(" not in hanging_harvest:
+            errors.append(f"{name} does not expose native empty-hand harvest handling.")
         state_update = "if (!level.setBlock(pos, updatedState, Block.UPDATE_ALL))"
         if state_update not in hanging_harvest:
             errors.append(f"{name} does not confirm its harvest state update.")

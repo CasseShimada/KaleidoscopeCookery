@@ -57,13 +57,19 @@ public class ChiliRistraBlock extends Block {
 
     @Override
     public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (hand != InteractionHand.MAIN_HAND) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
+        if (hand != InteractionHand.MAIN_HAND || !stack.is(ModItems.RED_CHILI)) {
+            return InteractionResult.PASS;
         }
-        ItemStack mainHandItem = player.getMainHandItem();
-        if (!mainHandItem.isEmpty() && !mainHandItem.is(ModItems.RED_CHILI)) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
-        }
+        return harvest(state, level, pos, player);
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                            BlockHitResult hitResult) {
+        return harvest(state, level, pos, player);
+    }
+
+    private static InteractionResult harvest(BlockState state, Level level, BlockPos pos, Player player) {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
