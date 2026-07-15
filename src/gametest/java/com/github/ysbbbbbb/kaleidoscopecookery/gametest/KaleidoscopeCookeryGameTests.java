@@ -13,6 +13,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.NinePart;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.OilPotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.SteamerBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
@@ -20,6 +21,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlock
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.KitchenwareRacksBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.SteamerBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc.TrashCanBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
@@ -292,6 +294,58 @@ public final class KaleidoscopeCookeryGameTests {
                 "Enamel basin empty-hand closing did not report success");
         helper.assertTrue(helper.getLevel().getBlockState(absolutePos).getValue(EnamelBasinBlock.HAS_LID),
                 "Enamel basin did not restore its lid after empty-hand closing");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void steamerEmptyHandInteractionPrioritizesLidThenFood(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.STEAMER);
+        SteamerBlockEntity steamer = helper.getBlockEntity(pos, SteamerBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack dough = ModItems.RAW_DOUGH.getDefaultInstance();
+        player.setItemInHand(InteractionHand.MAIN_HAND, dough);
+        helper.assertTrue(steamer.placeFood(helper.getLevel(), player, dough),
+                "Steamer rejected the test dough");
+        helper.assertTrue(player.getMainHandItem().isEmpty(),
+                "Steamer did not consume the inserted test dough");
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        SteamerBlock block = (SteamerBlock) ModBlocks.STEAMER;
+
+        player.setShiftKeyDown(true);
+        BlockState openState = helper.getLevel().getBlockState(absolutePos);
+        InteractionResult closeResult = block.useWithoutItem(
+                openState, helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(closeResult, InteractionResult.CONSUME,
+                "Steamer empty-hand lid closing did not report success");
+        helper.assertTrue(helper.getLevel().getBlockState(absolutePos).getValue(SteamerBlock.HAS_LID),
+                "Steamer did not close its lid during secondary use");
+        helper.assertFalse(steamer.getItems().stream().allMatch(ItemStack::isEmpty),
+                "Steamer lid interaction removed food from the current layer");
+
+        BlockState closedState = helper.getLevel().getBlockState(absolutePos);
+        InteractionResult openResult = block.useWithoutItem(
+                closedState, helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(openResult, InteractionResult.CONSUME,
+                "Steamer empty-hand lid opening did not report success");
+        helper.assertFalse(helper.getLevel().getBlockState(absolutePos).getValue(SteamerBlock.HAS_LID),
+                "Steamer retained its lid during secondary use");
+
+        player.setShiftKeyDown(false);
+        InteractionResult takeResult = block.useWithoutItem(
+                helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(takeResult, InteractionResult.CONSUME,
+                "Steamer empty-hand food takeout did not report success");
+        helper.assertTrue(player.getMainHandItem().is(ModItems.RAW_DOUGH),
+                "Steamer empty-hand food takeout returned the wrong item");
+        helper.assertTrue(steamer.getItems().stream().allMatch(ItemStack::isEmpty),
+                "Steamer retained the withdrawn food");
         helper.succeed();
     }
 

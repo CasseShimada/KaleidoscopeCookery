@@ -141,10 +141,7 @@ public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWat
 
     @Override
     public @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        ItemStack itemInHand = player.getItemInHand(hand);
-        if (itemInHand.isEmpty()) {
-            return this.useWithoutItem(state, level, pos, player, hitResult);
-        }
+        ItemStack itemInHand = stack;
 
         // 手持蒸笼，右击可以沿着整叠往上摞。
         if (itemInHand.getItem() instanceof SteamerItem steamerItem) {
@@ -186,7 +183,7 @@ public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWat
     }
 
     @Override
-    protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         boolean hasLid = state.getValue(HAS_LID);
         if (player.isSecondaryUseActive() && (hasLid || !level.getBlockState(pos.above()).is(this))) {
             if (level.isClientSide()) {
@@ -203,11 +200,11 @@ public class SteamerBlock extends FallingBlock implements EntityBlock, SimpleWat
             return InteractionResult.PASS;
         }
         if (level.isClientSide()) {
-            return canInteractWithOpenLayer(state, level, pos) ? InteractionResult.SUCCESS : InteractionResult.TRY_WITH_EMPTY_HAND;
+            return canInteractWithOpenLayer(state, level, pos) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         }
         return steamer.takeFood(level, player, InteractionHand.MAIN_HAND)
                 ? InteractionResult.CONSUME
-                : InteractionResult.TRY_WITH_EMPTY_HAND;
+                : InteractionResult.PASS;
     }
 
     private static boolean canInteractWithOpenLayer(BlockState state, Level level, BlockPos pos) {

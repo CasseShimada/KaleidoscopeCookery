@@ -284,6 +284,18 @@ def main() -> int:
     if steamer.count("GameEvent.BLOCK_CHANGE") < 3 or "GameEvent.BLOCK_DESTROY" not in steamer:
         errors.append("SteamerBlockEntity does not emit game events for food and layer mutations.")
     steamer_block = read(BLOCK_ROOT / "kitchen/SteamerBlock.java")
+    steamer_use_item = steamer_block.split("public @NotNull InteractionResult useItemOn(", 1)[-1].split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[0]
+    if "ItemStack itemInHand = stack;" not in steamer_use_item:
+        errors.append("SteamerBlock does not use the stack supplied to its item interaction entry point.")
+    if "itemInHand.isEmpty()" in steamer_use_item or "this.useWithoutItem(" in steamer_use_item:
+        errors.append("SteamerBlock still manually forwards empty stacks from useItemOn.")
+    steamer_use_without_item = steamer_block.split("public @NotNull InteractionResult useWithoutItem(", 1)[-1].split(
+        "private static boolean canInteractWithOpenLayer(", 1
+    )[0]
+    if "InteractionResult.TRY_WITH_EMPTY_HAND" in steamer_use_without_item:
+        errors.append("SteamerBlock recursively requests empty-hand dispatch from useWithoutItem.")
     if "if (!level.setBlockAndUpdate(pos, state.setValue(HAS_LID, !hasLid)))" not in steamer_block:
         errors.append("SteamerBlock does not confirm lid state changes.")
     if "level.gameEvent(GameEvent.BLOCK_CHANGE, pos" not in steamer_block:
