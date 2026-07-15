@@ -123,42 +123,61 @@ public class StockpotBlock extends HorizontalDirectionalBlock implements EntityB
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         // 先检查盖子
-        ItemStack mainHandItem = player.getMainHandItem();
-        boolean canLitClick = stockpot.hasLid() || mainHandItem.is(ModItems.STOCKPOT_LID);
-        boolean canAddSoupBase = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_SOUP_BASE && !mainHandItem.isEmpty();
-        boolean canRemoveSoupBase = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_INGREDIENT && !mainHandItem.isEmpty();
-        boolean canAddIngredient = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_INGREDIENT && !mainHandItem.isEmpty();
-        boolean canRemoveIngredient = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_INGREDIENT && mainHandItem.isEmpty();
+        boolean canLitClick = stockpot.hasLid() || stack.is(ModItems.STOCKPOT_LID);
+        boolean canAddSoupBase = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_SOUP_BASE;
+        boolean canRemoveSoupBase = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_INGREDIENT;
+        boolean canAddIngredient = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.PUT_INGREDIENT;
         boolean canTakeProduct = !stockpot.hasLid() && stockpot.getStatus() == IStockpot.FINISHED;
         if (level.isClientSide() && (canLitClick || canAddSoupBase || canRemoveSoupBase
-                || canAddIngredient || canRemoveIngredient || canTakeProduct)) {
+                || canAddIngredient || canTakeProduct)) {
             return InteractionResult.SUCCESS;
         }
-        if (stockpot.onLitClick(level, player, mainHandItem)) {
+        if (stockpot.onLitClick(level, player, stack)) {
             return InteractionResult.CONSUME;
         }
         // 加入汤底
-        if (stockpot.addSoupBase(level, player, mainHandItem)) {
+        if (stockpot.addSoupBase(level, player, stack)) {
             ModTrigger.EVENT.trigger(player, ModEventTriggerType.PUT_SOUP_BASE_IN_STOCKPOT);
             return InteractionResult.CONSUME;
         }
         // 取出汤底
-        if (stockpot.removeSoupBase(level, player, mainHandItem)) {
+        if (stockpot.removeSoupBase(level, player, stack)) {
             return InteractionResult.CONSUME;
         }
         // 加入原料
-        if (!mainHandItem.isEmpty() && stockpot.addIngredient(level, player, mainHandItem)) {
-            return InteractionResult.CONSUME;
-        }
-        // 取出原料
-        if (mainHandItem.isEmpty() && stockpot.removeIngredient(level, player)) {
+        if (stockpot.addIngredient(level, player, stack)) {
             return InteractionResult.CONSUME;
         }
         // 取出成品
-        if (stockpot.takeOutProduct(level, player, mainHandItem)) {
+        if (stockpot.takeOutProduct(level, player, stack)) {
             return InteractionResult.CONSUME;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                                     BlockHitResult hitResult) {
+        if (!(level.getBlockEntity(pos) instanceof IStockpot stockpot)) {
+            return InteractionResult.PASS;
+        }
+        boolean canRemoveLid = stockpot.hasLid();
+        boolean canRemoveIngredient = stockpot.getStatus() == IStockpot.PUT_INGREDIENT;
+        boolean canTakeProduct = stockpot.getStatus() == IStockpot.FINISHED;
+        if (level.isClientSide()) {
+            return canRemoveLid || canRemoveIngredient || canTakeProduct
+                    ? InteractionResult.SUCCESS
+                    : InteractionResult.PASS;
+        }
+        if (stockpot.onLitClick(level, player, ItemStack.EMPTY)) {
+            return InteractionResult.SUCCESS;
+        }
+        if (stockpot.removeIngredient(level, player)) {
+            return InteractionResult.SUCCESS;
+        }
+        return stockpot.takeOutProduct(level, player, ItemStack.EMPTY)
+                ? InteractionResult.SUCCESS
+                : InteractionResult.PASS;
     }
 
     @Override

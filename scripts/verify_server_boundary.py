@@ -876,6 +876,21 @@ def main() -> int:
     if "getCraftingRemainder().create()" in item_utils_text:
         errors.append("ItemUtils still dereferences nullable crafting remainder templates directly.")
 
+    stockpot_block_text = STOCKPOT_BLOCK.read_text(encoding="utf-8")
+    for required_reference in (
+        "public @NotNull InteractionResult useWithoutItem(",
+        "stockpot.onLitClick(level, player, ItemStack.EMPTY)",
+        "stockpot.removeIngredient(level, player)",
+        "stockpot.takeOutProduct(level, player, ItemStack.EMPTY)",
+    ):
+        if required_reference not in stockpot_block_text:
+            errors.append(f"StockpotBlock native empty-hand interaction is missing {required_reference}.")
+    stockpot_use_item = stockpot_block_text.split("public @NotNull InteractionResult useItemOn(", 1)[-1].split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[0]
+    if "mainHandItem.isEmpty()" in stockpot_use_item:
+        errors.append("StockpotBlock still handles empty-hand ingredient removal through useItemOn.")
+
     if SICKLE_NETHER_WART_EVENT.exists():
         sickle_nether_wart_text = SICKLE_NETHER_WART_EVENT.read_text(encoding="utf-8")
         for required_reference in (

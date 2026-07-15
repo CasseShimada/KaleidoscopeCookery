@@ -12,6 +12,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.NinePart;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.OilPotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.PotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
@@ -205,6 +206,48 @@ public final class KaleidoscopeCookeryGameTests {
                 "Pot empty-hand ingredient removal returned the wrong item");
         helper.assertTrue(pot.getInputs().stream().allMatch(ItemStack::isEmpty),
                 "Pot retained the removed ingredient");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void stockpotEmptyHandInteractionPrioritizesLidThenIngredient(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.STOCKPOT);
+        StockpotBlockEntity stockpot = helper.getBlockEntity(pos, StockpotBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        helper.assertTrue(stockpot.addSoupBase(helper.getLevel(), player, Items.WATER_BUCKET.getDefaultInstance()),
+                "Stockpot rejected the test soup base");
+        helper.assertTrue(stockpot.addIngredient(helper.getLevel(), player, Items.APPLE.getDefaultInstance()),
+                "Stockpot rejected the test ingredient");
+        helper.assertTrue(stockpot.onLitClick(helper.getLevel(), player, ModItems.STOCKPOT_LID.getDefaultInstance()),
+                "Stockpot rejected the test lid");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        StockpotBlock block = (StockpotBlock) ModBlocks.STOCKPOT;
+
+        InteractionResult lidResult = block.useWithoutItem(
+                helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(lidResult, InteractionResult.SUCCESS,
+                "Stockpot empty-hand lid removal did not report success");
+        helper.assertTrue(player.getMainHandItem().is(ModItems.STOCKPOT_LID),
+                "Stockpot empty-hand interaction did not return the lid first");
+        helper.assertFalse(stockpot.getInputs().stream().allMatch(ItemStack::isEmpty),
+                "Stockpot lid removal also removed an ingredient");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        InteractionResult ingredientResult = block.useWithoutItem(
+                helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(ingredientResult, InteractionResult.SUCCESS,
+                "Stockpot empty-hand ingredient removal did not report success");
+        helper.assertTrue(player.getMainHandItem().is(Items.APPLE),
+                "Stockpot empty-hand ingredient removal returned the wrong item");
+        helper.assertTrue(stockpot.getInputs().stream().allMatch(ItemStack::isEmpty),
+                "Stockpot retained the removed ingredient");
         helper.succeed();
     }
 
