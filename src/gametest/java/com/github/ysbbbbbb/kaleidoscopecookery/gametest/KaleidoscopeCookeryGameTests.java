@@ -7,8 +7,10 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.NinePart;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.OilPotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
@@ -168,6 +170,45 @@ public final class KaleidoscopeCookeryGameTests {
                 "Kitchen shovel takeout did not reset the finished pot");
         helper.assertTrue(player.getMainHandItem() == shovel && !shovel.isEmpty(),
                 "Kitchen shovel takeout consumed or replaced the shovel");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void oilPotTransfersCommitBeforeMovingItems(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.OIL_POT);
+        OilPotBlockEntity oilPot = helper.getBlockEntity(pos, OilPotBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack oil = new ItemStack(ModItems.OIL, 3);
+        player.setItemInHand(InteractionHand.MAIN_HAND, oil);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        BlockState state = helper.getLevel().getBlockState(absolutePos);
+        OilPotBlock oilPotBlock = (OilPotBlock) ModBlocks.OIL_POT;
+
+        InteractionResult insertResult = oilPotBlock.useItemOn(
+                oil, state, helper.getLevel(), absolutePos, player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(insertResult, InteractionResult.SUCCESS,
+                "Oil pot insertion did not report a committed transfer");
+        helper.assertValueEqual(oilPot.getOilCount(), 3,
+                "Oil pot insertion stored the wrong oil count");
+        helper.assertTrue(oil.isEmpty(),
+                "Oil pot insertion did not consume the transferred items");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        InteractionResult extractResult = oilPotBlock.useWithoutItem(
+                helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(extractResult, InteractionResult.SUCCESS,
+                "Oil pot extraction did not report a committed transfer");
+        helper.assertValueEqual(oilPot.getOilCount(), 0,
+                "Oil pot extraction did not remove the stored oil");
+        helper.assertTrue(player.getMainHandItem().is(ModItems.OIL)
+                        && player.getMainHandItem().getCount() == 3,
+                "Oil pot extraction returned the wrong oil stack");
         helper.succeed();
     }
 

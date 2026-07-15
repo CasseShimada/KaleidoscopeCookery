@@ -177,16 +177,18 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
         if (needOilCount <= 0) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide()) {
-            int addOilCount = Math.min(needOilCount, stack.getCount());
-            if (oilPot.setOilCount(currentOilCount + addOilCount)) {
-                stack.consume(addOilCount, player);
-                level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
-                        0.4F + level.getRandom().nextFloat() * 0.2F);
-                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
-        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        int addOilCount = Math.min(needOilCount, stack.getCount());
+        if (!oilPot.setOilCount(currentOilCount + addOilCount)) {
+            return InteractionResult.FAIL;
+        }
+        stack.consume(addOilCount, player);
+        level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
+                0.4F + level.getRandom().nextFloat() * 0.2F);
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -204,16 +206,18 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
         if (currentOilCount <= 0) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide()) {
-            int takeCount = Math.min(currentOilCount, 64);
-            if (oilPot.setOilCount(currentOilCount - takeCount)) {
-                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount));
-                level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
-                        0.8F + level.getRandom().nextFloat() * 0.2F);
-                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
-        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        int takeCount = Math.min(currentOilCount, 64);
+        if (!oilPot.setOilCount(currentOilCount - takeCount)) {
+            return InteractionResult.FAIL;
+        }
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount));
+        level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
+                0.8F + level.getRandom().nextFloat() * 0.2F);
+        level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+        return InteractionResult.SUCCESS;
     }
 
     @Override

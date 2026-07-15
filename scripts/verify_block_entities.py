@@ -204,10 +204,18 @@ def main() -> int:
     if "setBlock(" in oil_pot_load:
         errors.append("OilPotBlockEntity mutates the world while loading serialized data.")
     oil_pot_block = read(BLOCK_ROOT / "kitchen/OilPotBlock.java")
-    if "if (oilPot.setOilCount(currentOilCount + addOilCount))" not in oil_pot_block:
+    insert_commit = "if (!oilPot.setOilCount(currentOilCount + addOilCount))"
+    extract_commit = "if (!oilPot.setOilCount(currentOilCount - takeCount))"
+    if insert_commit not in oil_pot_block:
         errors.append("OilPotBlock consumes oil without confirming the storage mutation.")
-    if "if (oilPot.setOilCount(currentOilCount - takeCount))" not in oil_pot_block:
+    if extract_commit not in oil_pot_block:
         errors.append("OilPotBlock gives oil before confirming the storage mutation.")
+    if oil_pot_block.find(insert_commit) > oil_pot_block.find("stack.consume(addOilCount, player)"):
+        errors.append("OilPotBlock consumes oil before committing it to storage.")
+    if oil_pot_block.find(extract_commit) > oil_pot_block.find(
+            "player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount))"
+    ):
+        errors.append("OilPotBlock gives oil before committing its removal from storage.")
     transmutation_lunch_bag = read(JAVA_ROOT / "item/TransmutationLunchBagItem.java")
     if "ItemStackContainer.wrap(fruitBasket.getItems())" in transmutation_lunch_bag:
         errors.append("TransmutationLunchBagItem still mutates the fruit basket inventory directly.")

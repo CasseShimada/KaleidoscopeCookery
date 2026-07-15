@@ -824,6 +824,20 @@ def main() -> int:
         errors.append("OilPotBlock still handles empty-hand extraction through the item interaction path.")
     if "stack.shrink(addOilCount)" in oil_pot_text:
         errors.append("OilPotBlock still manually shrinks oil instead of using ItemStack.consume().")
+    if oil_pot_text.count("if (level.isClientSide())") < 2:
+        errors.append("OilPotBlock does not keep both oil transfer predictions client-side.")
+    if oil_pot_text.count("if (!oilPot.setOilCount(") != 2:
+        errors.append("OilPotBlock does not confirm both oil count updates before moving items.")
+    if "level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME" in oil_pot_text:
+        errors.append("OilPotBlock still uses legacy sided results that hide failed oil transfers.")
+    insert_commit = oil_pot_text.find("if (!oilPot.setOilCount(currentOilCount + addOilCount))")
+    extract_commit = oil_pot_text.find("if (!oilPot.setOilCount(currentOilCount - takeCount))")
+    if insert_commit > oil_pot_text.find("stack.consume(addOilCount, player)"):
+        errors.append("OilPotBlock consumes inserted oil before confirming storage.")
+    if extract_commit > oil_pot_text.find(
+            "player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount))"
+    ):
+        errors.append("OilPotBlock gives extracted oil before confirming storage removal.")
     if oil_pot_text.count("GameEvent.BLOCK_CHANGE") < 2:
         errors.append("OilPotBlock does not emit block-change events for both oil transfer directions.")
 
