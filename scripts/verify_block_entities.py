@@ -336,6 +336,19 @@ def main() -> int:
             errors.append(f"TrashCanBlockEntity mutation result contract is missing {required_reference}.")
     if trash_can.count("if (!(this.level instanceof ServerLevel)") != 2:
         errors.append("TrashCanBlockEntity manual inventory mutations are not server-authoritative.")
+    trash_can_block = read(BLOCK_ROOT / "misc/TrashCanBlock.java")
+    trash_can_use_item = trash_can_block.split(
+        "public @NotNull InteractionResult useItemOn(", 1
+    )[-1].split("public @NotNull InteractionResult useWithoutItem(", 1)[0]
+    if "ItemStack itemInHand = stack;" not in trash_can_use_item:
+        errors.append("TrashCanBlock does not use the stack supplied to its item interaction entry point.")
+    if "? InteractionResult.CONSUME" not in trash_can_use_item:
+        errors.append("TrashCanBlock does not distinguish server mutations from client prediction.")
+    trash_can_use_without_item = trash_can_block.split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[-1].split("public void destroy(", 1)[0]
+    if "InteractionResult.TRY_WITH_EMPTY_HAND" in trash_can_use_without_item:
+        errors.append("TrashCanBlock recursively requests empty-hand dispatch from useWithoutItem.")
     chair_block = read(BLOCK_ROOT / "decoration/ChairBlock.java")
     table_block = read(BLOCK_ROOT / "decoration/TableBlock.java")
     if ".refresh()" in chair_block or ".refresh()" in table_block:

@@ -95,13 +95,13 @@ public class TrashCanBlock extends HorizontalDirectionalBlock implements SimpleW
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (level.getBlockEntity(pos) instanceof TrashCanBlockEntity trashCan) {
-            ItemStack itemInHand = player.getItemInHand(hand);
-            if (!itemInHand.isEmpty() && itemInHand.getItem().canFitInsideContainerItems()) {
+            ItemStack itemInHand = stack;
+            if (itemInHand.getItem().canFitInsideContainerItems()) {
                 if (level.isClientSide()) {
                     return InteractionResult.SUCCESS;
                 }
                 return trashCan.putItem(itemInHand, !player.hasInfiniteMaterials())
-                        ? InteractionResult.SUCCESS
+                        ? InteractionResult.CONSUME
                         : InteractionResult.TRY_WITH_EMPTY_HAND;
             }
         }
@@ -114,7 +114,7 @@ public class TrashCanBlock extends HorizontalDirectionalBlock implements SimpleW
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            return trashCan.withdrawItem(player) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+            return trashCan.withdrawItem(player) ? InteractionResult.CONSUME : InteractionResult.PASS;
         }
         return InteractionResult.PASS;
     }

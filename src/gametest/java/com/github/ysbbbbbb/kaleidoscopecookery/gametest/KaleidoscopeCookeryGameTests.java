@@ -22,6 +22,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.StockpotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.TeapotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.ChiliRistraBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.TrashCanBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
@@ -1065,6 +1066,49 @@ public final class KaleidoscopeCookeryGameTests {
                 "Trash can retained the withdrawn stack");
         helper.assertFalse(trashCan.withdrawItem(player),
                 "Trash can withdrew another stack into an occupied hand");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void trashCanUsesSuppliedStackAndNativeEmptyHandTakeout(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.TRASH_CAN);
+        TrashCanBlockEntity trashCan = helper.getBlockEntity(pos, TrashCanBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(1, 1, 2));
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        TrashCanBlock block = (TrashCanBlock) ModBlocks.TRASH_CAN;
+        ItemStack apples = new ItemStack(Items.APPLE, 2);
+
+        InteractionResult putResult = block.useItemOn(
+                apples, helper.getBlockState(pos), helper.getLevel(), absolutePos,
+                player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(putResult, InteractionResult.CONSUME,
+                "Trash can insertion did not report a server-side mutation");
+        helper.assertTrue(apples.isEmpty()
+                        && player.getMainHandItem().is(Items.STONE)
+                        && trashCan.getStoredItems().getFirst().is(Items.APPLE),
+                "Trash can reread the player's hand instead of using the supplied stack");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        player.setShiftKeyDown(true);
+
+        InteractionResult takeResult = block.useWithoutItem(
+                helper.getBlockState(pos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(takeResult, InteractionResult.CONSUME,
+                "Trash can empty-hand takeout did not report a server-side mutation");
+        helper.assertTrue(player.getMainHandItem().is(Items.APPLE)
+                        && player.getMainHandItem().getCount() == 2
+                        && trashCan.getStoredItems().isEmpty(),
+                "Trash can did not return and clear its newest stored stack");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        helper.assertValueEqual(block.useWithoutItem(
+                        helper.getBlockState(pos), helper.getLevel(), absolutePos, player, hitResult),
+                InteractionResult.PASS, "Empty trash can did not pass empty-hand handling onward");
         helper.succeed();
     }
 

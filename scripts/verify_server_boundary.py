@@ -310,15 +310,14 @@ def main() -> int:
     if "getTicker(" in trash_can_block:
         errors.append("TrashCanBlock still installs an unnecessary block entity ticker.")
     for required_reference in (
+        "ItemStack itemInHand = stack;",
         "return trashCan.putItem(itemInHand, !player.hasInfiniteMaterials())",
-        "? InteractionResult.SUCCESS",
+        "? InteractionResult.CONSUME",
         ": InteractionResult.TRY_WITH_EMPTY_HAND",
-        "return trashCan.withdrawItem(player) ? InteractionResult.SUCCESS : InteractionResult.PASS;",
+        "return trashCan.withdrawItem(player) ? InteractionResult.CONSUME : InteractionResult.PASS;",
     ):
         if required_reference not in trash_can_block:
             errors.append(f"TrashCanBlock interaction result handling is missing {required_reference}.")
-    if "level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME" in trash_can_block:
-        errors.append("TrashCanBlock still hides failed inventory mutations behind legacy sided results.")
     seat_spawn_index = trash_can_block.find("if (!level.addFreshEntity(entitySit))")
     trash_enter_event_index = trash_can_block.find(
         "level.blockEvent(pos, state.getBlock(), TrashCanBlockEntity.EVENT_ENTER, 0)"
