@@ -79,24 +79,45 @@ public class KitchenwareRacksBlock extends HorizontalDirectionalBlock implements
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
 
-        ItemStack mainHandItem = player.getMainHandItem();
+        boolean isLeft = isLeftSlot(state, pos, hitResult);
+        if (level.getBlockEntity(pos) instanceof IKitchenwareRacks racks
+                && stack.isDamageableItem()
+                && getRackItem(racks, isLeft).isEmpty()) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
+            return racks.onClick(player, stack, isLeft)
+                    ? InteractionResult.SUCCESS
+                    : super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    @Override
+    public @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                                     BlockHitResult hitResult) {
+        boolean isLeft = isLeftSlot(state, pos, hitResult);
+        if (level.getBlockEntity(pos) instanceof IKitchenwareRacks racks
+                && !getRackItem(racks, isLeft).isEmpty()) {
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
+            return racks.onClick(player, ItemStack.EMPTY, isLeft)
+                    ? InteractionResult.SUCCESS
+                    : super.useWithoutItem(state, level, pos, player, hitResult);
+        }
+        return super.useWithoutItem(state, level, pos, player, hitResult);
+    }
+
+    private static ItemStack getRackItem(IKitchenwareRacks racks, boolean isLeft) {
+        return isLeft ? racks.getItemLeft() : racks.getItemRight();
+    }
+
+    private static boolean isLeftSlot(BlockState state, BlockPos pos, BlockHitResult hitResult) {
         double yRotDeg = state.getValue(FACING).getOpposite().toYRot();
         float yRotRad = (float) Math.toRadians(yRotDeg);
         Vec3 location = hitResult.getLocation().subtract(Vec3.atCenterOf(pos)).yRot(yRotRad);
-        boolean isLeftClick = location.x > 0;
-
-        if (level.getBlockEntity(pos) instanceof IKitchenwareRacks racks) {
-            ItemStack rackStack = isLeftClick ? racks.getItemLeft() : racks.getItemRight();
-            boolean canTake = mainHandItem.isEmpty() && !rackStack.isEmpty();
-            boolean canPut = mainHandItem.isDamageableItem() && rackStack.isEmpty();
-            if (canTake || canPut) {
-                if (!level.isClientSide() && !racks.onClick(player, mainHandItem, isLeftClick)) {
-                    return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
-                }
-                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
-            }
-        }
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        return location.x > 0;
     }
 
     @Override

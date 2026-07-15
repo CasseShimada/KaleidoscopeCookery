@@ -216,6 +216,16 @@ def main() -> int:
             "player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OIL, takeCount))"
     ):
         errors.append("OilPotBlock gives oil before committing its removal from storage.")
+    kitchenware_racks_block = read(BLOCK_ROOT / "kitchen/KitchenwareRacksBlock.java")
+    for required_reference in (
+        "public @NotNull InteractionResult useWithoutItem(",
+        "racks.onClick(player, stack, isLeft)",
+        "racks.onClick(player, ItemStack.EMPTY, isLeft)",
+    ):
+        if required_reference not in kitchenware_racks_block:
+            errors.append(f"KitchenwareRacksBlock native interaction split is missing {required_reference}.")
+    if "mainHandItem.isEmpty()" in kitchenware_racks_block:
+        errors.append("KitchenwareRacksBlock still handles unreachable empty-hand takeout in useItemOn.")
     transmutation_lunch_bag = read(JAVA_ROOT / "item/TransmutationLunchBagItem.java")
     if "ItemStackContainer.wrap(fruitBasket.getItems())" in transmutation_lunch_bag:
         errors.append("TransmutationLunchBagItem still mutates the fruit basket inventory directly.")

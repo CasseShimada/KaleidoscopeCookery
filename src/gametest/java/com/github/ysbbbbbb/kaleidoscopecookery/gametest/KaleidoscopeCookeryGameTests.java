@@ -5,12 +5,14 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.KitchenwareRacksBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.MillstoneBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.NinePart;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.OilPotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.ShawarmaSpitBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.KitchenwareRacksBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.MillstoneBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.StockpotBlockEntity;
@@ -212,6 +214,44 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(player.getMainHandItem().is(ModItems.OIL)
                         && player.getMainHandItem().getCount() == 3,
                 "Oil pot extraction returned the wrong oil stack");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void kitchenwareRackSupportsNativeEmptyHandTakeout(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.KITCHENWARE_RACKS);
+        KitchenwareRacksBlockEntity racks = helper.getBlockEntity(pos, KitchenwareRacksBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack tool = new ItemStack(Items.IRON_SWORD);
+        player.setItemInHand(InteractionHand.MAIN_HAND, tool);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        BlockState state = helper.getLevel().getBlockState(absolutePos);
+        KitchenwareRacksBlock block = (KitchenwareRacksBlock) ModBlocks.KITCHENWARE_RACKS;
+
+        InteractionResult insertResult = block.useItemOn(
+                tool, state, helper.getLevel(), absolutePos, player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(insertResult, InteractionResult.SUCCESS,
+                "Kitchenware rack did not report a successful tool insertion");
+        helper.assertTrue(player.getMainHandItem().isEmpty(),
+                "Kitchenware rack did not consume the inserted tool");
+        helper.assertTrue(racks.getItemLeft().is(Items.IRON_SWORD)
+                        || racks.getItemRight().is(Items.IRON_SWORD),
+                "Kitchenware rack did not store the inserted tool");
+
+        InteractionResult takeResult = block.useWithoutItem(
+                helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
+
+        helper.assertValueEqual(takeResult, InteractionResult.SUCCESS,
+                "Kitchenware rack empty-hand takeout did not report success");
+        helper.assertTrue(player.getMainHandItem().is(Items.IRON_SWORD),
+                "Kitchenware rack empty-hand takeout returned the wrong tool");
+        helper.assertTrue(racks.getItemLeft().isEmpty() && racks.getItemRight().isEmpty(),
+                "Kitchenware rack retained the withdrawn tool");
         helper.succeed();
     }
 
