@@ -5,6 +5,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.ChairBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.FruitBasketBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.EmptyCupBlock;
@@ -27,6 +28,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.TrashCanBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.ChairBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ChoppingBoardBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.KitchenwareRacksBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
@@ -98,6 +100,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.component.UseRemainder;
 import net.minecraft.world.item.context.UseOnContext;
@@ -758,6 +761,35 @@ public final class KaleidoscopeCookeryGameTests {
                 "Table empty-hand takeout returned the wrong item");
         helper.assertTrue(table.getLastItem().isEmpty(),
                 "Table retained the withdrawn item");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void chairUsesStackSuppliedToCarpetInteraction(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.CHAIR_OAK);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(1, 1, 2));
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
+        BlockPos absolutePos = helper.absolutePos(pos);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        ChairBlock block = (ChairBlock) ModBlocks.CHAIR_OAK;
+        ItemStack carpet = Items.CARPET.pick(DyeColor.RED).getDefaultInstance();
+
+        InteractionResult result = block.useItemOn(
+                carpet, helper.getBlockState(pos), helper.getLevel(), absolutePos,
+                player, InteractionHand.MAIN_HAND, hitResult);
+
+        helper.assertValueEqual(result, InteractionResult.CONSUME,
+                "Chair carpet placement did not report a server-side mutation");
+        helper.assertTrue(carpet.isEmpty() && player.getMainHandItem().is(Items.STONE),
+                "Chair reread the player's hand instead of using the supplied carpet");
+        helper.assertTrue(helper.getBlockState(pos).getValue(ChairBlock.HAS_CARPET),
+                "Chair did not commit its carpet block state");
+        ChairBlockEntity chair = helper.getBlockEntity(pos, ChairBlockEntity.class);
+        helper.assertValueEqual(chair.getColor(), DyeColor.RED,
+                "Chair did not store the supplied carpet color");
         helper.succeed();
     }
 

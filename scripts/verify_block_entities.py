@@ -366,6 +366,11 @@ def main() -> int:
     if "InteractionResult.TRY_WITH_EMPTY_HAND" in trash_can_use_without_item:
         errors.append("TrashCanBlock recursively requests empty-hand dispatch from useWithoutItem.")
     chair_block = read(BLOCK_ROOT / "decoration/ChairBlock.java")
+    chair_use_item = chair_block.split("public InteractionResult useItemOn(", 1)[-1].split(
+        "public InteractionResult useWithoutItem(", 1
+    )[0]
+    if "useWithCarpets(state, level, pos, player, stack)" not in chair_use_item:
+        errors.append("ChairBlock does not use the stack supplied to its carpet interaction entry point.")
     table_block = read(BLOCK_ROOT / "decoration/TableBlock.java")
     if ".refresh()" in chair_block or ".refresh()" in table_block:
         errors.append("Furniture blocks still call the legacy block entity refresh API.")
@@ -386,6 +391,14 @@ def main() -> int:
         errors.append("TableBlock does not confirm initial carpet placement.")
     if "if (!level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true)))" not in chair_block:
         errors.append("ChairBlock does not confirm initial carpet placement.")
+    chair_initial_carpet = chair_block.split("if (!hasCarpet) {", 1)[-1].split(
+        "// 第二种情况", 1
+    )[0]
+    if chair_initial_carpet.find("level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true))") \
+            > chair_initial_carpet.find("level.getBlockEntity(pos)"):
+        errors.append("ChairBlock requests its carpet block entity before committing the entity-bearing state.")
+    if "level.setBlockAndUpdate(pos, state);\n                return InteractionResult.FAIL;" not in chair_initial_carpet:
+        errors.append("ChairBlock does not roll back initial carpet state when block entity creation fails.")
     recipe_block = read(BLOCK_ROOT / "misc/RecipeBlock.java")
     if "getItems()" in recipe_block:
         errors.append("RecipeBlock still accesses the recipe block entity container directly.")

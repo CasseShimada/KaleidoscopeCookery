@@ -90,9 +90,8 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
 
     @Override
     public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        ItemStack itemInHand = player.getItemInHand(hand);
-        if (hand == InteractionHand.MAIN_HAND && itemInHand.is(ItemTags.WOOL_CARPETS)) {
-            return useWithCarpets(state, level, pos, player, itemInHand);
+        if (hand == InteractionHand.MAIN_HAND && stack.is(ItemTags.WOOL_CARPETS)) {
+            return useWithCarpets(state, level, pos, player, stack);
         } else {
             return tryToSitOn(state, level, pos, player);
         }
@@ -129,8 +128,8 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
     }
 
     @NotNull
-    private InteractionResult useWithCarpets(BlockState state, Level level, BlockPos pos, Player player, ItemStack itemInHand) {
-        @Nullable DyeColor dyeColor = getColorByCarpet(itemInHand.getItem());
+    private InteractionResult useWithCarpets(BlockState state, Level level, BlockPos pos, Player player, ItemStack carpetStack) {
+        @Nullable DyeColor dyeColor = getColorByCarpet(carpetStack.getItem());
         boolean hasCarpet = state.getValue(HAS_CARPET);
         if (dyeColor == null) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -141,14 +140,15 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            if (!(level.getBlockEntity(pos) instanceof ChairBlockEntity chairBlockEntity)) {
-                return InteractionResult.TRY_WITH_EMPTY_HAND;
-            }
             if (!level.setBlockAndUpdate(pos, state.setValue(HAS_CARPET, true))) {
                 return InteractionResult.FAIL;
             }
+            if (!(level.getBlockEntity(pos) instanceof ChairBlockEntity chairBlockEntity)) {
+                level.setBlockAndUpdate(pos, state);
+                return InteractionResult.FAIL;
+            }
             chairBlockEntity.setColor(dyeColor);
-            itemInHand.consume(1, player);
+            carpetStack.consume(1, player);
             level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
             return InteractionResult.CONSUME;
@@ -162,7 +162,7 @@ public class ChairBlock extends HorizontalDirectionalBlock implements SimpleWate
             DyeColor originalColor = chairBlockEntity.getColor();
             ItemStack carpetItem = getCarpetByColor(originalColor).getDefaultInstance();
             chairBlockEntity.setColor(dyeColor);
-            itemInHand.consume(1, player);
+            carpetStack.consume(1, player);
             BlockDrop.popResource(level, pos, 0.25, carpetItem);
             level.playSound(null, pos, SoundType.WOOL.getPlaceSound(), player.getSoundSource(), 1.0F, 1.0F);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));

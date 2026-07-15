@@ -595,7 +595,7 @@ def main() -> int:
 
     for name, path, consume_expression, expected_consumes, shrink_expression in (
         ("TableBlock", TABLE_BLOCK, "itemInHand.consume(1, player)", 3, "itemInHand.shrink("),
-        ("ChairBlock", CHAIR_BLOCK, "itemInHand.consume(1, player)", 2, "itemInHand.shrink("),
+        ("ChairBlock", CHAIR_BLOCK, "carpetStack.consume(1, player)", 2, "carpetStack.shrink("),
         ("PlateBlock", PLATE_BLOCK, "stack.consume(1, player)", 1, "stack.shrink("),
         ("StackableFoodBlock", STACKABLE_FOOD_BLOCK, "stack.consume(1, player)", 1, "stack.shrink("),
     ):
@@ -616,6 +616,11 @@ def main() -> int:
             errors.append(f"{name} game events do not include the interacting player and prior block state.")
 
     chair_block_text = CHAIR_BLOCK.read_text(encoding="utf-8")
+    chair_use_item = chair_block_text.split("public InteractionResult useItemOn(", 1)[-1].split(
+        "public InteractionResult useWithoutItem(", 1
+    )[0]
+    if "player.getItemInHand(hand)" in chair_use_item:
+        errors.append("ChairBlock bypasses the stack supplied to its item interaction entry point.")
     cook_stool_text = COOK_STOOL_BLOCK.read_text(encoding="utf-8")
     for path, seating_text in ((CHAIR_BLOCK, chair_block_text), (COOK_STOOL_BLOCK, cook_stool_text)):
         if "if (!level.addFreshEntity(entitySit))" not in seating_text:
