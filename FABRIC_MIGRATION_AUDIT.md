@@ -4,11 +4,11 @@
 
 ## 执行元数据
 
-- 最后更新时间：2026-07-17 00:41（Asia/Shanghai，Carry On 2.9.1 适配、1.1.0.6 版本构建与双模式真实搬运闭环完成，待远端 Actions/Release）
+- 最后更新时间：2026-07-17 00:46（Asia/Shanghai，Carry On 2.9.1 适配与 1.1.0.6 GitHub Actions 远端构建完成，待正式 Release）
 - 执行模型：Codex（GPT-5）
 - 当前分支：`26.2-fabric`
-- 当前已提交 HEAD：`19f1ca4bb6dc9fba876b3d1fa8d1d0c07c105ebb`（`Record official upstream through 1d935a2c`）
-- 远端关系：已提交 HEAD 与 `origin/26.2-fabric` 一致；本轮 Carry On 适配仍为未提交工作区修改
+- 当前已提交 HEAD：`52fbcf4dbab5fbce55c08fee9ffd22549f9b692b`（`Add Carry On compatibility`）
+- 远端关系：Carry On 适配提交已推送并与 `origin/26.2-fabric` 一致；本文件的远端构建证据为待提交文档更新
 - 初始工作区状态：存在用户未提交修改，必须保留：
   - `scripts/verify_server_boundary.py`
   - `src/gametest/java/com/github/ysbbbbbb/kaleidoscopecookery/gametest/KaleidoscopeCookeryGameTests.java`
@@ -421,16 +421,17 @@
 | 2026-07-16 21:00-21:13 | REI/JEI/Jade 修复、FD 安装态 GameTest 与完整客户端旧世界副本 pass 2 | 成功 | 恢复 REI flex pot/flex stockpot/teapot，普通/灵活汤锅缺失 soup base 改为警告继续；REI Ingredient 以 `SlotDisplay` 支持 `fabric:any`。JEI 两个可变列表入口修复；Jade 13/13 UID 翻译锁定。FD 安装态 2519 recipes、96/96，三条代表性 cooking recipe 均转换/匹配/viewer 枚举通过。59-mod 客户端载入旧世界副本，Jade 双插件、Cookery REI 插件、JEI 8 类均完成，REI 同步 2446 recipes；正常窗口关闭、三维度保存、Gradle `BUILD SUCCESSFUL`，Cookery/JEI/Jade plugin ERROR=0，证据为 `run/client-compat-smoke-20260716-2110-pass2.stdout.log` | VERIFIED |
 | 2026-07-16 21:15-21:18 | 最终 clean 自动化、产物边界、部署与目标完整栈专服副本 | 成功 | `clean compileJava compileClientJava test build runDatagen runGameTest` 成功，2209 recipes / 1859 advancements、96/96、11/11；JAR 5,444,836 bytes / 5231 entries / SHA-256 `512EDC0D6031F454B11F4839BB97CF9C0704E394E1D883AD2DDC8B3C8B57715E`，JAR/`jdeps`/runtimeClasspath 禁止依赖 0，`git diff --check`=0。旧部署 `BDA6D1...BC431` 已备份为 `codex-smoke-mods/...pre-third-party-compat-20260716-2116.jar` 后部署新 JAR。目标 Aether/Twilight 44-mod 栈在独立 `codex-integrations-final-20260716-2118` 副本加载 3071 recipes / 2701 advancements、`Done (0.357s)`、五维度 flush/stop、退出码 0、Cookery ERROR=0；用户原 `versions\world` 未启动或修改，25570 释放 | VERIFIED |
 | 2026-07-17 00:09-00:41 | 用户提供的本地 Carry On 26.2 / 2.9.1 源码审计、双方构建、双名单真实搬运与 1.1.0.6 clean 自动化 | 成功 | Carry On 自身 `test build` 通过且只保留其既有 `.github`/审计修改；Cookery 将原 116 全拉黑细分为 31 个可搬运持久 BE 与 85 个不安全补集，并同时发布 whitelist/blacklist。真实 `PickupHandler`/`PlacementHandler` 在 blacklist 与 whitelist 两种配置下对全部 31 个安全方块完成 62 次搬起—放下，逐项保持坐标无关完整 BE NBT、库存/茶液 ID/颜色/油量/锅盖及所有非朝向方块属性；4 类多方块结构拒绝搬起。无 Carry On 的 clean `build runDatagen runGameTest` 为 97/97；安装本地 JAR 后连同 Carry On 自带 6 项为 103/103；2209 recipes / 1859 advancements、11/11 `verify_*.py` 通过。`1.1.0.6` JAR 5,445,139 bytes / 5232 entries / SHA-256 `AB8347BF3A06F28AAE235ECB5F8C743F69F058DB27A9E835BA820F544BBD124A` | VERIFIED |
+| 2026-07-17 00:42-00:46 | 提交/推送与 GitHub Actions 远端构建、snapshot 构件核验 | 成功 | `52fbcf4d` 已推送 `origin/26.2-fabric`；Actions run `29516724404` 的 checkout、Microsoft JDK 25、datagen 无漂移、build、97/97 GameTest、11 个验证脚本和 snapshot 上传全部成功。远端 snapshot `snapshot-2026-07-16-16-44-13` 精确指向该提交；主 JAR 5,291,282 bytes / 5230 entries / SHA-256 `646F8E998B3065B7E6DCF0C3A5FA4935A68ACDEF8628E5DC6A32E5E4D672B1D5`。远端/本地差异仅为 2391 JSON、17 mcmeta、1 accesswidener、1 manifest 的平台换行/构建文本及本地两个空目录；远端元数据版本为 `1.1.0.6-fabric+mc26.2`，Carry On 建议版本 `>=2.9.1`，31/85 两张标签均在 | VERIFIED |
 
 GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `build/run/gameTest/logs/latest.log`，但任务退出码为 0、服务端完成保存与关闭，不影响本次 53 项测试结论；后续若复现为残留进程则单独调查。
 
-最终迁移自动化闭环已完成：common/client 编译、`test`、`build`、datagen、默认 97/97 GameTest、Carry On 2.9.1 安装态 103/103、11/11 静态验证、产物内容及先前 `jdeps`/运行依赖检查均有成功证据。最新未提交 `1.1.0.6` 产物 `AB8347...D124A` 在 `1.1.0.5` 的旧世界/AI marker/FD/Jade/JEI/REI/Food Effect Tooltips 与目标完整栈证据上，新增 Carry On 黑/白名单双模式的全部 31 个安全方块真实往返和 85 个不安全方块补集约束。用户明确不存在 Forge/NeoForge 世界，因此不再把不存在的样本列作本次范围阻塞项。
+最终迁移自动化闭环已完成：本地默认 97/97、Carry On 2.9.1 安装态 103/103、11/11 静态验证，以及 GitHub Actions 的 datagen/build/97/97/11 脚本均成功。待发布的权威远端 `1.1.0.6` 产物为 `646F8E...72B1D5`，在 `1.1.0.5` 的旧世界与完整栈证据上新增 Carry On 双名单模式全部 31 个安全方块真实往返和 85 个不安全方块补集约束。
 
 ## 已知问题、阻塞项与风险
 
 1. `VERIFIED`：用户已明确实际兼容范围只包含其自写旧 Fabric 模组的指定 MC 26.1.2 世界，且不存在 Forge/NeoForge 世界。该原件已完成全量只读清单、独立非硬链接备份、仅副本的客户端登录/保存/多次重载、`--forceUpgrade` 和最终逐项 NBT 对照；原件与备份终检仍逐文件完全相同。
 2. `AUDITED`：功能基线已锁定为 `upstream/main@1d935a2c`；NeoForge 1.21.1 仅作近版本辅助参照。
-3. `VERIFIED`：当前已提交 HEAD 与 `origin/26.2-fabric` 同步；本轮 Carry On 适配仅存在于未提交工作区，其状态以本文件中的源码对照和测试为准。
+3. `VERIFIED`：Carry On 适配提交 `52fbcf4d` 已与 `origin/26.2-fabric` 同步并完成 Actions；当前仅本文件新增远端构建证据尚待提交。
 4. `AUDITED`：用户有 3 个初始未提交修改；其测试边界、OilPot 交互返回值调整与服务端扫描意图均保留，禁止回退。
 5. `VERIFIED`：Gradle、Java 25.0.2、依赖解析、目标 PCL2 Loader/MC/Java 配置和最终客户端/专服实际日志版本已交叉确认。
 6. `VERIFIED`：注册集合、全部持久化域和规范化资源路径已完成对照；方块属性 31/31 + 23/23、玩家存储入口及丰富旧 ItemStack 也已最终复扫。
@@ -490,8 +491,8 @@ GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `buil
 
 ## 下一步唯一明确动作
 
-用户已用 `continue` 授权继续交付。当前唯一明确动作是提交并推送 `1.1.0.6` 到 `26.2-fabric`，等待 GitHub Actions 远端构建成功并用远端构件创建正式 release；在远端验证完成前不替换目标实例现有的 `1.1.0.5`。正式使用存档时继续保留 `versions/codex-save-backups/world-fabric-26.1.2-20260716-1820`，绝不要覆盖原 `versions\world`。
+提交并推送本次远端证据文档，然后以 Actions snapshot 的主 JAR 创建正式 `1.1.0.6-fabric+mc26.2` Release；不使用本地 JAR替代远端构件。目标实例是否升级由正式 Release 完成后另行决定，用户原 `versions\world` 继续保持不启动、不修改。
 
 ## 给后续模型的接手摘要
 
-最终本地自动化已通过：common/client 编译、build、三类 datagen、2209 recipes / 1859 advancements、默认 97/97 GameTest、Carry On 2.9.1 安装态 103/103（含其自带 6 项）和 11/11 静态验证均成功。Carry On 适配将 116 个 Cookery 方块分为 31 个可搬运持久 BE 与 85 个不安全补集；blacklist/whitelist 两种模式下全部安全方块共 62 次真实往返保持坐标无关完整 NBT 与非朝向状态，4 类多方块结构拒绝搬起。待发布的 `1.1.0.6` 本地产物为 5,445,139 bytes、5232 entries、SHA-256 `AB8347BF3A06F28AAE235ECB5F8C743F69F058DB27A9E835BA820F544BBD124A`；目标实例仍部署已发布的 `1.1.0.5`，下一步为提交、推送、Actions 远端构建和正式 release。既有旧世界/完整栈证据继续有效；用户原 `versions\world` 未启动或修改。Carry On 仓库既有修改未触碰；外部进程和受保护 smoke 目录不得触碰。
+本地默认 97/97、Carry On 2.9.1 安装态 103/103（含其自带 6 项）和 11/11 静态验证均成功；Actions run `29516724404` 也完成 datagen、build、97/97 与 11 脚本。适配将 116 个方块分成 31 个安全持久 BE 与 85 个不安全补集，双模式 62 次往返保持完整 NBT/状态，4 类多方块结构拒绝搬起。权威远端 JAR 为 5,291,282 bytes / 5230 entries / SHA-256 `646F8E998B3065B7E6DCF0C3A5FA4935A68ACDEF8628E5DC6A32E5E4D672B1D5`，来自 snapshot `snapshot-2026-07-16-16-44-13`。下一步仅为提交本证据并用该远端 JAR创建正式 `1.1.0.6` Release；Carry On 仓库、用户世界、外部进程和受保护 smoke 目录均未触碰。
