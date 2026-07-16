@@ -12,6 +12,13 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSounds;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -28,7 +35,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
@@ -137,7 +143,7 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
     }
 
     @Override
-    public boolean addTeaFluid(Level level, LivingEntity user, ItemStack stack) {
+    public boolean addTeaFluid(Level level, LivingEntity user, Storage<FluidVariant> fluidStorage) {
         if (this.status != PUT_INGREDIENT) {
             this.sendActionBarMessage(user, "tooltip.kaleidoscope_cookery.teapot.add_tea_fluid.state_incorrect", this.getStatusText());
             return false;
@@ -146,49 +152,51 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
             this.sendActionBarMessage(user, "tooltip.kaleidoscope_cookery.teapot.add_tea_fluid.has_fluid");
             return false;
         }
-        Fluid fluid = null;
-        ItemStack remainder = ItemStack.EMPTY;
-        if (stack.is(Items.WATER_BUCKET)) {
-            fluid = Fluids.WATER;
-            remainder = new ItemStack(Items.BUCKET);
-        } else if (stack.is(Items.LAVA_BUCKET)) {
-            fluid = Fluids.LAVA;
-            remainder = new ItemStack(Items.BUCKET);
-        }
-        if (fluid == null) {
+        FluidVariant fluidVariant = firstStoredFluid(fluidStorage);
+        if (fluidVariant.isBlank()) {
             return false;
+        }
+        Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluidVariant.getFluid());
+        if (fluidId == null) {
+            return false;
+        }
+        try (Transaction transaction = Transaction.openOuter()) {
+            if (fluidStorage.extract(fluidVariant, FluidConstants.BUCKET, transaction) != FluidConstants.BUCKET) {
+                this.sendActionBarMessage(user, "tooltip.kaleidoscope_cookery.teapot.add_tea_fluid.fluid_not_enough");
+                return false;
+            }
+            if (!level.isClientSide()) {
+                transaction.commit();
+            }
         }
         if (level.isClientSide()) {
             return true;
         }
-        this.teaFluidId = BuiltInRegistries.FLUID.getKey(fluid);
-        if (!user.hasInfiniteMaterials()) {
-            stack.consume(1, user);
-            ItemUtils.getItemToLivingEntity(user, remainder);
-        }
-        level.playSound(null, worldPosition, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+        this.teaFluidId = fluidId;
         this.setChangedAndSync();
+        level.playSound(null, worldPosition, FluidVariantAttributes.getEmptySound(fluidVariant),
+                SoundSource.BLOCKS, 1.0F, 1.0F);
         level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
         return true;
     }
 
     @Override
-    public boolean removeTeaFluid(Level level, LivingEntity user, ItemStack stack) {
+    public boolean removeTeaFluid(Level level, LivingEntity user, Storage<FluidVariant> fluidStorage) {
         if (this.status != PUT_INGREDIENT || this.teaFluidId.equals(TeapotRecipeSerializer.EMPTY_TEA_FLUID) || !this.input.isEmpty()) {
             return false;
         }
-        if (!stack.is(Items.BUCKET)) {
-            return false;
-        }
         Fluid fluid = BuiltInRegistries.FLUID.getValue(this.teaFluidId);
-        ItemStack filled = ItemStack.EMPTY;
-        if (fluid == Fluids.WATER) {
-            filled = new ItemStack(Items.WATER_BUCKET);
-        } else if (fluid == Fluids.LAVA) {
-            filled = new ItemStack(Items.LAVA_BUCKET);
-        }
-        if (filled.isEmpty()) {
+        if (fluid == Fluids.EMPTY) {
             return false;
+        }
+        FluidVariant fluidVariant = FluidVariant.of(fluid);
+        try (Transaction transaction = Transaction.openOuter()) {
+            if (fluidStorage.insert(fluidVariant, FluidConstants.BUCKET, transaction) != FluidConstants.BUCKET) {
+                return false;
+            }
+            if (!level.isClientSide()) {
+                transaction.commit();
+            }
         }
         if (level.isClientSide()) {
             return true;
@@ -196,13 +204,19 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
         this.teaFluidId = TeapotRecipeSerializer.EMPTY_TEA_FLUID;
         this.currentTick = -1;
         this.setChangedAndSync();
-        if (!user.hasInfiniteMaterials()) {
-            stack.consume(1, user);
-            ItemUtils.getItemToLivingEntity(user, filled);
-        }
-        level.playSound(null, worldPosition, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, worldPosition, FluidVariantAttributes.getFillSound(fluidVariant),
+                SoundSource.BLOCKS, 1.0F, 1.0F);
         level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition, GameEvent.Context.of(user, this.getBlockState()));
         return true;
+    }
+
+    private static FluidVariant firstStoredFluid(Storage<FluidVariant> fluidStorage) {
+        for (StorageView<FluidVariant> view : fluidStorage.nonEmptyViews()) {
+            if (!view.getResource().isBlank()) {
+                return view.getResource();
+            }
+        }
+        return FluidVariant.blank();
     }
 
     @Override
@@ -348,9 +362,13 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store(INPUT, ItemStack.CODEC, this.input);
+        if (!this.input.isEmpty()) {
+            output.store(INPUT, ItemStack.CODEC, this.input);
+        }
         output.putString(TEA_FLUID_ID, this.teaFluidId.toString());
-        output.store(RESULT, ItemStack.CODEC, this.result);
+        if (!this.result.isEmpty()) {
+            output.store(RESULT, ItemStack.CODEC, this.result);
+        }
         output.putInt(STATUS, this.status);
         output.putInt(CURRENT_TICK, this.currentTick);
     }
@@ -358,11 +376,11 @@ public class TeapotBlockEntity extends BaseBlockEntity implements ITeapot {
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.input = input.read(INPUT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.input = LegacyItemStackCompat.readItemStack(input, INPUT);
         this.teaFluidId = input.getString(TEA_FLUID_ID)
                 .map(Identifier::tryParse)
                 .orElse(TeapotRecipeSerializer.EMPTY_TEA_FLUID);
-        this.result = input.read(RESULT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.result = LegacyItemStackCompat.readItemStack(input, RESULT);
         this.status = input.getIntOr(STATUS, PUT_INGREDIENT);
         this.currentTick = input.getIntOr(CURRENT_TICK, -1);
     }

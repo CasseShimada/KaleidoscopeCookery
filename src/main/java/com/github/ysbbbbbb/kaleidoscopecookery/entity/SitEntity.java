@@ -1,6 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.entity;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -8,6 +9,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -86,6 +88,14 @@ public class SitEntity extends Entity {
         if (passengerTick > 10) {
             this.discard();
         }
+    }
+
+    @Override
+    protected void removePassenger(Entity passenger) {
+        if (this.getSitType() == TRASH_CAN && passenger instanceof Player player) {
+            player.playSound(ModSounds.TRASH_CAN);
+        }
+        super.removePassenger(passenger);
     }
 
     @Override

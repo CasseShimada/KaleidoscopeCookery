@@ -14,17 +14,18 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public record StockpotRecipe(NonNullList<Ingredient> ingredients,
                              Identifier soupBase, ItemStackTemplate resultTemplate, int time,
-                             Ingredient carrier, Identifier cookingTexture, Identifier finishedTexture,
+                             Optional<Ingredient> carrier, Identifier cookingTexture, Identifier finishedTexture,
                              int cookingBubbleColor, int finishedBubbleColor) implements BaseRecipe<StockpotInput> {
     public StockpotRecipe {
         soupBase = SoupBaseIds.normalize(soupBase);
     }
 
     public StockpotRecipe(List<Ingredient> ingredients, Identifier soupBase, ItemStackTemplate resultTemplate,
-                          int time, Ingredient carrier, Identifier cookingTexture, Identifier finishedTexture,
+                          int time, Optional<Ingredient> carrier, Identifier cookingTexture, Identifier finishedTexture,
                           int cookingBubbleColor, int finishedBubbleColor) {
         this(toNonNullList(ingredients),
                 soupBase, resultTemplate, time, carrier, cookingTexture, finishedTexture,
@@ -32,10 +33,24 @@ public record StockpotRecipe(NonNullList<Ingredient> ingredients,
     }
 
     public StockpotRecipe(List<Ingredient> ingredients, Identifier soupBase, ItemStack result,
-                          int time, Ingredient carrier, Identifier cookingTexture, Identifier finishedTexture,
+                          int time, Optional<Ingredient> carrier, Identifier cookingTexture, Identifier finishedTexture,
                           int cookingBubbleColor, int finishedBubbleColor) {
         this(toNonNullList(ingredients),
                 soupBase, ItemStackTemplate.fromNonEmptyStack(result), time, carrier, cookingTexture, finishedTexture,
+                cookingBubbleColor, finishedBubbleColor);
+    }
+
+    public StockpotRecipe(List<Ingredient> ingredients, Identifier soupBase, ItemStackTemplate resultTemplate,
+                          int time, Ingredient carrier, Identifier cookingTexture, Identifier finishedTexture,
+                          int cookingBubbleColor, int finishedBubbleColor) {
+        this(ingredients, soupBase, resultTemplate, time, Optional.of(carrier), cookingTexture, finishedTexture,
+                cookingBubbleColor, finishedBubbleColor);
+    }
+
+    public StockpotRecipe(List<Ingredient> ingredients, Identifier soupBase, ItemStack result,
+                          int time, Ingredient carrier, Identifier cookingTexture, Identifier finishedTexture,
+                          int cookingBubbleColor, int finishedBubbleColor) {
+        this(ingredients, soupBase, result, time, Optional.of(carrier), cookingTexture, finishedTexture,
                 cookingBubbleColor, finishedBubbleColor);
     }
 

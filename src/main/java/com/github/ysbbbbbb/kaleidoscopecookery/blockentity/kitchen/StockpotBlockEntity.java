@@ -20,6 +20,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.Quality;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityEvaluator;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityUtils;
 import com.github.ysbbbbbb.kaleidoscopecookery.particle.StockpotParticleOptions;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.BlockDrop;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.BlockPos;
@@ -529,13 +530,14 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         if (status != FINISHED || this.result.isEmpty() || this.takeoutCount <= 0) {
             return false;
         }
-        Ingredient carrier = this.getCurrentCarrier(level);
-        if (!carrier.isEmpty() && !carrier.test(stack)) {
-            Component carrierName = ItemUtils.getIngredientName(level, carrier);
+        Optional<Ingredient> carrier = this.getCurrentCarrier(level);
+        if (carrier.isPresent() && !carrier.orElseThrow().test(stack)) {
+            Ingredient carrierIngredient = carrier.orElseThrow();
+            Component carrierName = ItemUtils.getIngredientName(level, carrierIngredient);
             this.sendActionBarMessage(user, "tip.kaleidoscope_cookery.pot.need_carrier", carrierName);
             return false;
         }
-        if (!carrier.isEmpty() && !user.hasInfiniteMaterials()) {
+        if (carrier.isPresent() && !user.hasInfiniteMaterials()) {
             stack.consume(1, user);
         }
 
@@ -556,9 +558,9 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
         return true;
     }
 
-    private Ingredient getCurrentCarrier(Level level) {
+    private Optional<Ingredient> getCurrentCarrier(Level level) {
         if (this.recipeId.equals(StockpotRecipeSerializer.EMPTY_ID)) {
-            return StockpotRecipeSerializer.DEFAULT_CARRIER;
+            return Optional.of(StockpotRecipeSerializer.DEFAULT_CARRIER);
         }
         RecipeManager recipeManager = null;
         if (level instanceof ServerLevel serverLevel) {
@@ -567,19 +569,19 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
             recipeManager = manager;
         }
         if (recipeManager == null) {
-            return StockpotRecipeSerializer.DEFAULT_CARRIER;
+            return Optional.of(StockpotRecipeSerializer.DEFAULT_CARRIER);
         }
         RecipeHolder<?> holder = getRecipeById(recipeManager, level, this.recipeId);
         if (holder == null) {
-            return StockpotRecipeSerializer.DEFAULT_CARRIER;
+            return Optional.of(StockpotRecipeSerializer.DEFAULT_CARRIER);
         }
         if (holder.value() instanceof StockpotRecipe stockpotRecipe) {
             return stockpotRecipe.carrier();
         }
         if (holder.value() instanceof FlexStockpotRecipe flexStockpotRecipe) {
-            return flexStockpotRecipe.carrier();
+            return Optional.of(flexStockpotRecipe.carrier());
         }
-        return StockpotRecipeSerializer.DEFAULT_CARRIER;
+        return Optional.of(StockpotRecipeSerializer.DEFAULT_CARRIER);
     }
 
     private void sendActionBarMessage(LivingEntity user, String key, Object... args) {
@@ -610,7 +612,7 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.inputs = NonNullList.withSize(StockpotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(input.childOrEmpty(INPUTS), this.inputs);
+        LegacyItemStackCompat.loadAllItems(input.childOrEmpty(INPUTS), this.inputs);
         this.recipeId = input.getString(RECIPE_ID)
                 .flatMap(value -> Optional.ofNullable(Identifier.tryParse(value)))
                 .orElse(StockpotRecipeSerializer.EMPTY_ID);
@@ -625,11 +627,11 @@ public class StockpotBlockEntity extends BaseBlockEntity implements IStockpot {
                 .flatMap(value -> Optional.ofNullable(Identifier.tryParse(value)))
                 .map(SoupBaseIds::normalize)
                 .orElse(ModSoupBases.WATER);
-        this.result = input.read(RESULT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.result = LegacyItemStackCompat.readItemStack(input, RESULT);
         this.status = input.getIntOr(STATUS, PUT_SOUP_BASE);
         this.currentTick = input.getIntOr(CURRENT_TICK, -1);
         this.takeoutCount = input.getIntOr(TAKEOUT_COUNT, 0);
-        this.lidItem = input.read(LID_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.lidItem = LegacyItemStackCompat.readItemStack(input, LID_ITEM);
     }
 
     public boolean isEmpty() {

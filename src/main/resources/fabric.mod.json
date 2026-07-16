@@ -40,6 +40,8 @@
   "suggests": {
     "jei": "*",
     "jade": "*",
-    "roughlyenoughitems": "*"
+    "roughlyenoughitems": "*",
+    "foodeffecttooltips": "*",
+    "farmersdelight": "*"
   }
 }

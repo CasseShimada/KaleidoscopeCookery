@@ -23,6 +23,19 @@ ACCESS_WIDENER = RESOURCES / "kaleidoscope_cookery.accesswidener"
 FABRIC_MOD_JSON = RESOURCES / "fabric.mod.json"
 BUILD_GRADLE = ROOT / "build.gradle"
 ADD_VILLAGE_STRUCTURES_EVENT = JAVA_ROOT / "event/server/AddVillageStructuresEvent.java"
+FLOUR_ITEM = JAVA_ROOT / "item/FlourItem.java"
+TUNDRA_STRIDER_EFFECT = JAVA_ROOT / "effect/TundraStriderEffect.java"
+PROJECTILE_DODGE_HANDLER = JAVA_ROOT / "event/server/effect/ProjectileDodgeHandler.java"
+CUSTOM_ARM_POSE = CLIENT_JAVA_ROOT / "client/animation/CustomArmPose.java"
+PRESERVATION_EVENT = JAVA_ROOT / "event/server/effect/PreservationEvent.java"
+FARMER_ARMOR_EVENT = JAVA_ROOT / "event/server/effect/FarmerArmorEffectEvent.java"
+TRASH_CAN_TARGETING = JAVA_ROOT / "util/TrashCanTargeting.java"
+TRASH_CAN_RENDER_STATE = CLIENT_JAVA_ROOT / "client/render/TrashCanRenderState.java"
+MOD_EVENTS = JAVA_ROOT / "init/ModEvents.java"
+PLAYER_MIXIN = MIXIN_ROOT / "PlayerMixin.java"
+GIVE_GIFT_TO_HERO_MIXIN = MIXIN_ROOT / "GiveGiftToHeroMixin.java"
+LEGACY_PLAYER_DATA_COMPAT = JAVA_ROOT / "util/LegacyPlayerDataCompat.java"
+FLATULENCE_EFFECT = JAVA_ROOT / "effect/FlatulenceEffect.java"
 
 MIXIN_PACKAGE = "com.github.ysbbbbbb.kaleidoscopecookery.mixin"
 MIXIN_CONFIG_NAME = "kaleidoscope_cookery.mixins.json"
@@ -229,11 +242,229 @@ def validate_mixin_config() -> tuple[list[str], int, int]:
                 errors.append("MobBucketItemMixin does not use a fixed vanilla block scan.")
             if "mutable.offset(" in text:
                 errors.append("MobBucketItemMixin retains a cumulatively mutated scan position.")
-        if name == "ServerPlayerMixin":
-            if "checkMovementStatistics" not in text or "ordinal = 3" not in text:
-                errors.append("ServerPlayerMixin does not target the vanilla sprint exhaustion call.")
-            if "@Redirect" not in text:
-                errors.append("ServerPlayerMixin does not isolate sprint exhaustion at its call site.")
+            if "wrapAsHolder(this.type).is(TagMod.RICE_GROWTH_BOOSTER)" not in text:
+                errors.append("MobBucketItemMixin no longer filters bucket entities through rice_growth_booster.")
+        if name == "PistonStructureResolverMixin":
+            if '@Inject(method = "isSticky"' in text or "setReturnValue(true)" in text:
+                errors.append("PistonStructureResolverMixin incorrectly makes the Forge-nonsticky oil block sticky.")
+            if text.count("is(ModBlocks.OIL_BLOCK)") < 2 or "setReturnValue(false)" not in text:
+                errors.append("PistonStructureResolverMixin does not reject oil-block adhesion symmetrically.")
+        if name == "FoodDataAccessor":
+            if "@Mixin(FoodData.class)" not in text or '@Accessor("exhaustionLevel")' not in text:
+                errors.append("FoodDataAccessor does not expose only the exhaustion level required by Vigor.")
+        if name == "FarmBlockMixin" and "entity != null" not in text:
+            errors.append("FarmBlockMixin also cancels entity=null farmland dehydration, unlike Forge trample events.")
+        if name == "ItemEntityMixin":
+            if '@Inject(method = "tick", at = @At("TAIL"))' not in text:
+                errors.append("ItemEntityMixin no longer checks flour after the vanilla item tick.")
+            if "this.tickCount % 10 == 0" not in text or "FlourItem.hydrateIfInWater" not in text:
+                errors.append("ItemEntityMixin no longer preserves the Forge ten-tick flour hydration cadence.")
+        if name == "FallingBlockEntityMixin":
+            if "FallingBlockEntity;spawnAtLocation(Lnet/minecraft/server/level/ServerLevel;" not in text:
+                errors.append("FallingBlockEntityMixin no longer targets the 26.2 server-side falling-block drop call.")
+            if "cancellable = true" not in text or "ci.cancel()" not in text:
+                errors.append("FallingBlockEntityMixin does not replace the vanilla steamer item drop.")
+            if "self.discard()" not in text:
+                errors.append("FallingBlockEntityMixin leaks the entity when cancelling the 26.2 timeout drop path.")
+            if "dropFallingSteamerAsItem" not in text or "self.blockData" not in text:
+                errors.append("FallingBlockEntityMixin no longer preserves falling steamer block-entity data.")
+        if name == "LivingEntityMixin":
+            if '@Inject(method = "getBlockSpeedFactor", at = @At("HEAD"), cancellable = true)' not in text:
+                errors.append("LivingEntityMixin no longer intercepts the tundra-strider speed factor at method entry.")
+            if "TundraStriderEffect.getBlockSpeedFactor(entity).ifPresent(cir::setReturnValue)" not in text:
+                errors.append("LivingEntityMixin no longer delegates the baseline tundra-strider speed formula.")
+            for required in (
+                    '@Inject(method = "completeUsingItem", at = @At("HEAD"))',
+                    "getUseItem().copy()",
+                    "LivingEntity;stopUsingItem()V",
+                    "PreservationEvent.onItemUseFinished",
+                    '@Inject(method = "tick", at = @At("TAIL"))',
+                    "FarmerArmorEffectEvent.onLivingTick",
+            ):
+                if required not in text:
+                    errors.append(f"LivingEntityMixin lost an entity-event contract: {required}")
+        if name == "MobMixin":
+            if '@Inject(method = "setTarget", at = @At("HEAD"), cancellable = true)' not in text:
+                errors.append("MobMixin no longer intercepts target assignment before vanilla mutation.")
+            if "TrashCanTargeting.isHidingInTrashCan(target)" not in text or "ci.cancel()" not in text:
+                errors.append("MobMixin no longer rejects players riding trash-can seats.")
+        if name == "PowderSnowBlockMixin":
+            if '@Inject(method = "canEntityWalkOnPowderSnow", at = @At("HEAD"), cancellable = true)' not in text:
+                errors.append("PowderSnowBlockMixin no longer intercepts the vanilla powder-snow walk check.")
+            if "TundraStriderEffect.canWalkOnPowderSnow(entity)" not in text or "cir.setReturnValue(true)" not in text:
+                errors.append("PowderSnowBlockMixin no longer grants the tundra-strider powder-snow exception.")
+        if name == "ProjectileMixin":
+            if "hitTargetOrDeflectSelf(Lnet/minecraft/world/phys/HitResult;)" not in text:
+                errors.append("ProjectileMixin no longer targets the 26.2 projectile impact method.")
+            if "EntityHitResult" not in text or "ProjectileDodgeHandler.dodgeProjectile(living)" not in text:
+                errors.append("ProjectileMixin no longer limits dodge handling to living entity impacts.")
+            if "cir.setReturnValue(ProjectileDeflection.NONE)" not in text:
+                errors.append("ProjectileMixin no longer skips the original entity impact after a successful dodge.")
+
+    flour_text = read(FLOUR_ITEM)
+    if "itemEntity.isInWater()" not in flour_text:
+        errors.append("FlourItem no longer requires the dropped stack to be in water.")
+    if "new ItemStack(ModItems.RAW_DOUGH, stack.getCount())" not in flour_text:
+        errors.append("FlourItem no longer preserves stack count when hydrating into raw dough.")
+
+    tundra_text = read(TUNDRA_STRIDER_EFFECT)
+    for required in (
+            "entity instanceof LivingEntity livingEntity && livingEntity.hasEffect(ModEffects.TUNDRA_STRIDER)",
+            "entity.getBlockPosBelowThatAffectsMyMovement()",
+            "blockState.is(TagMod.TUNDRA_STRIDER_SPEED_BLOCKS)",
+            "1.1f + Math.max(1 - friction, 0) * 0.5f",
+    ):
+        if required not in tundra_text:
+            errors.append(f"TundraStriderEffect lost baseline behavior: {required}")
+
+    dodge_text = read(PROJECTILE_DODGE_HANDLER)
+    for required in (
+            "DODGE_DURATION_COST = 200",
+            "TELEPORT_RANGE = 3.0",
+            "TELEPORT_ATTEMPTS = 16",
+            "effect.isInfiniteDuration()",
+            "effect.getAmplifier()",
+            "effect.isAmbient()",
+            "effect.isVisible()",
+            "effect.showIcon()",
+    ):
+        if required not in dodge_text:
+            errors.append(f"ProjectileDodgeHandler lost baseline behavior: {required}")
+
+    arm_mixin_text = read(CLIENT_MIXIN_ROOT / "client/HumanoidModelMixin.java")
+    if arm_mixin_text.count('at = @At("TAIL")') != 2:
+        errors.append("HumanoidModelMixin should apply both lift poses after vanilla arm posing.")
+    for required in (
+            "state.rightHandItemStack.getItem() instanceof LiftBlockItem",
+            "CustomArmPose.applyLiftPose(this.rightArm, HumanoidArm.RIGHT)",
+            "state.leftHandItemStack.getItem() instanceof LiftBlockItem",
+            "CustomArmPose.applyLiftPose(this.leftArm, HumanoidArm.LEFT)",
+    ):
+        if required not in arm_mixin_text:
+            errors.append(f"HumanoidModelMixin lost lift-pose behavior: {required}")
+    arm_pose_text = read(CUSTOM_ARM_POSE)
+    for required in (
+            "arm.xRot = -Mth.PI;",
+            "arm.zRot = -Mth.PI * 0.025f;",
+            "arm.xRot = -Mth.PI * 0.5f;",
+            "arm.zRot = Mth.PI * 0.025f;",
+    ):
+        if required not in arm_pose_text:
+            errors.append(f"CustomArmPose lost a Forge lift angle: {required}")
+
+    preservation_text = read(PRESERVATION_EVENT)
+    for required in (
+            "stack.has(DataComponents.FOOD)",
+            "stack.get(DataComponents.CONSUMABLE)",
+            "ApplyStatusEffectsConsumeEffect",
+            "entity.removeEffect(effect)",
+    ):
+        if required not in preservation_text:
+            errors.append(f"Preservation completion handling lost baseline behavior: {required}")
+    if "UseItemCallback" in preservation_text or "PRESERVATION_FOOD" in preservation_text:
+        errors.append("Preservation still runs at item-use start or narrows Forge's all-food behavior to a tag.")
+
+    farmer_text = read(FARMER_ARMOR_EVENT)
+    for required in (
+            "LivingEntity entity",
+            "entity.tickCount % ARMOR_CHECK_INTERVAL_TICKS",
+            "entity.isInWater()",
+            "DOLPHINS_GRACE_REFRESH_TICKS = 25",
+            "entity.getItemBySlot(slot).is(TagMod.FARMER_ARMOR)",
+    ):
+        if required not in farmer_text:
+            errors.append(f"Farmer armor handling lost baseline behavior: {required}")
+    if "ServerTickEvents" in farmer_text or "ServerPlayer" in farmer_text or "server.getTickCount()" in farmer_text:
+        errors.append("Farmer armor still uses a player-only global server clock.")
+
+    mod_events_text = read(MOD_EVENTS)
+    for stale_registration in (
+            "PreservationEvent.register();",
+            "FarmerArmorEffectEvent.register();",
+            "TrashCanHideEvent.register();",
+    ):
+        if stale_registration in mod_events_text:
+            errors.append(f"ModEvents retains superseded event registration: {stale_registration}")
+    if (JAVA_ROOT / "event/server/TrashCanHideEvent.java").exists():
+        errors.append("The incomplete 32-block per-tick TrashCanHideEvent still exists.")
+
+    targeting_text = read(TRASH_CAN_TARGETING)
+    for required in (
+            "entity.getVehicle() instanceof SitEntity sitEntity",
+            "sitEntity.getSitType() == SitEntity.TRASH_CAN",
+            "clearTargetsAroundBlock",
+    ):
+        if required not in targeting_text:
+            errors.append(f"Trash-can targeting lost baseline behavior: {required}")
+    if "clearTargetsAroundPlayer" in targeting_text:
+        errors.append("TrashCanTargeting still exposes the superseded per-tick player scan.")
+
+    player_mixin_text = read(PLAYER_MIXIN)
+    for required in (
+            "@Mixin(Player.class)",
+            '@Inject(method = "readAdditionalSaveData", at = @At("TAIL"))',
+            "LegacyPlayerDataCompat.loadFlatulenceStartingPosition((Player) (Object) this, input)",
+    ):
+        if required not in player_mixin_text:
+            errors.append(f"PlayerMixin lost legacy player-data migration wiring: {required}")
+    gift_mixin_text = read(GIVE_GIFT_TO_HERO_MIXIN)
+    for required in (
+            "@Mixin(GiveGiftToHero.class)",
+            '@Inject(method = "<clinit>", at = @At("TAIL"))',
+            ".putAll(GIFTS)",
+            ".put(ModVillager.CHEF_KEY, ModLootTables.CHEF_GIFT)",
+    ):
+        if required not in gift_mixin_text:
+            errors.append(f"Chef hero-gift mapping Mixin is missing: {required}")
+    legacy_player_data_text = read(LEGACY_PLAYER_DATA_COMPAT)
+    for required in (
+            'FORGE_DATA = "ForgeData"',
+            'FLATULENCE_START = "FlatulenceEffectStartingPosition"',
+            "player.hasEffect(FLATULENCE)",
+            'input.getInt("X")',
+            'input.getInt("Y")',
+            'input.getInt("Z")',
+            "player.setAttached(FLATULENCE_EFFECT_STARTING_POSITION, position)",
+    ):
+        if required not in legacy_player_data_text:
+            errors.append(f"Legacy flatulence player-data migration is missing: {required}")
+    flatulence_effect_text = read(FLATULENCE_EFFECT)
+    if "Vec3.atLowerCornerOf(player.blockPosition())" not in flatulence_effect_text:
+        errors.append("FlatulenceEffect no longer records the Forge block-position starting point.")
+
+    camera_text = read(CLIENT_MIXIN_ROOT / "client/CameraMixin.java")
+    for required in (
+            '@Inject(method = "update", at = @At("TAIL"))',
+            "getCameraType().isFirstPerson()",
+            "TrashCanTargeting.isHidingInTrashCan(player)",
+            "this.setRotation(this.yRot(), 0.0F)",
+    ):
+        if required not in camera_text:
+            errors.append(f"CameraMixin lost trash-can camera behavior: {required}")
+
+    avatar_text = read(CLIENT_MIXIN_ROOT / "client/AvatarRendererMixin.java")
+    for required in (
+            "extractRenderState(Lnet/minecraft/world/entity/Avatar;",
+            "((FabricRenderState) state).setData(",
+            "TrashCanTargeting.isHidingInTrashCan(avatar)",
+    ):
+        if required not in avatar_text:
+            errors.append(f"AvatarRendererMixin lost trash-can render-state extraction: {required}")
+
+    living_renderer_text = read(CLIENT_MIXIN_ROOT / "client/LivingEntityRendererMixin.java")
+    for required in (
+            "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;",
+            'at = @At("HEAD")',
+            "cancellable = true",
+            "getDataOrDefault(TrashCanRenderState.HIDDEN, false)",
+            "ci.cancel()",
+    ):
+        if required not in living_renderer_text:
+            errors.append(f"LivingEntityRendererMixin lost player hiding behavior: {required}")
+
+    render_state_text = read(TRASH_CAN_RENDER_STATE)
+    if "RenderStateDataKey<Boolean> HIDDEN" not in render_state_text:
+        errors.append("TrashCanRenderState does not define a typed hidden-player render-state key.")
 
     return errors, len(common_mixins), len(client_mixins)
 
@@ -303,6 +534,10 @@ def validate_access_widener() -> tuple[list[str], int]:
             errors.append("StructureTemplatePool.rawTemplates is widened but AddVillageStructuresEvent does not read rawTemplates.")
         if re.search(r"\bpool\.rawTemplates\s*=", event_text) is None:
             errors.append("StructureTemplatePool.rawTemplates is mutable but AddVillageStructuresEvent does not assign rawTemplates.")
+        if "ServerLifecycleEvents.SERVER_STARTING.register" not in event_text:
+            errors.append("Village kitchens are not injected at the Fabric equivalent of ServerAboutToStartEvent.")
+        if event_text.count("KITCHEN_WEIGHT") < 6 or "private static final int KITCHEN_WEIGHT = 4" not in event_text:
+            errors.append("Village kitchen pool weights no longer match the Forge baseline value of four.")
 
     return errors, len(entries)
 

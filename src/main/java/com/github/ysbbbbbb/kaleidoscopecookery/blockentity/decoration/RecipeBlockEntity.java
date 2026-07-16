@@ -2,6 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
@@ -27,7 +28,7 @@ public class RecipeBlockEntity extends BaseBlockEntity {
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.item = input.read(SHOW_ITEMS, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.item = LegacyItemStackCompat.readItemStackOrHandler(input, SHOW_ITEMS, 1);
     }
 
     public ItemStack getItem() {

@@ -3,6 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.OilPotBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.inventory.transfer.OilPotStorage;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -15,6 +16,7 @@ public class OilPotBlockEntity extends BaseBlockEntity {
     public static final int MAX_OIL_COUNT = 256;
     private static final String OIL_COUNT = "OilCount";
 
+    private final OilPotStorage itemStorage = new OilPotStorage(this);
     private int oilCount = 0;
 
     public OilPotBlockEntity(BlockPos pos, BlockState state) {
@@ -38,6 +40,10 @@ public class OilPotBlockEntity extends BaseBlockEntity {
 
     public int getOilCount() {
         return oilCount;
+    }
+
+    public OilPotStorage getItemStorage() {
+        return this.itemStorage;
     }
 
     public boolean setOilCount(int count) {

@@ -10,18 +10,26 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
-public record TeapotRecipe(Identifier teaFluid, Ingredient ingredient, int ingredientCount, int time,
+import java.util.Optional;
+
+public record TeapotRecipe(Identifier teaFluid, Optional<Ingredient> ingredient, int ingredientCount, int time,
                            ItemStackTemplate resultTemplate) implements BaseRecipe<TeapotInput> {
     public static final int OUTPUT_COUNT = 12;
 
-    public TeapotRecipe(Identifier teaFluid, Ingredient ingredient, int ingredientCount, int time, ItemStack result) {
+    public TeapotRecipe(Identifier teaFluid, Optional<Ingredient> ingredient, int ingredientCount, int time, ItemStack result) {
         this(teaFluid, ingredient, ingredientCount, time, ItemStackTemplate.fromNonEmptyStack(result));
+    }
+
+    public TeapotRecipe(Identifier teaFluid, Ingredient ingredient, int ingredientCount, int time, ItemStack result) {
+        this(teaFluid, Optional.of(ingredient), ingredientCount, time, result);
     }
 
     @Override
     public boolean matches(TeapotInput container, Level level) {
         ItemStack stack = container.item();
-        return this.teaFluid.equals(container.teaFluid()) && this.ingredient.test(stack) && stack.getCount() >= this.ingredientCount;
+        return this.teaFluid.equals(container.teaFluid())
+                && Ingredient.testOptionalIngredient(this.ingredient, stack)
+                && stack.getCount() >= this.ingredientCount;
     }
 
     @Override

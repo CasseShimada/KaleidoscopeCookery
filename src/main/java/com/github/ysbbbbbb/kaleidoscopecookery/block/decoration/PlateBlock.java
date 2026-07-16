@@ -47,22 +47,21 @@ public class PlateBlock extends HorizontalDirectionalBlock {
     private static final IntegerProperty SERVINGS_5 = IntegerProperty.create("servings", 0, 5);
 
     private final List<Supplier<Item>> items;
-    private final List<Supplier<Item>> plateItems;
     private final int maxCount;
     private VoxelShape aabb = AABB;
 
     public static PlateBlock create(BlockBehaviour.Properties properties, int maxCount,
-                                    List<Supplier<Item>> items, List<Supplier<Item>> plateItems) {
+                                    List<Supplier<Item>> items) {
         return switch (maxCount) {
-            case 3 -> new ThreeServingPlateBlock(properties, items, plateItems);
-            case 4 -> new FourServingPlateBlock(properties, items, plateItems);
-            case 5 -> new FiveServingPlateBlock(properties, items, plateItems);
+            case 3 -> new ThreeServingPlateBlock(properties, items);
+            case 4 -> new FourServingPlateBlock(properties, items);
+            case 5 -> new FiveServingPlateBlock(properties, items);
             default -> throw new IllegalArgumentException("Unsupported plate serving count: " + maxCount);
         };
     }
 
     public PlateBlock(BlockBehaviour.Properties properties, int maxCount,
-                      List<Supplier<Item>> items, List<Supplier<Item>> plateItems) {
+                      List<Supplier<Item>> items) {
         super(properties
                 .forceSolidOn()
                 .instabreak()
@@ -72,7 +71,6 @@ public class PlateBlock extends HorizontalDirectionalBlock {
                 .noOcclusion());
         this.maxCount = maxCount;
         this.items = items;
-        this.plateItems = plateItems;
 
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(FACING, Direction.SOUTH)
@@ -80,7 +78,7 @@ public class PlateBlock extends HorizontalDirectionalBlock {
     }
 
     private PlateBlock(BlockBehaviour.Properties properties) {
-        this(properties, 1, List.of(), List.of());
+        this(properties, 1, List.of());
     }
 
     @Override
@@ -158,10 +156,7 @@ public class PlateBlock extends HorizontalDirectionalBlock {
 
     @Override
     public @NotNull List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        List<ItemStack> drops = new ArrayList<>();
-        for (Supplier<Item> item : this.plateItems) {
-            drops.add(item.get().getDefaultInstance());
-        }
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, params));
         int count = state.getValue(this.getServingsProperty());
         if (count > 0) {
             for (Supplier<Item> item : this.items) {
@@ -204,8 +199,8 @@ public class PlateBlock extends HorizontalDirectionalBlock {
 
     private static final class ThreeServingPlateBlock extends PlateBlock {
         private ThreeServingPlateBlock(BlockBehaviour.Properties properties,
-                                       List<Supplier<Item>> items, List<Supplier<Item>> plateItems) {
-            super(properties, 3, items, plateItems);
+                                       List<Supplier<Item>> items) {
+            super(properties, 3, items);
         }
 
         @Override
@@ -216,8 +211,8 @@ public class PlateBlock extends HorizontalDirectionalBlock {
 
     private static final class FourServingPlateBlock extends PlateBlock {
         private FourServingPlateBlock(BlockBehaviour.Properties properties,
-                                      List<Supplier<Item>> items, List<Supplier<Item>> plateItems) {
-            super(properties, 4, items, plateItems);
+                                      List<Supplier<Item>> items) {
+            super(properties, 4, items);
         }
 
         @Override
@@ -228,8 +223,8 @@ public class PlateBlock extends HorizontalDirectionalBlock {
 
     private static final class FiveServingPlateBlock extends PlateBlock {
         private FiveServingPlateBlock(BlockBehaviour.Properties properties,
-                                      List<Supplier<Item>> items, List<Supplier<Item>> plateItems) {
-            super(properties, 5, items, plateItems);
+                                      List<Supplier<Item>> items) {
+            super(properties, 5, items);
         }
 
         @Override

@@ -10,12 +10,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.entries.EmptyLootItem;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
@@ -47,8 +47,8 @@ public final class ExtraLootTableDrop {
     private static final float DONKEY_MEAT_MIN_LOOTING_BONUS = 0.0F;
     private static final float DONKEY_MEAT_MAX_LOOTING_BONUS = 1.0F;
     private static final int SEED_POOL_ROLLS = 1;
-    private static final float SEED_DROP_CHANCE = 0.125F;
-    private static final int SEED_EMPTY_WEIGHT = 2;
+    private static final float COOKERY_SEED_DROP_CHANCE = 0.125F;
+    private static final float VANILLA_SEED_DROP_CHANCE = 0.02F;
     private static final int SEED_FORTUNE_BONUS = 2;
 
     private ExtraLootTableDrop() {
@@ -87,11 +87,10 @@ public final class ExtraLootTableDrop {
         var looting = EnchantedCountIncreaseFunction.lootingMultiplier(registries,
                 UniformGenerator.between(OIL_MIN_LOOTING_BONUS, OIL_MAX_LOOTING_BONUS));
         var oil = LootItem.lootTableItem(ModItems.OIL).apply(count).apply(looting);
-        var empty = EmptyLootItem.emptyItem();
 
         tableBuilder.withPool(LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(rolls))
-                .add(oil).add(empty).when(toolMatches));
+                .add(oil).when(toolMatches));
     }
 
     private static void addDonkeyMeatDrop(LootTable.Builder tableBuilder, HolderLookup.Provider registries) {
@@ -112,26 +111,29 @@ public final class ExtraLootTableDrop {
     private static void addSeedDrop(LootTable.Builder tableBuilder, HolderLookup.Provider registries) {
         HolderLookup.RegistryLookup<Enchantment> enchantment = registries.lookupOrThrow(Registries.ENCHANTMENT);
         // 穿戴草帽掉落番茄辣椒等种子
-        var tomato = getSeed(ModItems.TOMATO_SEED, registries, enchantment);
-        var chili = getSeed(ModItems.CHILI_SEED, registries, enchantment);
-        var lettuce = getSeed(ModItems.LETTUCE_SEED, registries, enchantment);
-        var rice = getSeed(ModItems.WILD_RICE_SEED, registries, enchantment);
-        var empty = EmptyLootItem.emptyItem().setWeight(SEED_EMPTY_WEIGHT);
+        var tomato = getSeed(ModItems.TOMATO_SEED, COOKERY_SEED_DROP_CHANCE, registries, enchantment);
+        var chili = getSeed(ModItems.CHILI_SEED, COOKERY_SEED_DROP_CHANCE, registries, enchantment);
+        var lettuce = getSeed(ModItems.LETTUCE_SEED, COOKERY_SEED_DROP_CHANCE, registries, enchantment);
+        var rice = getSeed(ModItems.WILD_RICE_SEED, COOKERY_SEED_DROP_CHANCE, registries, enchantment);
+        var beetroot = getSeed(Items.BEETROOT_SEEDS, VANILLA_SEED_DROP_CHANCE, registries, enchantment);
+        var pumpkin = getSeed(Items.PUMPKIN_SEEDS, VANILLA_SEED_DROP_CHANCE, registries, enchantment);
+        var melon = getSeed(Items.MELON_SEEDS, VANILLA_SEED_DROP_CHANCE, registries, enchantment);
         tableBuilder.withPool(LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(SEED_POOL_ROLLS))
                 .add(tomato).add(chili)
                 .add(lettuce).add(rice)
-                .add(empty));
+                .add(beetroot).add(pumpkin).add(melon));
     }
 
-    private static LootPoolSingletonContainer.Builder<?> getSeed(ItemLike item, HolderLookup.Provider registries,
+    private static LootPoolSingletonContainer.Builder<?> getSeed(ItemLike item, float chance,
+                                                                 HolderLookup.Provider registries,
                                                                  HolderLookup.RegistryLookup<Enchantment> enchantment) {
         ItemPredicate hasHat = ItemPredicate.Builder.item()
                 .of(registries.lookupOrThrow(Registries.ITEM), TagMod.STRAW_HAT)
                 .build();
         LootItemCondition.Builder hatMatches = AdvanceBlockMatchTool.toolMatches(EquipmentSlot.HEAD, hasHat);
         return LootItem.lootTableItem(item)
-                .when(LootItemRandomChanceCondition.randomChance(SEED_DROP_CHANCE)).when(hatMatches)
+                .when(LootItemRandomChanceCondition.randomChance(chance)).when(hatMatches)
                 .apply(ApplyBonusCount.addUniformBonusCount(enchantment.getOrThrow(Enchantments.FORTUNE),
                         SEED_FORTUNE_BONUS));
     }

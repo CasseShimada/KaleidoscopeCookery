@@ -2,12 +2,26 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ],
       "entries": [
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "1"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 1.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
         {
           "type": "minecraft:item",
           "conditions": [
@@ -21,7 +35,7 @@
           ],
           "functions": [
             {
-              "count": 1.0,
+              "count": 2.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -40,7 +54,7 @@
           ],
           "functions": [
             {
-              "count": 1.0,
+              "count": 3.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -59,7 +73,7 @@
           ],
           "functions": [
             {
-              "count": 2.0,
+              "count": 4.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -78,7 +92,7 @@
           ],
           "functions": [
             {
-              "count": 2.0,
+              "count": 5.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -97,7 +111,7 @@
           ],
           "functions": [
             {
-              "count": 3.0,
+              "count": 6.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -116,7 +130,7 @@
           ],
           "functions": [
             {
-              "count": 3.0,
+              "count": 7.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -135,7 +149,7 @@
           ],
           "functions": [
             {
-              "count": 4.0,
+              "count": 8.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -154,7 +168,7 @@
           ],
           "functions": [
             {
-              "count": 4.0,
+              "count": 9.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -173,7 +187,7 @@
           ],
           "functions": [
             {
-              "count": 5.0,
+              "count": 10.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -192,7 +206,7 @@
           ],
           "functions": [
             {
-              "count": 5.0,
+              "count": 11.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -211,7 +225,387 @@
           ],
           "functions": [
             {
-              "count": 6.0,
+              "count": 12.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "13"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 13.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "14"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 14.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "15"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 15.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "16"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 16.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "17"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 17.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "18"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 18.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "19"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 19.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "20"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 20.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "21"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 21.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "22"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 22.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "23"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 23.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "24"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 24.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "25"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 25.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "26"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 26.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "27"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 27.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "28"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 28.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "29"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 29.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "30"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 30.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "31"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 31.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "kaleidoscope_cookery:oil"
+        },
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "kaleidoscope_cookery:enamel_basin",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "oil_count": "32"
+              }
+            }
+          ],
+          "functions": [
+            {
+              "count": 32.0,
               "function": "minecraft:set_count"
             }
           ],
@@ -229,7 +623,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:bucket"
+          "name": "kaleidoscope_cookery:enamel_basin"
         }
       ],
       "rolls": 1.0

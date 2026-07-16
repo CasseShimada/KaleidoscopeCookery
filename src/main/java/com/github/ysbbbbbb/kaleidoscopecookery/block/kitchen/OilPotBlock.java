@@ -188,7 +188,7 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
         level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
                 0.4F + level.getRandom().nextFloat() * 0.2F);
         level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-        return InteractionResult.SUCCESS;
+        return InteractionResult.CONSUME;
     }
 
     @Override
@@ -217,7 +217,7 @@ public class OilPotBlock extends HorizontalDirectionalBlock implements SimpleWat
         level.playSound(null, pos, SoundEvents.LANTERN_HIT, SoundSource.BLOCKS, 1.0F,
                 0.8F + level.getRandom().nextFloat() * 0.2F);
         level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-        return InteractionResult.SUCCESS;
+        return InteractionResult.CONSUME;
     }
 
     @Override

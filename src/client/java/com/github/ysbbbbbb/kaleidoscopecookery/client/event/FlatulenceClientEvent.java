@@ -41,6 +41,9 @@ public final class FlatulenceClientEvent {
         if (client.player == null || client.level == null) {
             return false;
         }
+        if (client.gui.overlay() != null || client.gui.screen() != null) {
+            return false;
+        }
         if (!client.mouseHandler.isMouseGrabbed()) {
             return false;
         }

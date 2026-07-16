@@ -15,6 +15,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.Quality;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityEvaluator;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityUtils;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyIngredientCompat;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
@@ -355,8 +357,7 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
 
     private void applyFlexRecipe(Level level, SimpleInput input, RecipeHolder<FlexPotRecipe> recipe) {
         FlexPotRecipe value = recipe.value();
-        Ingredient recipeCarrier = value.carrier();
-        this.carrier = recipeCarrier.isEmpty() ? Optional.empty() : Optional.of(recipeCarrier);
+        this.carrier = value.carrier();
         this.result = value.assemble(input);
         this.currentTick = value.time();
         this.stirFryCount = value.stirFryCount();
@@ -589,9 +590,9 @@ public class PotBlockEntity extends BaseBlockEntity implements IPot {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.inputs = NonNullList.withSize(PotRecipe.RECIPES_SIZE, ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(input.childOrEmpty(INPUTS), this.inputs);
-        this.carrier = input.read(CARRIER, Ingredient.CODEC);
-        this.result = input.read(RESULT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        LegacyItemStackCompat.loadAllItems(input.childOrEmpty(INPUTS), this.inputs);
+        this.carrier = LegacyIngredientCompat.read(input, CARRIER);
+        this.result = LegacyItemStackCompat.readItemStack(input, RESULT);
         this.status = input.getIntOr(STATUS, PUT_INGREDIENT);
         this.currentTick = input.getIntOr(CURRENT_TICK, 0);
         this.stirFryCount = input.getIntOr(STIR_FRY_COUNT, 0);

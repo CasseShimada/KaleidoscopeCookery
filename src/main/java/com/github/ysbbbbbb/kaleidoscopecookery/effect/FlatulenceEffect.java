@@ -30,7 +30,8 @@ public class FlatulenceEffect extends CookeryEffect {
 
     private static void updateStartingPosition(ServerPlayer player) {
         if (!player.hasAttached(FLATULENCE_EFFECT_STARTING_POSITION)) {
-            player.setAttached(FLATULENCE_EFFECT_STARTING_POSITION, player.position());
+            player.setAttached(FLATULENCE_EFFECT_STARTING_POSITION,
+                    Vec3.atLowerCornerOf(player.blockPosition()));
             return;
         }
         Vec3 startingPosition = player.getAttached(FLATULENCE_EFFECT_STARTING_POSITION);

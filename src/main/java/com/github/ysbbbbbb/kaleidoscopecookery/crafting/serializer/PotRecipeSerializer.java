@@ -1,6 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyIngredientCompat;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyRecipeResultCompat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -15,9 +17,9 @@ public final class PotRecipeSerializer {
             instance.group(
                     Codec.INT.optionalFieldOf("time", 200).forGetter(PotRecipe::time),
                     Codec.INT.optionalFieldOf("stir_fry_count", 3).forGetter(PotRecipe::stirFryCount),
-                    Ingredient.CODEC.optionalFieldOf("carrier").forGetter(PotRecipe::carrier),
-                    Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients().stream().toList()),
-                    ItemStackTemplate.CODEC.fieldOf("result").forGetter(PotRecipe::result)
+                    LegacyIngredientCompat.CODEC.optionalFieldOf("carrier").forGetter(PotRecipe::carrier),
+                    LegacyIngredientCompat.CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients().stream().toList()),
+                    LegacyRecipeResultCompat.ITEM_STACK_TEMPLATE_CODEC.fieldOf("result").forGetter(PotRecipe::result)
             ).apply(instance, PotRecipe::new)
     );
 

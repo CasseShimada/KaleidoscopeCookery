@@ -10,18 +10,24 @@ public class ModREIClientPlugin implements REIClientPlugin {
     @Override
     public void registerCategories(CategoryRegistry registry) {
         ReiChoppingBoardRecipeCategory.registerCategories(registry);
+        ReiFlexPotRecipeCategory.registerCategories(registry);
+        ReiFlexStockpotRecipeCategory.registerCategories(registry);
         ReiMillstoneRecipeCategory.registerCategories(registry);
         ReiPotRecipeCategory.registerCategories(registry);
         ReiStockpotRecipeCategory.registerCategories(registry);
         ReiSteamerRecipeCategory.registerCategories(registry);
+        ReiTeapotRecipeCategory.registerCategories(registry);
     }
 
     @Override
     public void registerDisplays(DisplayRegistry registry) {
         ReiChoppingBoardRecipeCategory.registerDisplays(registry);
+        ReiFlexPotRecipeCategory.registerDisplays(registry);
+        ReiFlexStockpotRecipeCategory.registerDisplays(registry);
         ReiMillstoneRecipeCategory.registerDisplays(registry);
         ReiPotRecipeCategory.registerDisplays(registry);
         ReiStockpotRecipeCategory.registerDisplays(registry);
         ReiSteamerRecipeCategory.registerDisplays(registry);
+        ReiTeapotRecipeCategory.registerDisplays(registry);
     }
 }

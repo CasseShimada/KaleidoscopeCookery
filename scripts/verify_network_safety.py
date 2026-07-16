@@ -94,12 +94,16 @@ def main() -> int:
         errors.append("NetworkHandler player validity check does not cover disconnected/removed players.")
     if "player.hasEffect(ModEffects.FLATULENCE)" not in network_handler:
         errors.append("Flatulence handling does not verify the server-side effect.")
+    if "FLATULENCE_COOLDOWN_TICKS = 1L" not in network_handler:
+        errors.append("Flatulence handling does not use a one-tick same-tick packet throttle.")
     if "stack.is(ModItems.BAOZI)" not in network_handler:
         errors.append("Baozi throwing does not verify the server-side held item.")
     if "player.getCooldowns().isOnCooldown(stack)" not in network_handler:
         errors.append("Baozi throwing does not check server-side cooldown.")
     if "player.getCooldowns().addCooldown(stack" not in network_handler:
         errors.append("Baozi throwing does not add server-side cooldown.")
+    if "BAOZI_THROW_COOLDOWN_TICKS = 1" not in network_handler:
+        errors.append("Baozi throwing does not use a one-tick same-tick packet throttle.")
     if "stack.consume(THROWN_BAOZI_COUNT, player)" not in network_handler:
         errors.append("Baozi throwing does not use vanilla server-side item consumption.")
     if "stack.shrink(THROWN_BAOZI_COUNT)" in network_handler:
@@ -108,8 +112,11 @@ def main() -> int:
         errors.append("Baozi throwing mutates player state without checking projectile spawn success.")
     if "public static boolean sendThrowBaozi()" not in client_network_handler:
         errors.append("Baozi client networking does not report whether the payload was sent.")
-    if "return canThrowBaozi(player) && ClientNetworkHandler.sendThrowBaozi();" not in baozi_throw_client_event:
+    if ("&& canThrowBaozi(player)" not in baozi_throw_client_event
+            or "&& ClientNetworkHandler.sendThrowBaozi();" not in baozi_throw_client_event):
         errors.append("Baozi pre-attack handling does not consume attacks after a successful payload send.")
+    if "hitResult.getType() == HitResult.Type.MISS" not in baozi_throw_client_event:
+        errors.append("Baozi pre-attack handling is not restricted to Forge LeftClickEmpty semantics.")
     if "!player.getCooldowns().isOnCooldown(player.getMainHandItem())" not in baozi_throw_client_event:
         errors.append("Baozi pre-attack handling ignores the synchronized item cooldown.")
     if mod_data_components.count(".networkSynchronized(ItemContainerContents.STREAM_CODEC)") != 2:
@@ -133,6 +140,14 @@ def main() -> int:
     flatulence_early_return = flatulence_client_event.find("if (!justPressed || !isInGame(client))")
     if flatulence_edge_update < 0 or flatulence_early_return < 0 or flatulence_edge_update > flatulence_early_return:
         errors.append("Flatulence key edge state is not updated before client tick early returns.")
+    for required_gate in (
+        "client.gui.overlay() != null",
+        "client.gui.screen() != null",
+        "!client.mouseHandler.isMouseGrabbed()",
+        "client.isWindowActive()",
+    ):
+        if required_gate not in flatulence_client_event:
+            errors.append(f"Flatulence client input is missing in-game gate: {required_gate}.")
 
     if errors:
         print("Network safety verification failed:")

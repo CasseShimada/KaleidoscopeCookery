@@ -26,15 +26,16 @@ public final class ModCreativeTabs {
     }
 
     public static void registerTabs() {
-        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_MAIN_TAB, FabricCreativeModeTab.builder()
-                .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_main.name"))
-                .icon(() -> requiredItem(MAIN_ICON_ID).getDefaultInstance())
-                .displayItems((par, output) -> addMainTabItems(output)).build());
-
+        // Forge placed the food tab immediately before the main tab.
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_FOOD_TAB, FabricCreativeModeTab.builder()
                 .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_food.name"))
                 .icon(() -> requiredItem(FOOD_ICON_ID).getDefaultInstance())
                 .displayItems((par, output) -> addFoodTabItems(output)).build());
+
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, COOKERY_MAIN_TAB, FabricCreativeModeTab.builder()
+                .title(Component.translatable("item_group.kaleidoscope_cookery.cookery_main.name"))
+                .icon(() -> requiredItem(MAIN_ICON_ID).getDefaultInstance())
+                .displayItems((par, output) -> addMainTabItems(output)).build());
     }
 
     private static void addMainTabItems(CreativeModeTab.Output output) {
@@ -49,7 +50,6 @@ public final class ModCreativeTabs {
         output.accept(ModItems.MILLSTONE);
         output.accept(ModItems.STEAMER);
         output.accept(ModItems.TEAPOT);
-        output.accept(ModItems.EMPTY_CUP);
         output.accept(ModItems.TRASH_CAN);
         output.accept(ModItems.KITCHENWARE_RACKS);
         output.accept(ModItems.FRUIT_BASKET);
@@ -74,11 +74,11 @@ public final class ModCreativeTabs {
         output.accept(ModItems.CHILI_SEED);
         output.accept(ModItems.LETTUCE_SEED);
         output.accept(ModItems.KITCHEN_SHOVEL);
+        output.accept(ModItems.SICKLE);
         output.accept(ModItems.GOLD_KITCHEN_KNIFE);
         output.accept(ModItems.IRON_KITCHEN_KNIFE);
         output.accept(ModItems.DIAMOND_KITCHEN_KNIFE);
         output.accept(ModItems.NETHERITE_KITCHEN_KNIFE);
-        output.accept(ModItems.SICKLE);
         output.accept(ModItems.STRAW_HAT);
         output.accept(ModItems.STRAW_HAT_FLOWER);
         output.accept(ModItems.FARMER_CHEST_PLATE);
@@ -187,11 +187,20 @@ public final class ModCreativeTabs {
         output.accept(ModItems.UDON_NOODLE);
         output.accept(ModItems.HOT_DRY_NOODLES);
         output.accept(ModItems.LABA_CONGEE);
-        output.accept(ModItems.COLD_CUT_HAM_SLICES);
 
-        addRegistryItems(output, FoodBiteRegistry.ids());
+        addFoodBiteItems(output);
         addRegistryItems(output, PlateRegistry.ids());
+        output.accept(ModItems.EMPTY_CUP);
         addRegistryItems(output, TeacupRegistry.ids());
+    }
+
+    private static void addFoodBiteItems(CreativeModeTab.Output output) {
+        for (Identifier itemId : FoodBiteRegistry.ids()) {
+            if (itemId.equals(FoodBiteRegistry.DOUGH_DROP_SOUP)) {
+                output.accept(ModItems.COLD_CUT_HAM_SLICES);
+            }
+            output.accept(requiredItem(itemId));
+        }
     }
 
     private static void addRegistryItems(CreativeModeTab.Output output, Iterable<Identifier> itemIds) {

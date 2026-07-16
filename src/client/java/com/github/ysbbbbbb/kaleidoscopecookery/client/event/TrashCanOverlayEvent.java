@@ -33,7 +33,7 @@ public final class TrashCanOverlayEvent {
     }
 
     public static void register() {
-        HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, ID, TrashCanOverlayEvent::render);
+        HudElementRegistry.attachElementAfter(VanillaHudElements.CROSSHAIR, ID, TrashCanOverlayEvent::render);
     }
 
     private static void render(GuiGraphicsExtractor guiGraphics, DeltaTracker tickCounter) {

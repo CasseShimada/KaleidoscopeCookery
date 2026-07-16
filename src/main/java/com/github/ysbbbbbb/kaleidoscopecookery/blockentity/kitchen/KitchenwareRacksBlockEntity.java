@@ -4,6 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IKitchenwareRacks
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
@@ -80,8 +81,8 @@ public class KitchenwareRacksBlockEntity extends BaseBlockEntity implements IKit
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.itemLeft = input.read(LEFT_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
-        this.itemRight = input.read(RIGHT_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.itemLeft = LegacyItemStackCompat.readItemStack(input, LEFT_ITEM);
+        this.itemRight = LegacyItemStackCompat.readItemStack(input, RIGHT_ITEM);
     }
 
     @Override

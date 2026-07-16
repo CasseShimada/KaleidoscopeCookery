@@ -81,8 +81,26 @@ dependencies {
     clientCompileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
     compileOnly "maven.modrinth:jade:${project.jade_version}"
     clientCompileOnly "maven.modrinth:rei:${project.rei_version}"
+    // REI's public EntryStacks signatures expose Architectury FluidStack even for item-only calls.
     clientCompileOnly "maven.modrinth:architectury-api:${project.architectury_version}"
     clientCompileOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
+
+    // Opt-in runtime used only by the reproducible optional-integration GameTest command.
+    if (project.findProperty("farmersDelightCompatSmoke") == "true") {
+        runtimeOnly "maven.modrinth:farmers-delight-refabricated:26.2-3.6.7"
+    }
+    if (project.findProperty("clientCompatSmoke") == "true") {
+        // Architectury 21.0.4, required by the target REI build, needs Fabric API 0.154+.
+        runtimeOnly "net.fabricmc.fabric-api:fabric-api:0.154.0+26.2"
+        runtimeOnly "mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}"
+        runtimeOnly "maven.modrinth:jade:${project.jade_version}"
+        runtimeOnly "maven.modrinth:rei:${project.rei_version}"
+        runtimeOnly "maven.modrinth:architectury-api:${project.architectury_version}"
+        runtimeOnly "maven.modrinth:cloth-config:26.2.155+fabric"
+        runtimeOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
+        runtimeOnly "maven.modrinth:foodeffecttooltips:2.1.2+26.2"
+        runtimeOnly "maven.modrinth:farmers-delight-refabricated:26.2-3.6.7"
+    }
 }
 
 def modVersion = project.version
@@ -120,4 +138,8 @@ java {
     targetCompatibility = JavaVersion.toVersion(targetJavaVersion)
     toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     withSourcesJar()
+}
+
+tasks.named("sourcesJar") {
+    mustRunAfter(tasks.named("runDatagen"))
 }

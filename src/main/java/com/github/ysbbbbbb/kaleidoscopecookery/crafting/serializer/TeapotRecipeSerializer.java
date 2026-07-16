@@ -1,6 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.TeapotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyIngredientCompat;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyRecipeResultCompat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -18,15 +20,15 @@ public final class TeapotRecipeSerializer {
 
     public static final MapCodec<TeapotRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Identifier.CODEC.optionalFieldOf("tea_fluid", EMPTY_TEA_FLUID).forGetter(TeapotRecipe::teaFluid),
-            Ingredient.CODEC.fieldOf("ingredient").forGetter(TeapotRecipe::ingredient),
+            LegacyIngredientCompat.CODEC.optionalFieldOf("ingredient").forGetter(TeapotRecipe::ingredient),
             Codec.INT.optionalFieldOf("ingredient_count", DEFAULT_INGREDIENT_COUNT).forGetter(TeapotRecipe::ingredientCount),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(TeapotRecipe::time),
-            ItemStackTemplate.CODEC.fieldOf("result").forGetter(TeapotRecipe::result)
+            LegacyRecipeResultCompat.ITEM_STACK_TEMPLATE_CODEC.fieldOf("result").forGetter(TeapotRecipe::result)
     ).apply(instance, TeapotRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, TeapotRecipe> STREAM_CODEC = StreamCodec.composite(
             Identifier.STREAM_CODEC, TeapotRecipe::teaFluid,
-            Ingredient.CONTENTS_STREAM_CODEC, TeapotRecipe::ingredient,
+            Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC, TeapotRecipe::ingredient,
             ByteBufCodecs.INT, TeapotRecipe::ingredientCount,
             ByteBufCodecs.INT, TeapotRecipe::time,
             ItemStackTemplate.STREAM_CODEC, TeapotRecipe::result,

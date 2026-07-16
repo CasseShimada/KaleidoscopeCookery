@@ -4,6 +4,8 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotVisuals;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyIngredientCompat;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyRecipeResultCompat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -22,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public final class StockpotRecipeSerializer {
     public static final int DEFAULT_TIME = 300;
@@ -45,29 +48,44 @@ public final class StockpotRecipeSerializer {
     }
 
     public static final MapCodec<StockpotRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(StockpotRecipe::getIngredients),
+            LegacyIngredientCompat.CODEC.listOf().fieldOf("ingredients").forGetter(StockpotRecipe::getIngredients),
             Identifier.CODEC.optionalFieldOf("soup_base", DEFAULT_SOUP_BASE).forGetter(StockpotRecipe::soupBase),
-            ItemStackTemplate.CODEC.fieldOf("result").forGetter(StockpotRecipe::result),
+            LegacyRecipeResultCompat.ITEM_STACK_TEMPLATE_CODEC.fieldOf("result").forGetter(StockpotRecipe::result),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(StockpotRecipe::time),
-            Ingredient.CODEC.optionalFieldOf("carrier", DEFAULT_CARRIER).forGetter(StockpotRecipe::carrier),
+            LegacyIngredientCompat.CODEC.optionalFieldOf("carrier").forGetter(StockpotRecipeSerializer::carrierForJson),
+            Codec.BOOL.optionalFieldOf("empty_carrier", false).forGetter(recipe -> recipe.carrier().isEmpty()),
             StockpotVisuals.CODEC.forGetter(StockpotVisuals::from)
-    ).apply(instance, StockpotRecipeSerializer::create));
+    ).apply(instance, StockpotRecipeSerializer::createFromJson));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, StockpotRecipe> STREAM_CODEC = StreamCodec.composite(
             Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), StockpotRecipe::getIngredients,
             Identifier.STREAM_CODEC, StockpotRecipe::soupBase,
             ItemStackTemplate.STREAM_CODEC, StockpotRecipe::result,
             ByteBufCodecs.INT, StockpotRecipe::time,
-            Ingredient.CONTENTS_STREAM_CODEC, StockpotRecipe::carrier,
+            Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC, StockpotRecipe::carrier,
             StockpotVisuals.STREAM_CODEC, StockpotVisuals::from,
             StockpotRecipeSerializer::create);
 
     private static StockpotRecipe create(List<Ingredient> ingredients, Identifier soupBase,
-                                         ItemStackTemplate result, int time, Ingredient carrier,
+                                         ItemStackTemplate result, int time, Optional<Ingredient> carrier,
                                          StockpotVisuals visuals) {
         return new StockpotRecipe(ingredients, soupBase, result, time, carrier,
                 visuals.cookingTexture(), visuals.finishedTexture(),
                 visuals.cookingBubbleColor(), visuals.finishedBubbleColor());
+    }
+
+    private static StockpotRecipe createFromJson(List<Ingredient> ingredients, Identifier soupBase,
+                                                 ItemStackTemplate result, int time,
+                                                 Optional<Ingredient> carrier, boolean emptyCarrier,
+                                                 StockpotVisuals visuals) {
+        Optional<Ingredient> resolvedCarrier = emptyCarrier
+                ? Optional.empty()
+                : Optional.of(carrier.orElse(DEFAULT_CARRIER));
+        return create(ingredients, soupBase, result, time, resolvedCarrier, visuals);
+    }
+
+    private static Optional<Ingredient> carrierForJson(StockpotRecipe recipe) {
+        return recipe.carrier();
     }
 
     private StockpotRecipeSerializer() {

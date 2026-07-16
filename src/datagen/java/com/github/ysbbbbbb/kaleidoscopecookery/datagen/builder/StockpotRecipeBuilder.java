@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class StockpotRecipeBuilder implements RecipeBuilder {
@@ -30,7 +31,7 @@ public class StockpotRecipeBuilder implements RecipeBuilder {
     private final List<Ingredient> ingredients = new ArrayList<>();
     private @Nullable ItemStackTemplate result;
     private int time = StockpotRecipeSerializer.DEFAULT_TIME;
-    private Ingredient carrier = StockpotRecipeSerializer.DEFAULT_CARRIER;
+    private Optional<Ingredient> carrier = Optional.of(StockpotRecipeSerializer.DEFAULT_CARRIER);
     private Identifier soupBase = StockpotRecipeSerializer.DEFAULT_SOUP_BASE;
     private Identifier cookingTexture = StockpotRecipeSerializer.DEFAULT_COOKING_TEXTURE;
     private Identifier finishedTexture = StockpotRecipeSerializer.DEFAULT_FINISHED_TEXTURE;
@@ -70,7 +71,12 @@ public class StockpotRecipeBuilder implements RecipeBuilder {
     }
 
     public StockpotRecipeBuilder setCarrier(ItemLike carrier) {
-        this.carrier = Ingredient.of(carrier);
+        this.carrier = Optional.of(Ingredient.of(carrier));
+        return this;
+    }
+
+    public StockpotRecipeBuilder setEmptyCarrier() {
+        this.carrier = Optional.empty();
         return this;
     }
 

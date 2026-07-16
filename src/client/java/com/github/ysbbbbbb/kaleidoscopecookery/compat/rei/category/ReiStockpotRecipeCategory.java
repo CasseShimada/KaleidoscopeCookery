@@ -133,13 +133,21 @@ public class ReiStockpotRecipeCategory implements DisplayCategory<ReiStockpotRec
         list.forEach(r -> {
             List<EntryIngredient> inputs = ReiUtil.ofIngredients(r.value().getIngredients());
             List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().result().create());
-            EntryIngredient carrier = r.value().carrier().isEmpty() ? EntryIngredient.empty() : ReiUtil.ofIngredient(r.value().carrier());
+            EntryIngredient carrier = r.value().carrier()
+                    .map(ReiUtil::ofIngredient)
+                    .orElse(EntryIngredient.empty());
 
             ISoupBase soupBase = SoupBaseManager.getSoupBase(r.value().soupBase());
+            EntryIngredient soupBaseEntry = EntryIngredient.empty();
             if (soupBase == null) {
-                throw new RuntimeException("No soup found for " + r.value().soupBase());
+                KaleidoscopeCookery.LOGGER.warn("Skipping missing soup base {} in REI stockpot recipe {}",
+                        r.value().soupBase(), r.id().identifier());
+            } else {
+                var displayStack = soupBase.getDisplayStack();
+                if (!displayStack.isEmpty()) {
+                    soupBaseEntry = ReiUtil.ofItemStack(displayStack);
+                }
             }
-            EntryIngredient soupBaseEntry = ReiUtil.ofItemStack(soupBase.getDisplayStack());
 
             registry.add(new StockpotRecipeDisplay(r.id().identifier(), inputs, output, carrier, soupBaseEntry));
         });

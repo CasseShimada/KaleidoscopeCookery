@@ -1,0 +1,16 @@
+{
+  "type": "kaleidoscope_cookery:stockpot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:crops/lettuce",
+    "#c:crops/lettuce",
+    "#c:eggs",
+    "#c:eggs",
+    "kaleidoscope_cookery:raw_noodles",
+    "kaleidoscope_cookery:raw_noodles",
+    "kaleidoscope_cookery:raw_noodles"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:udon_noodle"
+  }
+}

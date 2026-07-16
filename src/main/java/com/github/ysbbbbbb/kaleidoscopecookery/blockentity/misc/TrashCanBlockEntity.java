@@ -3,6 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.TrashCanBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
@@ -147,7 +148,7 @@ public class TrashCanBlockEntity extends BaseBlockEntity {
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        ContainerHelper.loadAllItems(input.childOrEmpty(STORAGE), this.storage.getItems());
+        LegacyItemStackCompat.loadAllItems(input.childOrEmpty(STORAGE), this.storage.getItems());
     }
 
     public NonNullList<ItemStack> getStoredItems() {

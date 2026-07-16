@@ -5,8 +5,17 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.TeapotBlockEn
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.TeapotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.TeapotRecipeSerializer;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
@@ -25,12 +34,17 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BucketPickup;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
 import java.util.function.Consumer;
 
@@ -83,6 +97,37 @@ public class TeapotItem extends CookeryTooltipBlockItem {
         stack.set(DataComponents.MAX_STACK_SIZE, 1);
     }
 
+    public static boolean fillFluid(ItemStack stack, Fluid fluid, LivingEntity user) {
+        if (fluid == Fluids.EMPTY) {
+            return false;
+        }
+        CompoundTag tag = getBlockEntityTag(stack);
+        int status = tag.getInt(TeapotBlockEntity.STATUS).orElse(ITeapot.PUT_INGREDIENT);
+        if (status != ITeapot.PUT_INGREDIENT) {
+            return false;
+        }
+        String currentFluid = tag.getString(TeapotBlockEntity.TEA_FLUID_ID)
+                .orElse(TeapotRecipeSerializer.EMPTY_TEA_FLUID.toString());
+        if (!currentFluid.equals(TeapotRecipeSerializer.EMPTY_TEA_FLUID.toString())) {
+            return false;
+        }
+        Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+        if (fluidId == null) {
+            return false;
+        }
+        tag.putString(TeapotBlockEntity.TEA_FLUID_ID, fluidId.toString());
+        stack.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(ModBlocks.TEAPOT_BE, tag));
+        stack.set(DataComponents.MAX_STACK_SIZE, 1);
+        user.playSound(FluidVariantAttributes.getFillSound(FluidVariant.of(fluid)), 1.0F, 1.0F);
+        return true;
+    }
+
+    public static void clearAll(ItemStack stack, Player player) {
+        stack.remove(DataComponents.BLOCK_ENTITY_DATA);
+        stack.remove(DataComponents.MAX_STACK_SIZE);
+        player.playSound(SoundEvents.BUCKET_EMPTY, 1.0F, 1.0F);
+    }
+
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
@@ -102,22 +147,76 @@ public class TeapotItem extends CookeryTooltipBlockItem {
         Identifier fluidId = input.getString(TeapotBlockEntity.TEA_FLUID_ID)
                 .map(Identifier::tryParse)
                 .orElse(TeapotRecipeSerializer.EMPTY_TEA_FLUID);
-        if (status != ITeapot.PUT_INGREDIENT || !Identifier.withDefaultNamespace("lava").equals(fluidId)) {
+        boolean finished = status == ITeapot.FINISHED;
+        boolean containsLava = status == ITeapot.PUT_INGREDIENT
+                && Identifier.withDefaultNamespace("lava").equals(fluidId);
+        if (!finished && !containsLava) {
             return InteractionResult.PASS;
         }
         if (player.level().isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        if (player.getRandom().nextFloat() < 0.3F) {
-            stack.remove(DataComponents.BLOCK_ENTITY_DATA);
-            stack.remove(DataComponents.MAX_STACK_SIZE);
-            player.playSound(SoundEvents.BUCKET_EMPTY, 1.0F, 1.0F);
+        if (finished) {
+            pourOut(stack, player.level());
+        } else if (player.getRandom().nextFloat() < 0.3F) {
+            clearAll(stack, player);
         }
         if (player.level() instanceof ServerLevel serverLevel) {
             target.hurtServer(serverLevel, player.level().damageSources().inFire(), 3.0F);
+            serverLevel.sendParticles(ParticleTypes.LAVA,
+                    target.getX(), target.getY() + target.getEyeHeight() + 0.25, target.getZ(),
+                    10, 0.3, 0.3, 0.3, 0.1);
         }
         player.playSound(SoundEvents.FIRE_EXTINGUISH, 1.0F, 1.0F);
-        return InteractionResult.CONSUME;
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        ValueInput input = readData(stack, level);
+        if (input != null) {
+            String fluidId = input.getString(TeapotBlockEntity.TEA_FLUID_ID)
+                    .orElse(TeapotRecipeSerializer.EMPTY_TEA_FLUID.toString());
+            if (!fluidId.equals(TeapotRecipeSerializer.EMPTY_TEA_FLUID.toString())) {
+                return InteractionResult.FAIL;
+            }
+        }
+
+        BlockHitResult hitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.SOURCE_ONLY);
+        if (hitResult.getType() != HitResult.Type.BLOCK) {
+            return InteractionResult.PASS;
+        }
+        BlockPos pos = hitResult.getBlockPos();
+        Direction direction = hitResult.getDirection();
+        BlockPos adjacent = pos.relative(direction);
+        if (!level.mayInteract(player, pos) || !player.mayUseItemAt(adjacent, direction, stack)) {
+            return InteractionResult.FAIL;
+        }
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof BucketPickup bucketPickup)) {
+            return InteractionResult.FAIL;
+        }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+
+        ItemStack pickup = bucketPickup.pickupBlock(player, level, pos, state);
+        if (pickup.isEmpty()) {
+            return InteractionResult.FAIL;
+        }
+        ContainerItemContext containerContext = ContainerItemContext.withConstant(pickup);
+        Storage<FluidVariant> fluidStorage = FluidStorage.ITEM.find(pickup, containerContext);
+        if (fluidStorage == null) {
+            return InteractionResult.FAIL;
+        }
+        for (StorageView<FluidVariant> view : fluidStorage.nonEmptyViews()) {
+            if (!view.getResource().isBlank()) {
+                return fillFluid(stack, view.getResource().getFluid(), player)
+                        ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+            }
+        }
+        return InteractionResult.FAIL;
     }
 
     @Override

@@ -1,0 +1,25 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 3.0
+  },
+  "gives": {
+    "id": "kaleidoscope_cookery:recipe_item"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "kaleidoscope_cookery:set_recipe_record",
+      "input": [
+        "kaleidoscope_cookery:raw_cow_offal",
+        "kaleidoscope_cookery:raw_cow_offal",
+        "kaleidoscope_cookery:green_chili",
+        "kaleidoscope_cookery:green_chili"
+      ],
+      "output": "kaleidoscope_cookery:braised_beef",
+      "type": "kaleidoscope_cookery:pot"
+    }
+  ],
+  "max_uses": 16.0,
+  "xp": 4.0,
+  "reputation_discount": 0.1
+}

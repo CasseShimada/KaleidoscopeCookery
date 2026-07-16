@@ -18,6 +18,98 @@ JAVA_ROOT = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
 RESOURCES = ROOT / "src/main/resources"
 ASSETS = RESOURCES / "assets" / MOD_ID
 
+EXPECTED_CHEF_TRADE_TAGS = {
+    1: [
+        "kaleidoscope_cookery:chef/1/tomato_emerald",
+        "kaleidoscope_cookery:chef/1/lettuce_emerald",
+        "kaleidoscope_cookery:chef/1/rice_emerald",
+        "kaleidoscope_cookery:chef/1/red_chili_emerald",
+        "kaleidoscope_cookery:chef/1/green_chili_emerald",
+        "kaleidoscope_cookery:chef/1/caterpillar_emerald",
+    ],
+    2: [
+        "kaleidoscope_cookery:chef/2/emerald_kitchen_shovel",
+        "kaleidoscope_cookery:chef/2/emerald_iron_kitchen_knife",
+        "kaleidoscope_cookery:chef/2/emerald_stockpot_lid",
+        "kaleidoscope_cookery:chef/2/emerald_recipe_scramble_egg_with_tomatoes",
+        "kaleidoscope_cookery:chef/2/emerald_recipe_braised_beef",
+        "kaleidoscope_cookery:chef/2/emerald_recipe_sweet_and_sour_pork",
+        "kaleidoscope_cookery:chef/2/emerald_recipe_fish_flavored_shredded_pork",
+    ],
+    3: [
+        "kaleidoscope_cookery:chef/3/dark_cuisine_emerald",
+        "kaleidoscope_cookery:chef/3/emerald_recipe_pufferfish_soup",
+        "kaleidoscope_cookery:chef/3/emerald_recipe_borscht",
+        "kaleidoscope_cookery:chef/3/emerald_recipe_braised_beef_with_potatoes",
+    ],
+    4: [
+        "kaleidoscope_cookery:chef/4/pork_bone_soup_emerald",
+        "kaleidoscope_cookery:chef/4/pufferfish_soup_emerald",
+        "kaleidoscope_cookery:chef/4/seafood_miso_soup_emerald",
+        "kaleidoscope_cookery:chef/4/lamb_and_radish_soup_emerald",
+        "kaleidoscope_cookery:chef/4/braised_beef_with_potatoes_emerald",
+        "kaleidoscope_cookery:chef/4/wild_mushroom_rabbit_soup_emerald",
+        "kaleidoscope_cookery:chef/4/borscht_emerald",
+        "kaleidoscope_cookery:chef/4/beef_meatball_soup_emerald",
+        "kaleidoscope_cookery:chef/4/fearsome_thick_soup_emerald",
+        "kaleidoscope_cookery:chef/4/emerald_recipe_dongpo_pork",
+        "kaleidoscope_cookery:chef/4/emerald_recipe_stargazy_pie",
+        "kaleidoscope_cookery:chef/4/emerald_recipe_nether_style_sashimi",
+        "kaleidoscope_cookery:chef/4/emerald_recipe_slime_ball_meal",
+        "kaleidoscope_cookery:chef/4/emerald_recipe_spicy_chicken",
+    ],
+    5: [
+        "kaleidoscope_cookery:chef/5/emerald_enchanted_diamond_kitchen_knife",
+    ],
+}
+
+EXPECTED_RECIPE_TRADES = {
+    "chef/2/emerald_recipe_scramble_egg_with_tomatoes": (
+        3, "pot", "scramble_egg_with_tomatoes",
+        ["kaleidoscope_cookery:fried_egg"] * 3 + ["kaleidoscope_cookery:tomato"] * 3,
+    ),
+    "chef/2/emerald_recipe_braised_beef": (
+        3, "pot", "braised_beef",
+        ["kaleidoscope_cookery:raw_cow_offal"] * 2 + ["kaleidoscope_cookery:green_chili"] * 2,
+    ),
+    "chef/2/emerald_recipe_sweet_and_sour_pork": (
+        3, "pot", "sweet_and_sour_pork", ["minecraft:sugar"] * 3 + ["minecraft:porkchop"] * 3,
+    ),
+    "chef/2/emerald_recipe_fish_flavored_shredded_pork": (
+        3, "pot", "fish_flavored_shredded_pork",
+        ["minecraft:brown_mushroom"] * 2 + ["minecraft:porkchop"] * 3
+        + ["kaleidoscope_cookery:green_chili"],
+    ),
+    "chef/3/emerald_recipe_pufferfish_soup": (
+        3, "stockpot", "pufferfish_soup", ["minecraft:pufferfish"] * 3 + ["minecraft:seagrass"] * 2,
+    ),
+    "chef/3/emerald_recipe_borscht": (
+        3, "stockpot", "borscht",
+        ["minecraft:beef"] * 2 + ["kaleidoscope_cookery:tomato"] * 2
+        + ["kaleidoscope_cookery:lettuce"],
+    ),
+    "chef/3/emerald_recipe_braised_beef_with_potatoes": (
+        3, "stockpot", "braised_beef_with_potatoes", ["minecraft:beef"] * 3 + ["minecraft:potato"] * 4,
+    ),
+    "chef/4/emerald_recipe_dongpo_pork": (
+        5, "pot", "dongpo_pork", ["minecraft:bamboo"] * 2 + ["minecraft:porkchop"] * 6,
+    ),
+    "chef/4/emerald_recipe_stargazy_pie": (
+        5, "pot", "stargazy_pie", ["minecraft:cod"] * 5 + ["minecraft:pumpkin_pie"],
+    ),
+    "chef/4/emerald_recipe_nether_style_sashimi": (
+        5, "pot", "nether_style_sashimi",
+        ["minecraft:crimson_fungus"] * 2 + ["minecraft:warped_fungus"] * 2
+        + ["minecraft:tropical_fish"] * 4,
+    ),
+    "chef/4/emerald_recipe_slime_ball_meal": (
+        5, "pot", "slime_ball_meal", ["minecraft:slime_ball"] * 4,
+    ),
+    "chef/4/emerald_recipe_spicy_chicken": (
+        5, "pot", "spicy_chicken", ["kaleidoscope_cookery:red_chili"] * 5 + ["minecraft:chicken"] * 4,
+    ),
+}
+
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -218,6 +310,104 @@ def validate_tag_files(registered_items: set[str], registered_blocks: set[str], 
     return errors
 
 
+def validate_common_tag_migration() -> tuple[list[str], int]:
+    required_values = {
+        "cooked_beef": {f"{MOD_ID}:cooked_cow_offal", "minecraft:cooked_beef"},
+        "cooked_eggs": {f"{MOD_ID}:fried_egg"},
+        "cooked_mutton": {f"{MOD_ID}:cooked_lamb_chops", "minecraft:cooked_mutton"},
+        "cooked_pork": {f"{MOD_ID}:cooked_pork_belly", "minecraft:cooked_porkchop"},
+        "cooked_rice": {f"{MOD_ID}:cooked_rice", "farmersdelight:cooked_rice"},
+        "crops": {"#c:crops/chilipepper", "#c:crops/lettuce", "#c:crops/rice", "#c:crops/tomato"},
+        "crops/chilipepper": {f"{MOD_ID}:green_chili", f"{MOD_ID}:red_chili"},
+        "crops/lettuce": {f"{MOD_ID}:lettuce"},
+        "crops/rice": {f"{MOD_ID}:rice"},
+        "crops/tomato": {f"{MOD_ID}:tomato"},
+        "dough": {f"{MOD_ID}:raw_dough", "#c:doughs"},
+        "doughs": set(),
+        "eggs": {f"{MOD_ID}:fried_egg", "minecraft:egg", "minecraft:turtle_egg"},
+        "flour": {f"{MOD_ID}:flour"},
+        "grain/rice": {f"{MOD_ID}:rice"},
+        "raw_beef": {f"{MOD_ID}:raw_cow_offal", "minecraft:beef"},
+        "raw_chicken": {"minecraft:chicken"},
+        "raw_fishes": {"#c:raw_fishes/cod", "#c:raw_fishes/salmon", "#c:raw_fishes/tropical_fish"},
+        "raw_fishes/cod": {"minecraft:cod"},
+        "raw_fishes/salmon": {"minecraft:salmon"},
+        "raw_fishes/tropical_fish": {f"{MOD_ID}:sashimi"},
+        "raw_meats": {
+            "#c:raw_beef", "#c:raw_chicken", "#c:raw_pork", "#c:raw_mutton",
+            "#c:raw_fishes/cod", "#c:raw_fishes/salmon", "#c:raw_fishes/tropical_fish",
+            f"{MOD_ID}:raw_cut_small_meats",
+        },
+        "raw_mutton": {f"{MOD_ID}:raw_lamb_chops", "minecraft:mutton"},
+        "raw_pork": {f"{MOD_ID}:raw_pork_belly", "minecraft:porkchop"},
+        "seeds": {
+            f"{MOD_ID}:chili_seed", f"{MOD_ID}:tomato_seed", f"{MOD_ID}:lettuce_seed",
+            f"{MOD_ID}:wild_rice", f"{MOD_ID}:rice",
+        },
+        "seeds/chilipepper": {f"{MOD_ID}:chili_seed"},
+        "seeds/lettuce": {f"{MOD_ID}:lettuce_seed"},
+        "seeds/rice": {f"{MOD_ID}:rice"},
+        "seeds/tomato": {f"{MOD_ID}:tomato_seed"},
+        "tools/knives": {
+            f"{MOD_ID}:iron_kitchen_knife", f"{MOD_ID}:gold_kitchen_knife",
+            f"{MOD_ID}:diamond_kitchen_knife", f"{MOD_ID}:netherite_kitchen_knife",
+        },
+        "vegetables": {
+            "#c:vegetables/chilipepper", "#c:vegetables/lettuce", "#c:vegetables/tomato",
+            "#c:crops/cabbage",
+        },
+        "vegetables/chilipepper": {f"{MOD_ID}:green_chili", f"{MOD_ID}:red_chili"},
+        "vegetables/lettuce": {f"{MOD_ID}:lettuce"},
+        "vegetables/tomato": {f"{MOD_ID}:tomato"},
+    }
+
+    errors: list[str] = []
+    for tag_id, expected in required_values.items():
+        path = tag_path("c", "item", tag_id)
+        if not path.exists():
+            errors.append(f"Forge common tag migration is missing c:{tag_id}.")
+            continue
+        actual = set(tag_values(parse_json(path)))
+        for value in sorted(expected - actual):
+            errors.append(f"c:{tag_id} is missing Forge-baseline member {value}.")
+    return errors, len(required_values)
+
+
+def validate_ftb_ultimine_tags() -> tuple[list[str], int]:
+    expected = {f"{MOD_ID}:rice_crop"}
+    tag_ids = ("excluded_blocks", "single_crop_harvesting_blacklist")
+    errors: list[str] = []
+    for tag_id in tag_ids:
+        path = tag_path("ftbultimine", "block", tag_id)
+        if not path.exists():
+            errors.append(f"FTB Ultimine tag is missing: ftbultimine:{tag_id}.")
+            continue
+        actual = set(tag_values(parse_json(path)))
+        if actual != expected:
+            errors.append(
+                f"ftbultimine:{tag_id} must contain only the Forge-baseline rice crop; got {sorted(actual)}."
+            )
+    return errors, len(tag_ids)
+
+
+def validate_carryon_blacklist(registered_blocks: set[str]) -> tuple[list[str], int]:
+    path = resolve_resource("data", "carryon", "tags", "block", "block_blacklist.json")
+    if not path.exists():
+        return ["Carry On block blacklist is missing."], 0
+
+    actual = set(tag_values(parse_json(path)))
+    expected = {f"{MOD_ID}:{block_id}" for block_id in registered_blocks}
+    errors = [
+        f"Carry On block blacklist is missing registered block {block_id}."
+        for block_id in sorted(expected - actual)
+    ]
+    errors.extend(
+        f"Carry On block blacklist contains unregistered block {block_id}."
+        for block_id in sorted(actual - expected)
+    )
+    return errors, len(actual)
+
+
 def validate_advancements(registered_items: set[str], trigger_ids: set[str]) -> list[str]:
     errors: list[str] = []
     lang_en = parse_json(ASSETS / "lang/en_us.json")
@@ -272,6 +462,40 @@ def validate_advancements(registered_items: set[str], trigger_ids: set[str]) -> 
                         errors.append(f"{path.relative_to(ROOT)} rewards missing recipe {recipe_id}.")
 
     return errors
+
+
+def validate_baseline_recipe_advancements() -> tuple[list[str], int]:
+    expected = {
+        "recipes/decorations/raw_zongzi": (
+            "raw_zongzi", "has_lily_pad", "minecraft:lily_pad",
+        ),
+        "recipes/food/empty_cup": (
+            "empty_cup", "has_flower_pot", "minecraft:flower_pot",
+        ),
+        "recipes/food/teapot": (
+            "teapot", "has_ingot_copper", "minecraft:copper_ingot",
+        ),
+    }
+    errors: list[str] = []
+    for advancement_id, (recipe_id, inventory_criterion, required_item) in expected.items():
+        path = advancement_path(f"{MOD_ID}:{advancement_id}")
+        if path is None or not path.exists():
+            errors.append(f"Missing Forge-baseline recipe advancement alias {MOD_ID}:{advancement_id}.")
+            continue
+
+        data = parse_json(path)
+        criteria = data.get("criteria", {})
+        recipe_conditions = criteria.get("has_the_recipe", {}).get("conditions", {})
+        if recipe_conditions.get("recipe") != f"{MOD_ID}:{recipe_id}":
+            errors.append(f"{path.relative_to(ROOT)} no longer unlocks recipe {MOD_ID}:{recipe_id}.")
+        inventory_data = criteria.get(inventory_criterion, {})
+        inventory_strings = {value for _, value in walk_strings(inventory_data)}
+        if required_item not in inventory_strings:
+            errors.append(f"{path.relative_to(ROOT)} no longer preserves criterion item {required_item}.")
+        rewards = data.get("rewards", {}).get("recipes", [])
+        if f"{MOD_ID}:{recipe_id}" not in rewards:
+            errors.append(f"{path.relative_to(ROOT)} no longer rewards recipe {MOD_ID}:{recipe_id}.")
+    return errors, len(expected)
 
 
 def validate_loot_tables(registered_items: set[str], loot_functions: set[str], loot_conditions: set[str]) -> list[str]:
@@ -342,7 +566,70 @@ def validate_trades(registered_items: set[str], villager_professions: set[str],
             elif key in {"items", "item"} and not value.startswith("#"):
                 validate_mod_item_ref(path, value, registered_items, errors)
 
+    errors.extend(validate_chef_trade_contract(registered_items))
+
     return errors, len(trade_sets), len(trade_files)
+
+
+def validate_chef_trade_contract(registered_items: set[str]) -> list[str]:
+    errors: list[str] = []
+    for level, expected in EXPECTED_CHEF_TRADE_TAGS.items():
+        path = tag_path(MOD_ID, "villager_trade", f"chef/level_{level}")
+        actual = parse_json(path).get("values")
+        if actual != expected:
+            errors.append(
+                f"{path.relative_to(ROOT)} does not preserve the Forge chef level {level} trade pool/order."
+            )
+
+    for trade_id, (price, recipe_type, output, inputs) in EXPECTED_RECIPE_TRADES.items():
+        path = resolve_resource("data", MOD_ID, "villager_trade", f"{trade_id}.json")
+        data = parse_json(path)
+        wants = data.get("wants", {})
+        gives = data.get("gives", {})
+        modifiers = data.get("given_item_modifiers", [])
+        record = modifiers[0] if len(modifiers) == 1 and isinstance(modifiers[0], dict) else {}
+        actual_inputs = record.get("input", [])
+        actual_output = record.get("output")
+
+        if wants.get("id") != "minecraft:emerald" or wants.get("count") != price:
+            errors.append(f"{path.relative_to(ROOT)} has the wrong emerald price for its Forge recipe trade.")
+        if gives.get("id") != f"{MOD_ID}:recipe_item":
+            errors.append(f"{path.relative_to(ROOT)} does not give the recipe item.")
+        if record.get("function") != f"{MOD_ID}:set_recipe_record":
+            errors.append(f"{path.relative_to(ROOT)} does not apply the deferred recipe-record modifier.")
+        if record.get("type") != f"{MOD_ID}:{recipe_type}":
+            errors.append(f"{path.relative_to(ROOT)} has the wrong recorded cooking type.")
+        if actual_output != f"{MOD_ID}:{output}":
+            errors.append(f"{path.relative_to(ROOT)} has the wrong recorded output.")
+        if actual_inputs != inputs:
+            errors.append(f"{path.relative_to(ROOT)} does not preserve the Forge ingredient order/counts.")
+        for item_id in [*actual_inputs, actual_output]:
+            if isinstance(item_id, str):
+                validate_mod_item_ref(path, item_id, registered_items, errors)
+        if data.get("max_uses") != 16 or data.get("xp") != 4 or data.get("reputation_discount") != 0.1:
+            errors.append(f"{path.relative_to(ROOT)} does not preserve Forge use/xp/discount values.")
+
+    master_path = resolve_resource(
+        "data", MOD_ID, "villager_trade", "chef/5/emerald_enchanted_diamond_kitchen_knife.json"
+    )
+    master = parse_json(master_path)
+    modifiers = master.get("given_item_modifiers", [])
+    enchant = modifiers[0] if modifiers and isinstance(modifiers[0], dict) else {}
+    levels = enchant.get("levels", {})
+    if (
+        master.get("wants", {}).get("count") != 8
+        or master.get("max_uses") != 3
+        or master.get("xp") != 30
+        or master.get("reputation_discount") != 0.2
+        or enchant.get("function") != "minecraft:enchant_with_levels"
+        or enchant.get("include_additional_cost_component") is not True
+        or levels.get("min") != 5
+        or levels.get("max") != 19
+    ):
+        errors.append(
+            f"{master_path.relative_to(ROOT)} does not preserve Forge's 8 + enchant-level price and 5..19 enchant range."
+        )
+    return errors
 
 
 def validate_millstone_datamap() -> tuple[list[str], int]:
@@ -429,7 +716,15 @@ def main() -> int:
 
     errors: list[str] = []
     errors.extend(validate_tag_files(registered_items, registered_blocks, registered_entities, registered_pois))
+    common_tag_errors, common_tags = validate_common_tag_migration()
+    errors.extend(common_tag_errors)
+    ftb_errors, ftb_tags = validate_ftb_ultimine_tags()
+    errors.extend(ftb_errors)
+    carryon_errors, carryon_blocks = validate_carryon_blacklist(registered_blocks)
+    errors.extend(carryon_errors)
     errors.extend(validate_advancements(registered_items, trigger_ids))
+    baseline_advancement_errors, baseline_advancements = validate_baseline_recipe_advancements()
+    errors.extend(baseline_advancement_errors)
     errors.extend(validate_loot_tables(registered_items, loot_functions, loot_conditions))
     trade_errors, trade_set_count, trade_count = validate_trades(registered_items, villager_professions, loot_functions)
     errors.extend(trade_errors)
@@ -448,10 +743,14 @@ def main() -> int:
     print(f"  registered mod triggers: {len(trigger_ids)}")
     print(f"  registered loot functions: {len(loot_functions)}")
     print(f"  registered loot conditions: {len(loot_conditions)}")
+    print(f"  baseline recipe advancement aliases: {baseline_advancements}")
     print(f"  villager trade sets: {trade_set_count}")
     print(f"  villager trades: {trade_count}")
     print(f"  millstone datamap entries: {datamap_entries}")
     print(f"  village structures: {village_structures}")
+    print(f"  Forge common tags mapped to c: {common_tags}")
+    print(f"  FTB Ultimine tags: {ftb_tags}")
+    print(f"  Carry On blacklisted blocks: {carryon_blocks}")
     return 0
 
 

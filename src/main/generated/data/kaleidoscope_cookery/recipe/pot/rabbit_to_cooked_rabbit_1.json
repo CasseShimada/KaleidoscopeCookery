@@ -1,0 +1,9 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "ingredients": [
+    "minecraft:rabbit"
+  ],
+  "result": {
+    "id": "minecraft:cooked_rabbit"
+  }
+}

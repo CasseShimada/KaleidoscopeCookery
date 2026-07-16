@@ -26,12 +26,14 @@ public enum MillstoneComponentProvider implements IBlockComponentProvider {
         if (!(te instanceof MillstoneBlockEntity millstone)) {
             return;
         }
-        if (millstone.getInput().isEmpty() && millstone.getOutput().isEmpty()) {
+        if (millstone.getInput().isEmpty() && millstone.isOutputEmpty()) {
             return;
         }
         tooltip.add(JadeUI.item(millstone.getInput()));
         tooltip.append(JadeUI.progressArrow(millstone.getProgressPercent()));
-        tooltip.append(JadeUI.item(millstone.getOutput()));
+        millstone.getOutputs().stream()
+                .filter(stack -> !stack.isEmpty())
+                .forEach(stack -> tooltip.append(JadeUI.item(stack)));
     }
 
     @Override

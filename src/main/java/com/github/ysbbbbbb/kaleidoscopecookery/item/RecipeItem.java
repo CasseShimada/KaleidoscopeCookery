@@ -17,6 +17,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -167,6 +169,7 @@ public class RecipeItem extends CookeryTooltipBlockItem {
 
         // 开始检查身上的物品
         Inventory inventory = player.getInventory();
+        PlayerInventoryStorage inventoryStorage = PlayerInventoryStorage.of(player);
         int slotCount = inventory.getNonEquipmentItems().size();
         Reference2IntMap<Item> supply = new Reference2IntOpenHashMap<>();
         for (int slot = 0; slot < slotCount; slot++) {
@@ -176,7 +179,9 @@ public class RecipeItem extends CookeryTooltipBlockItem {
             }
 
             // 触发特殊计数
-            var event = new RecipeItemEvent.CheckItem(s, supply);
+            ContainerItemContext containerContext = ContainerItemContext.ofPlayerSlot(
+                    player, inventoryStorage.getSlot(slot));
+            var event = new RecipeItemEvent.CheckItem(s, supply, containerContext);
             ActionEventCallback.CheckSpecialItem.EVENT.invoker().onCheckItemEvent(event);
 
             // 正常计数
@@ -221,7 +226,9 @@ public class RecipeItem extends CookeryTooltipBlockItem {
                 }
 
                 // 触发特殊扣除
-                var event = new RecipeItemEvent.DeductItem(inSlot, item, needCount);
+                ContainerItemContext containerContext = ContainerItemContext.ofPlayerSlot(
+                        player, inventoryStorage.getSlot(i));
+                var event = new RecipeItemEvent.DeductItem(inSlot, item, needCount, containerContext);
                 ActionEventCallback.DeductSpecialItem.EVENT.invoker().onDeductItemEvent(event);
                 needCount = event.getNeedCount();
                 if (needCount <= 0) {

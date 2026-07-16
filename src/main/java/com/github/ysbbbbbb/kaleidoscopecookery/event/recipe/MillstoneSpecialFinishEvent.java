@@ -34,7 +34,7 @@ public final class MillstoneSpecialFinishEvent {
             }
 
             //最后考虑可能底下有漏斗，那么尝试把物品塞进漏斗
-            handleWithHopper(millstone, level, output);
+            handleWithHopper(millstone, level);
         });
     }
 
@@ -76,20 +76,27 @@ public final class MillstoneSpecialFinishEvent {
         millstone.resetWhenTakeout();
     }
 
-    private static void handleWithHopper(MillstoneBlockEntity millstone, Level level, ItemStack output) {
+    private static void handleWithHopper(MillstoneBlockEntity millstone, Level level) {
         BlockPos below = millstone.getBlockPos().below();
         BlockState blockState = level.getBlockState(below);
         if (!blockState.is(Blocks.HOPPER)) {
             return;
         }
-        ItemEntity entity = new ItemEntity(level,
-                below.getX() + 0.5f,
-                below.getY() + 0.35f,
-                below.getZ() + 0.5f,
-                output);
-        entity.setDefaultPickUpDelay();
-        if (level.addFreshEntity(entity)) {
-            millstone.resetWhenTakeout();
+        var outputs = millstone.getOutputs();
+        for (int slot = 0; slot < outputs.size(); slot++) {
+            ItemStack output = outputs.get(slot);
+            if (output.isEmpty()) {
+                continue;
+            }
+            ItemEntity entity = new ItemEntity(level,
+                    below.getX() + 0.5f,
+                    below.getY() + 0.35f,
+                    below.getZ() + 0.5f,
+                    output);
+            entity.setDefaultPickUpDelay();
+            if (level.addFreshEntity(entity)) {
+                millstone.clearOutputSlot(slot);
+            }
         }
     }
 }

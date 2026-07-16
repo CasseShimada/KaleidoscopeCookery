@@ -4,7 +4,11 @@
   "package": "com.github.ysbbbbbb.kaleidoscopecookery.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "client.HumanoidModelMixin"
+    "client.AvatarRendererMixin",
+    "client.CameraMixin",
+    "client.HudAccessor",
+    "client.HumanoidModelMixin",
+    "client.LivingEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -28,6 +28,7 @@ public class ShapelessRecipeProvider extends ModRecipeProvider {
     private static final TagKey<Item> RAW_MEATS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "raw_meats"));
     private static final TagKey<Item> VEGETABLES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "vegetables"));
     private static final TagKey<Item> DOUGH = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "dough"));
+    private static final TagKey<Item> FLOWERS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "flowers"));
 
     public ShapelessRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
         super(registries, output);
@@ -103,6 +104,62 @@ public class ShapelessRecipeProvider extends ModRecipeProvider {
                 .requires(Items.SWEET_BERRIES, 2)
                 .requires(Items.BOWL)
                 .unlockedBy("has_apple", has(Items.APPLE))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, FoodBiteRegistry.getItem(FoodBiteRegistry.GOLDEN_SALAD))
+                .requires(Items.GOLDEN_APPLE, 2)
+                .requires(Items.GOLDEN_CARROT, 2)
+                .requires(Items.GLISTERING_MELON_SLICE, 2)
+                .requires(Items.BOWL)
+                .unlockedBy("has_golden_apple", has(Items.GOLDEN_APPLE))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, FoodBiteRegistry.getItem(FoodBiteRegistry.NETHER_STYLE_SASHIMI))
+                .requires(Items.CRIMSON_FUNGUS)
+                .requires(Items.WARPED_FUNGUS)
+                .requires(ModItems.SASHIMI, 4)
+                .requires(Items.BOWL)
+                .unlockedBy("has_sashimi", has(ModItems.SASHIMI))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, FoodBiteRegistry.getItem(FoodBiteRegistry.DESERT_STYLE_SASHIMI))
+                .requires(Items.CACTUS, 2)
+                .requires(ModItems.SASHIMI, 4)
+                .requires(Items.BOWL)
+                .unlockedBy("has_sashimi", has(ModItems.SASHIMI))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, FoodBiteRegistry.getItem(FoodBiteRegistry.COLD_STYLE_SASHIMI))
+                .requires(Items.SNOWBALL, 3)
+                .requires(ModItems.SASHIMI, 4)
+                .requires(Items.BOWL)
+                .unlockedBy("has_sashimi", has(ModItems.SASHIMI))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, FoodBiteRegistry.getItem(FoodBiteRegistry.END_STYLE_SASHIMI))
+                .requires(Items.CHORUS_FRUIT, 3)
+                .requires(ModItems.SASHIMI, 4)
+                .requires(Items.BOWL)
+                .unlockedBy("has_sashimi", has(ModItems.SASHIMI))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, FoodBiteRegistry.getItem(FoodBiteRegistry.TUNDRA_STYLE_SASHIMI))
+                .requires(tag(FLOWERS), 2)
+                .requires(ModItems.SASHIMI, 4)
+                .requires(Items.BOWL)
+                .unlockedBy("has_sashimi", has(ModItems.SASHIMI))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, FoodBiteRegistry.getItem(FoodBiteRegistry.COLD_ROASTED_MEAT))
+                .requires(Items.COOKED_BEEF, 3)
+                .requires(Items.BOWL)
+                .unlockedBy("has_cooked_beef", has(Items.COOKED_BEEF))
+                .save(consumer);
+
+        shapeless(RecipeCategory.FOOD, ModItems.COLD_CUT_HAM_SLICES)
+                .requires(ModItems.COOKED_PORK_BELLY, 8)
+                .requires(Items.BOWL)
+                .unlockedBy("has_cooked_pork_belly", has(ModItems.COOKED_PORK_BELLY))
                 .save(consumer);
 
         shapeless(RecipeCategory.FOOD, ModItems.RAW_BAMBOO_TUBE_RICE)

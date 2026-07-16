@@ -1,6 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe;
 
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.output.RandomOutput;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -14,19 +16,35 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class MillstoneRecipe extends SingleItemRecipe {
+    public static final int MAX_OUTPUTS = 4;
+
+    private final List<RandomOutput> results;
     private final Optional<Ingredient> carrier;
 
     public MillstoneRecipe(Ingredient ingredient, ItemStack result, Optional<Ingredient> carrier) {
-        super(new Recipe.CommonInfo(false), ingredient, ItemStackTemplate.fromNonEmptyStack(result));
-        this.carrier = carrier;
+        this(ingredient, List.of(new RandomOutput(result, 1.0F)), carrier);
     }
 
     public MillstoneRecipe(Ingredient ingredient, ItemStackTemplate resultTemplate, Optional<Ingredient> carrier) {
-        super(new Recipe.CommonInfo(false), ingredient, resultTemplate);
+        this(ingredient, List.of(new RandomOutput(resultTemplate, 1.0F)), carrier);
+    }
+
+    public MillstoneRecipe(Ingredient ingredient, List<RandomOutput> results, Optional<Ingredient> carrier) {
+        super(new Recipe.CommonInfo(false), ingredient, firstResult(results));
+        this.results = List.copyOf(results);
         this.carrier = carrier;
+    }
+
+    private static ItemStackTemplate firstResult(List<RandomOutput> results) {
+        if (results.isEmpty() || results.size() > MAX_OUTPUTS) {
+            throw new IllegalArgumentException("Millstone recipes require between 1 and " + MAX_OUTPUTS + " outputs");
+        }
+        return results.getFirst().template();
     }
 
     @Override
@@ -64,11 +82,27 @@ public class MillstoneRecipe extends SingleItemRecipe {
     }
 
     public ItemStackTemplate getResultTemplate() {
-        return result();
+        return this.results.getFirst().template();
     }
 
     public ItemStack getResult() {
-        return result().create();
+        return this.results.getFirst().stack();
+    }
+
+    public List<RandomOutput> results() {
+        return this.results;
+    }
+
+    public List<ItemStack> rollResults(int inputCount, RandomSource random) {
+        List<ItemStack> rolled = new ArrayList<>();
+        for (int i = 0; i < inputCount; i++) {
+            for (RandomOutput output : this.results) {
+                if (!output.isEmpty() && random.nextFloat() < output.chance()) {
+                    rolled.add(output.stack());
+                }
+            }
+        }
+        return rolled;
     }
 
     public Optional<Ingredient> getCarrier() {

@@ -91,7 +91,7 @@ public final class PlateRegistry {
 
     private static void registerBlocksAndItems() {
         PLATE_DATA_MAP.forEach((id, data) -> {
-            PlateBlock block = PlateBlock.create(blockProperties(id), data.maxCount, data.servingItems, data.lootItems);
+            PlateBlock block = PlateBlock.create(blockProperties(id), data.maxCount, data.servingItems);
             if (data.aabb != null) {
                 block.setAABB(data.aabb);
             }
@@ -167,6 +167,10 @@ public final class PlateRegistry {
             this.lootItems.clear();
             this.lootItems.add(lootItem);
             return this;
+        }
+
+        public List<Supplier<Item>> lootItems() {
+            return List.copyOf(this.lootItems);
         }
 
         public PlateData platterAABB() {

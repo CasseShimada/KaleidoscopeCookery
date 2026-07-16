@@ -1,5 +1,6 @@
 {
   "type": "kaleidoscope_cookery:stockpot",
+  "carrier": "minecraft:bowl",
   "ingredients": [
     "minecraft:carrot",
     "minecraft:carrot",

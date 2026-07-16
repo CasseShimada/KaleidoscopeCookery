@@ -1,0 +1,9 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "ingredients": [
+    "minecraft:potato"
+  ],
+  "result": {
+    "id": "minecraft:baked_potato"
+  }
+}

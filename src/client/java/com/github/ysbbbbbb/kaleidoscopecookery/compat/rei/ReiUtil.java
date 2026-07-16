@@ -1,14 +1,16 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.compat.rei;
 
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
-import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.api.common.util.EntryStacks;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +18,24 @@ import java.util.stream.StreamSupport;
 
 public class ReiUtil {
     public static EntryIngredient ofIngredient(Ingredient ingredient) {
-        return EntryIngredients.ofIngredient(ingredient);
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level != null) {
+            List<ItemStack> stacks = ingredient.display()
+                    .resolveForStacks(SlotDisplayContext.fromLevel(level));
+            if (!stacks.isEmpty()) {
+                return EntryIngredient.of(stacks.stream().map(EntryStacks::of).toList());
+            }
+        }
+        return ofIngredientWithoutLevel(ingredient);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static EntryIngredient ofIngredientWithoutLevel(Ingredient ingredient) {
+        return EntryIngredient.of(ingredient.items()
+                .map(Holder::value)
+                .map(Item::getDefaultInstance)
+                .map(EntryStacks::of)
+                .toList());
     }
 
     public static EntryIngredient ofItem(Item item) {

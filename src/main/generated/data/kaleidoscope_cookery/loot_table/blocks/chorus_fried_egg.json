@@ -22,6 +22,68 @@
                   }
                 }
               ],
+              "functions": [
+                {
+                  "components": {
+                    "kaleidoscope_cookery:quality": "superb"
+                  },
+                  "conditions": [
+                    {
+                      "block": "kaleidoscope_cookery:chorus_fried_egg",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "quality": "0"
+                      }
+                    }
+                  ],
+                  "function": "minecraft:set_components"
+                },
+                {
+                  "components": {
+                    "kaleidoscope_cookery:quality": "excellent"
+                  },
+                  "conditions": [
+                    {
+                      "block": "kaleidoscope_cookery:chorus_fried_egg",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "quality": "1"
+                      }
+                    }
+                  ],
+                  "function": "minecraft:set_components"
+                },
+                {
+                  "components": {
+                    "kaleidoscope_cookery:quality": "standard"
+                  },
+                  "conditions": [
+                    {
+                      "block": "kaleidoscope_cookery:chorus_fried_egg",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "quality": "2"
+                      }
+                    }
+                  ],
+                  "function": "minecraft:set_components"
+                },
+                {
+                  "components": {
+                    "kaleidoscope_cookery:quality": "poor"
+                  },
+                  "conditions": [
+                    {
+                      "block": "kaleidoscope_cookery:chorus_fried_egg",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "quality": "3"
+                      }
+                    }
+                  ],
+                  "function": "minecraft:set_components"
+                }
+              ],
               "name": "kaleidoscope_cookery:chorus_fried_egg"
             },
             {

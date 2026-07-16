@@ -3,6 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.entity;
 import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTriggerType;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
 import net.minecraft.core.NonNullList;
@@ -376,8 +377,10 @@ public class ScarecrowEntity extends LivingEntity {
     @Override
     public void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        input.child(HAND_ITEMS_TAG).ifPresent(child -> ContainerHelper.loadAllItems(child, this.handItems));
-        input.child(ARMOR_ITEMS_TAG).ifPresent(child -> ContainerHelper.loadAllItems(child, this.armorItems));
+        this.handItems.replaceAll(ignored -> ItemStack.EMPTY);
+        this.armorItems.replaceAll(ignored -> ItemStack.EMPTY);
+        LegacyItemStackCompat.loadAllItems(input.childOrEmpty(HAND_ITEMS_TAG), this.handItems);
+        LegacyItemStackCompat.loadAllItems(input.childOrEmpty(ARMOR_ITEMS_TAG), this.armorItems);
         this.setShoulderEntity(input.read(SHOULDER_ENTITY_TAG, CompoundTag.CODEC).orElse(new CompoundTag()));
     }
 

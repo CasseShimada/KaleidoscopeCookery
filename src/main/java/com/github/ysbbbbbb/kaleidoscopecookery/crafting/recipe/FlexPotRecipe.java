@@ -13,17 +13,18 @@ import net.minecraft.world.level.Level;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
-public record FlexPotRecipe(int time, int stirFryCount, Ingredient carrier,
+public record FlexPotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier,
                             NonNullList<Ingredient> ingredients,
                             ItemStackTemplate resultTemplate) implements BaseRecipe<SimpleInput> {
-    public FlexPotRecipe(int time, int stirFryCount, Ingredient carrier,
+    public FlexPotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier,
                          List<Ingredient> ingredients, ItemStackTemplate resultTemplate) {
         this(time, stirFryCount, carrier, toNonNullList(ingredients), resultTemplate);
     }
 
-    public FlexPotRecipe(int time, int stirFryCount, Ingredient carrier,
+    public FlexPotRecipe(int time, int stirFryCount, Optional<Ingredient> carrier,
                          List<Ingredient> ingredients, ItemStack result) {
         this(time, stirFryCount, carrier, toNonNullList(ingredients), ItemStackTemplate.fromNonEmptyStack(result));
     }

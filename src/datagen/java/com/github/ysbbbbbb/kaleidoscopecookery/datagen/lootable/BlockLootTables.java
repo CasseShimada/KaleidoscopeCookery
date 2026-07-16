@@ -7,8 +7,11 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.kitchen.EnamelBasinBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.ChiliRistraBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.PlateRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.Quality;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.minecraft.advancements.predicates.StatePropertiesPredicate;
@@ -30,6 +33,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
+import net.minecraft.world.level.storage.loot.functions.SetComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
@@ -40,6 +44,7 @@ import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public class BlockLootTables extends FabricBlockLootSubProvider {
     public final HolderLookup.RegistryLookup<Enchantment> enchantment;
@@ -127,6 +132,7 @@ public class BlockLootTables extends FabricBlockLootSubProvider {
                 LootTable.lootTable().withPool(ricePanicle).withPool(extraRiceSeeds)));
 
         FoodBiteRegistry.forEachData(this::dropFoodBite);
+        PlateRegistry.forEachData(this::dropPlate);
 
         this.add(ModBlocks.ENAMEL_BASIN, createEnamelBasinLootTable());
         this.add(ModBlocks.CHILI_RISTRA, createChiliRistraLootTable());
@@ -190,15 +196,12 @@ public class BlockLootTables extends FabricBlockLootSubProvider {
             LootItemCondition.Builder condition = LootItemBlockStatePropertyCondition
                     .hasBlockStateProperties(ModBlocks.ENAMEL_BASIN)
                     .setProperties(property);
-            int dropCount = i / 2;
-            if (dropCount > 0) {
-                LootItemConditionalFunction.Builder<?> count = SetItemCountFunction.setCount(ConstantValue.exactly(dropCount));
-                oilDrop.add(LootItem.lootTableItem(ModItems.OIL).when(condition).apply(count));
-            }
+            LootItemConditionalFunction.Builder<?> count = SetItemCountFunction.setCount(ConstantValue.exactly(i));
+            oilDrop.add(LootItem.lootTableItem(ModItems.OIL).when(condition).apply(count));
         }
-        LootPool.Builder bucketDrop = LootPool.lootPool().add(LootItem.lootTableItem(Items.BUCKET));
-        return LootTable.lootTable().withPool(oilDrop.when(ExplosionCondition.survivesExplosion()))
-                .withPool(bucketDrop.when(ExplosionCondition.survivesExplosion()));
+        LootPool.Builder basinDrop = LootPool.lootPool().add(LootItem.lootTableItem(ModItems.ENAMEL_BASIN));
+        return LootTable.lootTable().withPool(oilDrop)
+                .withPool(basinDrop.when(ExplosionCondition.survivesExplosion()));
     }
 
     private LootItemCondition.Builder createCropBuilder(Block cropBlock) {
@@ -216,6 +219,17 @@ public class BlockLootTables extends FabricBlockLootSubProvider {
         return LootItemBlockStatePropertyCondition
                 .hasBlockStateProperties(ModBlocks.RICE_CROP)
                 .setProperties(property);
+    }
+
+    private void dropPlate(Identifier id, PlateRegistry.PlateData data) {
+        Block block = PlateRegistry.getBlock(id);
+        LootTable.Builder lootTable = LootTable.lootTable();
+        for (Supplier<Item> lootItem : data.lootItems()) {
+            lootTable.withPool(LootPool.lootPool()
+                    .when(ExplosionCondition.survivesExplosion())
+                    .add(LootItem.lootTableItem(lootItem.get())));
+        }
+        this.add(block, lootTable);
     }
 
     private void dropFoodBite(Identifier id, FoodBiteRegistry.FoodData data) {
@@ -236,7 +250,15 @@ public class BlockLootTables extends FabricBlockLootSubProvider {
             ItemLike itemLike = lootItems.get(i);
             LootPool.Builder rolls = LootPool.lootPool().setRolls(exactly).when(ExplosionCondition.survivesExplosion());
             if (i == 0) {
-                rolls.add(LootItem.lootTableItem(food).when(builder).otherwise(LootItem.lootTableItem(itemLike)));
+                LootPoolSingletonContainer.Builder<?> foodDrop = LootItem.lootTableItem(food).when(builder);
+                for (Quality quality : Quality.values()) {
+                    StatePropertiesPredicate.Builder qualityState = StatePropertiesPredicate.Builder.properties()
+                            .hasProperty(FoodBiteBlock.QUALITY, quality.getId());
+                    foodDrop.apply(SetComponentsFunction.setComponent(ModDataComponents.QUALITY, quality)
+                            .when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(foodBiteBlock)
+                                    .setProperties(qualityState)));
+                }
+                rolls.add(foodDrop.otherwise(LootItem.lootTableItem(itemLike)));
             } else {
                 rolls.add(EmptyLootItem.emptyItem().when(builder).otherwise(LootItem.lootTableItem(itemLike)));
             }

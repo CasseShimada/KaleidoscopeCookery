@@ -52,4 +52,10 @@ public abstract class ModRecipeProvider extends RecipeProvider {
         return items;
     }
 
+    public Object[] getIngredientsWithCount(Object ingredient, int count) {
+        Object[] ingredients = new Object[count];
+        Arrays.fill(ingredients, ingredient);
+        return ingredients;
+    }
+
 }

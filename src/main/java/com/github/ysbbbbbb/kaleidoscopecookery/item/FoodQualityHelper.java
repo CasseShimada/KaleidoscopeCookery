@@ -1,5 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.item;
 
+import com.github.ysbbbbbb.kaleidoscopecookery.compat.FoodEffectTooltipsCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.Quality;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityUtils;
 import net.minecraft.ChatFormatting;
@@ -37,17 +38,19 @@ final class FoodQualityHelper {
     static void addQualityAndEffects(ItemStack stack, List<MobEffectInstance> effects,
                                      TooltipContext context, Consumer<Component> tooltip,
                                      boolean addLeadingSpace) {
+        boolean showEffects = !effects.isEmpty()
+                && FoodEffectTooltipsCompat.shouldShowCookeryEffectTooltips();
         if (QualityUtils.hasQuality(stack)) {
             Quality quality = QualityUtils.getQuality(stack);
             tooltip.accept(quality.getTooltip());
-            if (!effects.isEmpty()) {
+            if (showEffects) {
                 tooltip.accept(CommonComponents.SPACE);
                 PotionContents.addPotionTooltip(QualityUtils.modifyEffects(effects, quality), tooltip, 1.0F, context.tickRate());
             }
             return;
         }
 
-        if (!effects.isEmpty()) {
+        if (showEffects) {
             if (addLeadingSpace) {
                 tooltip.accept(CommonComponents.SPACE);
             }

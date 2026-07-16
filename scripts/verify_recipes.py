@@ -19,6 +19,8 @@ JAVA_ROOT = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
 RESOURCES = ROOT / "src/main/resources"
 MOD_RECIPES = JAVA_ROOT / "init/ModRecipes.java"
 MOD_EVENTS = JAVA_ROOT / "init/ModEvents.java"
+RECIPE_ITEM = JAVA_ROOT / "item/RecipeItem.java"
+RECIPE_ITEM_EVENT = JAVA_ROOT / "api/event/RecipeItemEvent.java"
 MILLSTONE_BLOCK_ENTITY = JAVA_ROOT / "blockentity/kitchen/MillstoneBlockEntity.java"
 MILLSTONE_TAKE_ITEM_CALLBACK = JAVA_ROOT / "api/event/MillstoneTakeItemCallback.java"
 RECIPE_ROOT = JAVA_ROOT / "crafting/recipe"
@@ -33,6 +35,53 @@ RECIPE_EVENT_FILES = {
 # not need a custom RecipeType registration.
 SERIALIZER_ONLY_RECIPE_IDS = {
     "rice_bowl",
+}
+
+BASELINE_POT_COUNT_FAMILIES = {
+    "beef": ("minecraft:beef", "minecraft:cooked_beef"),
+    "chicken": ("minecraft:chicken", "minecraft:cooked_chicken"),
+    "chorus_fruit": ("minecraft:chorus_fruit", "minecraft:popped_chorus_fruit"),
+    "cod": ("minecraft:cod", "minecraft:cooked_cod"),
+    "kelp": ("minecraft:kelp", "minecraft:dried_kelp"),
+    "mutton": ("minecraft:mutton", "minecraft:cooked_mutton"),
+    "porkchop": ("minecraft:porkchop", "minecraft:cooked_porkchop"),
+    "potato": ("minecraft:potato", "minecraft:baked_potato"),
+    "rabbit": ("minecraft:rabbit", "minecraft:cooked_rabbit"),
+    "raw_cow_offal": (f"{MOD_ID}:raw_cow_offal", f"{MOD_ID}:cooked_cow_offal"),
+    "raw_cut_small_meats": (f"{MOD_ID}:raw_cut_small_meats", f"{MOD_ID}:cooked_cut_small_meats"),
+    "raw_lamb_chops": (f"{MOD_ID}:raw_lamb_chops", f"{MOD_ID}:cooked_lamb_chops"),
+    "raw_meatball": (f"{MOD_ID}:raw_meatball", f"{MOD_ID}:cooked_meatball"),
+    "raw_pork_belly": (f"{MOD_ID}:raw_pork_belly", f"{MOD_ID}:cooked_pork_belly"),
+    "salmon": ("minecraft:salmon", "minecraft:cooked_salmon"),
+}
+
+BASELINE_SHAPELESS_INGREDIENTS = {
+    "cold_cut_ham_slices": [f"{MOD_ID}:cooked_pork_belly"] * 8 + ["minecraft:bowl"],
+    "cold_roasted_meat": ["minecraft:cooked_beef"] * 3 + ["minecraft:bowl"],
+    "cold_style_sashimi": ["minecraft:snowball"] * 3 + [f"{MOD_ID}:sashimi"] * 4 + ["minecraft:bowl"],
+    "desert_style_sashimi": ["minecraft:cactus"] * 2 + [f"{MOD_ID}:sashimi"] * 4 + ["minecraft:bowl"],
+    "end_style_sashimi": ["minecraft:chorus_fruit"] * 3 + [f"{MOD_ID}:sashimi"] * 4 + ["minecraft:bowl"],
+    "golden_salad": ["minecraft:golden_apple"] * 2 + ["minecraft:golden_carrot"] * 2
+        + ["minecraft:glistering_melon_slice"] * 2 + ["minecraft:bowl"],
+    "nether_style_sashimi": ["minecraft:crimson_fungus", "minecraft:warped_fungus"]
+        + [f"{MOD_ID}:sashimi"] * 4 + ["minecraft:bowl"],
+    "tundra_style_sashimi": ["#minecraft:flowers"] * 2 + [f"{MOD_ID}:sashimi"] * 4 + ["minecraft:bowl"],
+}
+
+BASELINE_MISSING_RECIPE_PATHS = {
+    *(f"pot/{source}_to_{result.split(':', 1)[1]}_{count}"
+      for source, (_, result) in BASELINE_POT_COUNT_FAMILIES.items()
+      for count in range(1, 10)),
+    "pot/slime_ball_meal",
+    "pot/stargazy_pie",
+    "pot/sweet_and_sour_ender_pearls",
+    *(f"stockpot/rice_{count}" for count in (1, 2, 6, 7, 8, 9)),
+    *(f"stockpot/shengjian_mantou_count_{count}" for count in range(3, 10)),
+    "stockpot/hui_noodle",
+    "stockpot/seafood_miso_soup",
+    "stockpot/seafood_miso_soup_tropical_entity",
+    "stockpot/udon_noodle",
+    *BASELINE_SHAPELESS_INGREDIENTS,
 }
 
 
@@ -129,6 +178,30 @@ def collect_result_ids(value: Any) -> Iterable[str]:
             yield from collect_result_ids(child)
 
 
+def normalize_ingredient(value: Any) -> str | None:
+    if isinstance(value, str):
+        return value
+    if not isinstance(value, dict):
+        return None
+    item = value.get("item")
+    if isinstance(item, str):
+        return item
+    tag = value.get("tag")
+    if isinstance(tag, str):
+        return f"#{tag}"
+    return None
+
+
+def result_id_and_count(data: dict[str, Any]) -> tuple[str | None, int | None]:
+    result = data.get("result")
+    if isinstance(result, str):
+        return result, 1
+    if not isinstance(result, dict):
+        return None, None
+    result_id = result.get("id", result.get("item"))
+    count = result.get("count", 1)
+    return (result_id if isinstance(result_id, str) else None,
+            count if isinstance(count, int) else None)
 def collect_legacy_recipe_dirs() -> list[Path]:
     legacy_dirs: list[Path] = []
     for root in RESOURCE_ROOTS:
@@ -160,7 +233,37 @@ def main() -> int:
 
     millstone_special_event = strip_comments(read(RECIPE_EVENT_FILES["MillstoneSpecialRecipeEvent"]))
     millstone_finish_event = strip_comments(read(RECIPE_EVENT_FILES["MillstoneSpecialFinishEvent"]))
+    special_recipe_item_event = strip_comments(read(RECIPE_EVENT_FILES["SpecialRecipeItemEvent"]))
+    recipe_item = strip_comments(read(RECIPE_ITEM))
+    recipe_item_event = strip_comments(read(RECIPE_ITEM_EVENT))
     millstone_block_entity = strip_comments(read(MILLSTONE_BLOCK_ENTITY))
+
+    for required_reference in (
+        "ContainerItemContext containerContext",
+        "getContainerContext()",
+    ):
+        if required_reference not in recipe_item_event:
+            errors.append(f"Recipe item events do not carry mutable container context: {required_reference}.")
+    for required_reference in (
+        "PlayerInventoryStorage.of(player)",
+        "ContainerItemContext.ofPlayerSlot(",
+        "inventoryStorage.getSlot(slot)",
+        "inventoryStorage.getSlot(i)",
+        "new RecipeItemEvent.CheckItem(s, supply, containerContext)",
+        "new RecipeItemEvent.DeductItem(inSlot, item, needCount, containerContext)",
+    ):
+        if required_reference not in recipe_item:
+            errors.append(f"Recipe item handling does not propagate a mutable player-slot context: {required_reference}.")
+    for required_reference in (
+        "context.find(ItemStorage.ITEM)",
+        "storage.nonEmptyViews()",
+        "Transaction.openOuter()",
+        "transaction.commit()",
+    ):
+        if required_reference not in special_recipe_item_event:
+            errors.append(f"Generic recipe containers are missing Transfer API behavior: {required_reference}.")
+    if "ContainerItemContext.withConstant" in recipe_item or "ContainerItemContext.withConstant" in special_recipe_item_event:
+        errors.append("Generic recipe-container deduction uses an immutable constant item context.")
     if not MILLSTONE_TAKE_ITEM_CALLBACK.exists():
         errors.append("Millstone take-item callback is missing.")
     else:
@@ -276,7 +379,9 @@ def main() -> int:
     missing_type_files: list[str] = []
     bad_custom_types: list[str] = []
     bad_results: list[str] = []
+    empty_ingredient_lists: list[str] = []
     migrated_soup_base_ids: list[str] = []
+    mod_recipe_data: dict[str, tuple[Path, dict[str, Any]]] = {}
     recipe_files = list(iter_recipe_files())
 
     for path in recipe_files:
@@ -292,6 +397,15 @@ def main() -> int:
             continue
 
         namespace, type_path = parsed_type
+        parts = resource_relative(path).parts
+        if parts[1] == MOD_ID:
+            recipe_path = "/".join(parts[3:])
+            mod_recipe_data[recipe_path.removesuffix(".json")] = (path, data)
+
+            ingredients = data.get("ingredients")
+            if isinstance(ingredients, list) and not ingredients:
+                empty_ingredient_lists.append(str(path.relative_to(ROOT)))
+
         if namespace == MOD_ID:
             custom_type_counts[type_path] += 1
             if type_path not in serializer_ids_by_path:
@@ -323,6 +437,76 @@ def main() -> int:
     if migrated_soup_base_ids:
         errors.append("Stockpot recipes use migrated bucket item IDs instead of stable fluid soup-base IDs:")
         errors.extend(f"  - {entry}" for entry in migrated_soup_base_ids)
+    if empty_ingredient_lists:
+        errors.append("Cookery recipes contain an empty ingredients list:")
+        errors.extend(f"  - {entry}" for entry in empty_ingredient_lists)
+
+    missing_baseline_recipes = sorted(BASELINE_MISSING_RECIPE_PATHS - set(mod_recipe_data))
+    if missing_baseline_recipes:
+        errors.append(f"Forge baseline recipe paths missing: {len(missing_baseline_recipes)}")
+        errors.extend(f"  - {entry}" for entry in missing_baseline_recipes)
+
+    for source, (ingredient_id, result_id) in sorted(BASELINE_POT_COUNT_FAMILIES.items()):
+        result_path = result_id.split(":", 1)[1]
+        for count in range(1, 10):
+            recipe_id = f"pot/{source}_to_{result_path}_{count}"
+            entry = mod_recipe_data.get(recipe_id)
+            if entry is None:
+                continue
+            path, data = entry
+            ingredients = [normalize_ingredient(value) for value in data.get("ingredients", [])]
+            actual_result = result_id_and_count(data)
+            if ingredients != [ingredient_id] * count or actual_result != (result_id, count):
+                errors.append(
+                    f"{path.relative_to(ROOT)} lost count-family semantics: "
+                    f"ingredients={ingredients}, result={actual_result}"
+                )
+
+    for count in range(1, 10):
+        recipe_id = f"stockpot/rice_{count}"
+        entry = mod_recipe_data.get(recipe_id)
+        if entry is not None:
+            path, data = entry
+            ingredients = [normalize_ingredient(value) for value in data.get("ingredients", [])]
+            actual_result = result_id_and_count(data)
+            if (ingredients != ["#c:grain/rice"] * count
+                    or actual_result != (f"{MOD_ID}:cooked_rice", count)
+                    or data.get("time", 300) != count * 100):
+                errors.append(f"{path.relative_to(ROOT)} lost Forge rice count/tag/time semantics.")
+
+    stockpot_families = {
+        "dumpling": (f"{MOD_ID}:stuffed_dough_food", f"{MOD_ID}:dumpling", "minecraft:water"),
+        "shengjian_mantou": (
+            f"{MOD_ID}:stuffed_dough_food", f"{MOD_ID}:shengjian_mantou", "minecraft:lava"
+        ),
+        "zongzi": (f"{MOD_ID}:raw_zongzi", f"{MOD_ID}:zongzi", "minecraft:water"),
+    }
+    for family, (ingredient_id, result_id, soup_base) in stockpot_families.items():
+        for count in range(1, 10):
+            recipe_id = f"stockpot/{family}_count_{count}"
+            entry = mod_recipe_data.get(recipe_id)
+            if entry is None:
+                errors.append(f"Forge stockpot family recipe missing: {recipe_id}")
+                continue
+            path, data = entry
+            ingredients = [normalize_ingredient(value) for value in data.get("ingredients", [])]
+            actual_result = result_id_and_count(data)
+            if (ingredients != [ingredient_id] * count
+                    or actual_result != (result_id, count)
+                    or data.get("soup_base", "minecraft:water") != soup_base
+                    or data.get("empty_carrier") is not True):
+                errors.append(f"{path.relative_to(ROOT)} lost count/result/soup-base/empty-carrier semantics.")
+
+    for recipe_id, expected_ingredients in sorted(BASELINE_SHAPELESS_INGREDIENTS.items()):
+        entry = mod_recipe_data.get(recipe_id)
+        if entry is None:
+            continue
+        path, data = entry
+        ingredients = [normalize_ingredient(value) for value in data.get("ingredients", [])]
+        if Counter(ingredients) != Counter(expected_ingredients):
+            errors.append(
+                f"{path.relative_to(ROOT)} lost Forge shapeless alternative ingredients: {ingredients}"
+            )
 
     missing_custom_recipe_json = sorted(set(serializer_ids_by_path) - set(custom_type_counts))
     if missing_custom_recipe_json:
@@ -343,6 +527,7 @@ def main() -> int:
     print(f"  custom recipe types: {len(type_ids_by_path)}")
     print(f"  serializer-only recipes: {len(SERIALIZER_ONLY_RECIPE_IDS)}")
     print(f"  recipe files: {len(recipe_files)}")
+    print(f"  restored Forge recipe paths: {len(BASELINE_MISSING_RECIPE_PATHS)}")
     print("  custom recipe JSON:")
     for recipe_id, count in sorted(custom_type_counts.items()):
         print(f"  - {MOD_ID}:{recipe_id}: {count}")

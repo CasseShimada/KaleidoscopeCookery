@@ -3,18 +3,17 @@ package com.github.ysbbbbbb.kaleidoscopecookery.init;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.SpecialRecipeItemEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.CaterpillarChickenFeedEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.FruitBasketTakeOutEvent;
+import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.TeapotClearEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.interaction.WetFieldHoeUseEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialFinishEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.recipe.MillstoneSpecialRecipeEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.AddVillageStructuresEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.SickleHarvestNetherWartEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.ServerEntityLoadEvent;
-import com.github.ysbbbbbb.kaleidoscopecookery.event.server.TrashCanHideEvent;
-import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FarmerArmorEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.FlatulenceServerEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.HinderEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.InstantSmeltingEffectEvent;
-import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.PreservationEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.SatiatedShieldEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.effect.VitalityEffectEvent;
 import com.github.ysbbbbbb.kaleidoscopecookery.event.server.loot.ExtraLootTableDrop;
@@ -51,8 +50,6 @@ public final class ModEvents {
     private static void registerEffectEvents() {
         SatiatedShieldEvent.register();
         FlatulenceServerEvent.register();
-        PreservationEvent.register();
-        FarmerArmorEffectEvent.register();
         InstantSmeltingEffectEvent.register();
         HinderEffectEvent.register();
         VitalityEffectEvent.register();
@@ -61,12 +58,13 @@ public final class ModEvents {
     private static void registerServerLifecycleEvents() {
         AddVillageStructuresEvent.register();
         ServerEntityLoadEvent.register();
-        TrashCanHideEvent.register();
     }
 
     private static void registerInteractionEvents() {
         WetFieldHoeUseEvent.register();
         CaterpillarChickenFeedEvent.register();
+        FruitBasketTakeOutEvent.register();
+        TeapotClearEvent.register();
         SickleHarvestNetherWartEvent.register();
     }
 

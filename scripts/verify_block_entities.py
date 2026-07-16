@@ -55,7 +55,8 @@ SNAPSHOT_STATE_RETURNS = {
     ),
     BLOCK_ENTITY_ROOT / "kitchen/MillstoneBlockEntity.java": (
         "return this.input.copy();",
-        "return this.output.copy();",
+        "return this.firstOutput().copy();",
+        "return this.outputs.stream().map(ItemStack::copy).toList();",
     ),
     BLOCK_ENTITY_ROOT / "kitchen/PotBlockEntity.java": (
         "return this.result.copy();",
@@ -89,10 +90,16 @@ EXPECTED_BLOCK_ENTITY_IDS = {
     "MILLSTONE_BE": "millstone",
     # Legacy id retained for existing world save compatibility.
     "RECIPE_BLOCK_BE": "recipe_book",
+    # Newer 1.4.x saves use this id; loaded instances normalize to RECIPE_BLOCK_BE.
+    "FORGE_RECIPE_BLOCK_BE": "recipe_block",
     "OIL_POT_BE": "oil_pot",
     "FOOD_BITE_THREE_BY_THREE_BE": "food_bite_three_by_three",
     "CHAIR_BE": "chair",
     "TABLE_BE": "table",
+}
+
+BLOCK_ENTITY_TYPE_ALIASES = {
+    "FORGE_RECIPE_BLOCK_BE": "RECIPE_BLOCK_BE",
 }
 
 STATELESS_BLOCK_ENTITIES = {
@@ -425,6 +432,10 @@ def main() -> int:
         errors.append("TeapotBlockEntity does not emit a block-destroy event when taken.")
     if teapot.count("level.gameEvent(GameEvent.BLOCK_CHANGE, worldPosition") < 4:
         errors.append("TeapotBlockEntity does not emit block-change events for all content mutations.")
+    for stack_field in ("input", "result"):
+        required = f"if (!this.{stack_field}.isEmpty()) {{\n            output.store({stack_field.upper()}, ItemStack.CODEC, this.{stack_field});"
+        if required not in teapot:
+            errors.append(f"TeapotBlockEntity still serializes an empty {stack_field} through ItemStack.CODEC.")
     millstone = read(BLOCK_ENTITY_ROOT / "kitchen/MillstoneBlockEntity.java")
     if "this.progress--;\n            this.setChanged();" not in millstone:
         errors.append("MillstoneBlockEntity does not persist grinding progress each tick.")
@@ -511,9 +522,12 @@ def main() -> int:
             continue
 
         entity_text = strip_comments(read(entity_file))
-        super_pattern = rf"super\s*\(\s*ModBlocks\.{re.escape(const)}\s*,"
+        constructor_type = BLOCK_ENTITY_TYPE_ALIASES.get(const, const)
+        super_pattern = rf"super\s*\(\s*ModBlocks\.{re.escape(constructor_type)}\s*,"
         if not re.search(super_pattern, entity_text):
-            errors.append(f"{entity_class} constructor does not call super(ModBlocks.{const}, ...).")
+            errors.append(
+                f"{entity_class} constructor does not call super(ModBlocks.{constructor_type}, ...)."
+            )
 
         has_save = method_exists(entity_text, "saveAdditional")
         has_load = method_exists(entity_text, "loadAdditional")
@@ -582,7 +596,7 @@ def main() -> int:
     print(f"  block classes checked: {len(block_classes_checked)}")
     print(f"  inventory snapshot getters: {len(SNAPSHOT_CONTAINER_GETTERS)}")
     print(f"  item/array snapshot getters: {sum(map(len, SNAPSHOT_STATE_RETURNS.values()))}")
-    print("  legacy block entity ids: recipe_book -> RECIPE_BLOCK_BE")
+    print("  legacy block entity ids: recipe_book -> RECIPE_BLOCK_BE, recipe_block -> FORGE_RECIPE_BLOCK_BE")
     return 0
 
 

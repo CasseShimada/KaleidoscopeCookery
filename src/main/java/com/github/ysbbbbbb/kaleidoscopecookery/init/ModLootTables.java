@@ -9,6 +9,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 public final class ModLootTables {
     public static final ResourceKey<LootTable> HARVEST_TOMATO_CROP = create("harvest/tomato_crop");
     public static final ResourceKey<LootTable> HARVEST_CHILI_CROP = create("harvest/chili_crop");
+    public static final ResourceKey<LootTable> CHEF_GIFT = create("gameplay/hero_of_the_village/chef_gift");
 
     private static ResourceKey<LootTable> create(String path) {
         return ResourceKey.create(

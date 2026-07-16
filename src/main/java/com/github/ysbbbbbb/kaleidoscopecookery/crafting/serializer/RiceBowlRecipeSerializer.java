@@ -1,6 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.RiceBowlRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyIngredientCompat;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyRecipeResultCompat;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -13,8 +15,8 @@ public final class RiceBowlRecipeSerializer {
     public static final MapCodec<RiceBowlRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     CraftingBookCategory.CODEC.optionalFieldOf("category", CraftingBookCategory.MISC).forGetter(RiceBowlRecipe::category),
-                    Ingredient.CODEC.fieldOf("ingredient").forGetter(RiceBowlRecipe::getIngredient),
-                    ItemStackTemplate.CODEC.fieldOf("result").forGetter(RiceBowlRecipe::result)
+                    LegacyIngredientCompat.CODEC.fieldOf("ingredient").forGetter(RiceBowlRecipe::getIngredient),
+                    LegacyRecipeResultCompat.ITEM_STACK_TEMPLATE_CODEC.fieldOf("result").forGetter(RiceBowlRecipe::result)
             ).apply(instance, RiceBowlRecipe::new)
     );
 

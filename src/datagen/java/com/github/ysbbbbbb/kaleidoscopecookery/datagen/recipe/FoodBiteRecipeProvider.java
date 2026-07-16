@@ -134,10 +134,23 @@ public class FoodBiteRecipeProvider extends ModRecipeProvider {
                 .save(consumer, "stargazy_pie_salmon");
 
         potRecipeBuilder()
+                .addInput(Items.PUMPKIN_PIE, TagCommon.RAW_FISHES, TagCommon.RAW_FISHES,
+                        TagCommon.RAW_FISHES, TagCommon.RAW_FISHES, TagCommon.RAW_FISHES)
+                .setBowlCarrier()
+                .setResult(FoodBiteRegistry.STARGAZY_PIE)
+                .save(consumer, "stargazy_pie");
+
+        potRecipeBuilder()
                 .addInput(Items.ENDER_PEARL, Items.ENDER_PEARL, Items.ENDER_EYE)
                 .setBowlCarrier()
                 .setResult(FoodBiteRegistry.SWEET_AND_SOUR_ENDER_PEARLS)
                 .save(consumer, "sweet_and_sour_ender_pearls_1");
+
+        potRecipeBuilder()
+                .addInput(Items.ENDER_PEARL, Items.ENDER_PEARL, Items.ENDER_EYE)
+                .setBowlCarrier()
+                .setResult(FoodBiteRegistry.SWEET_AND_SOUR_ENDER_PEARLS)
+                .save(consumer, "sweet_and_sour_ender_pearls");
 
         potRecipeBuilder()
                 .addInput(Items.ENDER_PEARL, Items.ENDER_PEARL, Items.ENDER_PEARL,
@@ -242,6 +255,13 @@ public class FoodBiteRecipeProvider extends ModRecipeProvider {
                 .setResult(FoodBiteRegistry.COLD_STYLE_SASHIMI)
                 .save(consumer);
 
+        potRecipeBuilder()
+                .addInput(Items.SLIME_BALL, Items.SLIME_BALL, Items.SLIME_BALL,
+                        Items.SLIME_BALL, Items.SLIME_BALL, Items.SLIME_BALL)
+                .setBowlCarrier()
+                .setResult(FoodBiteRegistry.SLIME_BALL_MEAL)
+                .save(consumer, "slime_ball_meal");
+
         Item slimeBallMeal = FoodBiteRegistry.getItem(FoodBiteRegistry.SLIME_BALL_MEAL);
         addSameItemRecipe(Items.SLIME_BALL, 4, slimeBallMeal, 1, Items.BOWL, consumer);
         addSameItemRecipe(Items.SLIME_BALL, 5, slimeBallMeal, 1, Items.BOWL, consumer);
@@ -258,10 +278,10 @@ public class FoodBiteRecipeProvider extends ModRecipeProvider {
 
     public void addSameItemRecipe(Item inputItem, int count, Item outputItem, int outputCount,
                                   Ingredient carrier, RecipeOutput consumer) {
-        ItemLike[] inputs = this.getItemsWithCount(inputItem, count);
         String idInput = this.getRecipeIdWithCount(inputItem, count);
         String idOutput = this.getRecipeIdWithCount(outputItem, outputCount);
         String id = String.format("%s_to_%s", idInput, idOutput);
-        potRecipeBuilder().addInput((Object) inputs).setResult(outputItem, outputCount).setCarrier(carrier).save(consumer, id);
+        potRecipeBuilder().addInput(this.getIngredientsWithCount(inputItem, count))
+                .setResult(outputItem, outputCount).setCarrier(carrier).save(consumer, id);
     }
 }

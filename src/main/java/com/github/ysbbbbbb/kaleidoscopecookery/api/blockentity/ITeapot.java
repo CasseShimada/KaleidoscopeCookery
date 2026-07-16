@@ -1,5 +1,7 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity;
 
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -13,9 +15,9 @@ public interface ITeapot {
 
     boolean hasHeatSource(Level level);
 
-    boolean addTeaFluid(Level level, LivingEntity user, ItemStack itemStack);
+    boolean addTeaFluid(Level level, LivingEntity user, Storage<FluidVariant> fluidStorage);
 
-    boolean removeTeaFluid(Level level, LivingEntity user, ItemStack itemStack);
+    boolean removeTeaFluid(Level level, LivingEntity user, Storage<FluidVariant> fluidStorage);
 
     boolean addIngredient(Level level, LivingEntity user, ItemStack itemStack);
 

@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -61,7 +62,8 @@ public class StockpotRecipeCategory implements IRecipeCategory<RecipeHolder<Stoc
     }
 
     public static List<RecipeHolder<StockpotRecipe>> getRecipes() {
-        List<RecipeHolder<StockpotRecipe>> recipes = ClientRecipeLookup.getRecipes(ModRecipes.STOCKPOT_RECIPE);
+        List<RecipeHolder<StockpotRecipe>> recipes =
+                new ArrayList<>(ClientRecipeLookup.getRecipes(ModRecipes.STOCKPOT_RECIPE));
         FarmersDelightCompat.appendStockpotRecipes(Minecraft.getInstance().level, recipes);
         recipes.sort(RECIPE_ORDER);
         return recipes;
@@ -91,9 +93,8 @@ public class StockpotRecipeCategory implements IRecipeCategory<RecipeHolder<Stoc
                 builder.addSlot(RecipeIngredientRole.INPUT, 72, 61).add(Ingredient.of(displayStack.getItem()));
             }
         }
-        if (!recipe.carrier().isEmpty()) {
-            builder.addSlot(RecipeIngredientRole.INPUT, 133, 18).add(recipe.carrier()).setBackground(slotDraw, -1, -1);
-        }
+        recipe.carrier().ifPresent(carrier -> builder.addSlot(RecipeIngredientRole.INPUT, 133, 18)
+                .add(carrier).setBackground(slotDraw, -1, -1));
         builder.addSlot(RecipeIngredientRole.OUTPUT, 143, 60).add(output);
     }
 

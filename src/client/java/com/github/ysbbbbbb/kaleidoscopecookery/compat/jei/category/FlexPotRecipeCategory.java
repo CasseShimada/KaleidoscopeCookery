@@ -85,9 +85,8 @@ public class FlexPotRecipeCategory implements IRecipeCategory<RecipeHolder<FlexP
             int yOffset = (i / 3) * 18 + 24;
             builder.addSlot(RecipeIngredientRole.INPUT, xOffset, yOffset).add(inputs.get(i)).setBackground(slotDraw, -1, -1);
         }
-        if (!recipe.carrier().isEmpty()) {
-            builder.addSlot(RecipeIngredientRole.INPUT, 133, 18).add(recipe.carrier());
-        }
+        recipe.carrier().ifPresent(carrier ->
+                builder.addSlot(RecipeIngredientRole.INPUT, 133, 18).add(carrier));
         builder.addSlot(RecipeIngredientRole.OUTPUT, 143, 60).add(output).setBackground(slotDraw, -1, -1);
     }
 

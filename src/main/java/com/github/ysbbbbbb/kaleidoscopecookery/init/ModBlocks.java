@@ -128,6 +128,7 @@ public final class ModBlocks {
     public static final BlockEntityType<TrashCanBlockEntity> TRASH_CAN_BE = FabricBlockEntityTypeBuilder.create(TrashCanBlockEntity::new, TRASH_CAN).build();
     public static final BlockEntityType<MillstoneBlockEntity> MILLSTONE_BE = FabricBlockEntityTypeBuilder.create(MillstoneBlockEntity::new, MILLSTONE).build();
     public static final BlockEntityType<RecipeBlockEntity> RECIPE_BLOCK_BE = FabricBlockEntityTypeBuilder.create(RecipeBlockEntity::new, RECIPE_BLOCK).build();
+    public static final BlockEntityType<RecipeBlockEntity> FORGE_RECIPE_BLOCK_BE = FabricBlockEntityTypeBuilder.create(RecipeBlockEntity::new, RECIPE_BLOCK).build();
     public static final BlockEntityType<OilPotBlockEntity> OIL_POT_BE = FabricBlockEntityTypeBuilder.create(OilPotBlockEntity::new, OIL_POT).build();
     public static final BlockEntityType<FoodBiteThreeByThreeBlockEntity> FOOD_BITE_THREE_BY_THREE_BE =
             FabricBlockEntityTypeBuilder.create(FoodBiteThreeByThreeBlockEntity::new, COLD_CUT_HAM_SLICES).build();
@@ -263,6 +264,8 @@ public final class ModBlocks {
         registerBlockEntity("millstone", MILLSTONE_BE);
         // Keep this legacy block entity id for existing world save compatibility.
         registerBlockEntity("recipe_book", RECIPE_BLOCK_BE);
+        // Newer 1.4.x saves use recipe_block instead.
+        registerBlockEntity("recipe_block", FORGE_RECIPE_BLOCK_BE);
         registerBlockEntity("oil_pot", OIL_POT_BE);
         registerBlockEntity("food_bite_three_by_three", FOOD_BITE_THREE_BY_THREE_BE);
     }

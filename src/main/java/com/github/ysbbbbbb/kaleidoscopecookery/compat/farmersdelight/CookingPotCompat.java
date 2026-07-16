@@ -77,8 +77,14 @@ final class CookingPotCompat {
 
     @Nullable
     private static List<Ingredient> getIngredients(Object cookingPotRecipe) throws Exception {
-        Method getIngredients = cookingPotRecipe.getClass().getMethod("getIngredients");
-        Object value = getIngredients.invoke(cookingPotRecipe);
+        Object value;
+        try {
+            Method getIngredients = cookingPotRecipe.getClass().getMethod("getIngredients");
+            value = getIngredients.invoke(cookingPotRecipe);
+        } catch (NoSuchMethodException ex) {
+            Method input = cookingPotRecipe.getClass().getMethod("input");
+            value = input.invoke(cookingPotRecipe);
+        }
         if (!(value instanceof List<?> rawIngredients)) {
             return null;
         }
@@ -97,8 +103,13 @@ final class CookingPotCompat {
             Method getResultItem = cookingPotRecipe.getClass().getMethod("getResultItem", RegistryAccess.class);
             return (ItemStack) getResultItem.invoke(cookingPotRecipe, registryAccess);
         } catch (NoSuchMethodException ex) {
-            Method getResultItem = cookingPotRecipe.getClass().getMethod("getResultItem");
-            return (ItemStack) getResultItem.invoke(cookingPotRecipe);
+            try {
+                Method getResultItem = cookingPotRecipe.getClass().getMethod("getResultItem");
+                return (ItemStack) getResultItem.invoke(cookingPotRecipe);
+            } catch (NoSuchMethodException ignored) {
+                Method result = cookingPotRecipe.getClass().getMethod("result");
+                return createItemStack(result.invoke(cookingPotRecipe));
+            }
         }
     }
 
@@ -116,8 +127,23 @@ final class CookingPotCompat {
         try {
             Method getOutputContainer = cookingPotRecipe.getClass().getMethod("getOutputContainer");
             return (ItemStack) getOutputContainer.invoke(cookingPotRecipe);
+        } catch (NoSuchMethodException ex) {
+            try {
+                Method container = cookingPotRecipe.getClass().getMethod("container");
+                return createItemStack(container.invoke(cookingPotRecipe));
+            } catch (Exception ignored) {
+                return ItemStack.EMPTY;
+            }
         } catch (Exception ignored) {
             return ItemStack.EMPTY;
         }
+    }
+
+    private static ItemStack createItemStack(Object stackOrTemplate) throws Exception {
+        if (stackOrTemplate instanceof ItemStack stack) {
+            return stack;
+        }
+        Method create = stackOrTemplate.getClass().getMethod("create");
+        return (ItemStack) create.invoke(stackOrTemplate);
     }
 }

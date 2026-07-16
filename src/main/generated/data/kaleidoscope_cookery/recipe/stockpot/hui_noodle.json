@@ -1,0 +1,16 @@
+{
+  "type": "kaleidoscope_cookery:stockpot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:raw_mutton",
+    "#c:raw_mutton",
+    "#c:raw_mutton",
+    "#c:raw_mutton",
+    "kaleidoscope_cookery:raw_noodles",
+    "kaleidoscope_cookery:raw_noodles",
+    "kaleidoscope_cookery:raw_noodles"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:hui_noodle"
+  }
+}

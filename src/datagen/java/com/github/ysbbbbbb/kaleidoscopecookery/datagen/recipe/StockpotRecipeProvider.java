@@ -3,6 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.datagen.recipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.datagen.builder.StockpotRecipeBuilder;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagCommon;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -16,28 +17,10 @@ public class StockpotRecipeProvider extends ModRecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput consumer) {
-        stockpotRecipeBuilder()
-                .addInput(TagCommon.SEEDS_RICE, TagCommon.SEEDS_RICE, TagCommon.SEEDS_RICE)
-                .setFinishedTexture(modLoc("stockpot/rice_finished"))
-                .setResult(ModItems.COOKED_RICE, 3)
-                .setFinishedBubbleColor(0xE9E3DB).setTime(300)
-                .save(consumer, "rice_3");
-
-        stockpotRecipeBuilder()
-                .addInput(TagCommon.SEEDS_RICE, TagCommon.SEEDS_RICE,
-                        TagCommon.SEEDS_RICE, TagCommon.SEEDS_RICE)
-                .setFinishedTexture(modLoc("stockpot/rice_finished"))
-                .setResult(ModItems.COOKED_RICE, 4)
-                .setFinishedBubbleColor(0xE9E3DB).setTime(400)
-                .save(consumer, "rice_4");
-
-        stockpotRecipeBuilder()
-                .addInput(TagCommon.SEEDS_RICE, TagCommon.SEEDS_RICE, TagCommon.SEEDS_RICE,
-                        TagCommon.SEEDS_RICE, TagCommon.SEEDS_RICE)
-                .setFinishedTexture(modLoc("stockpot/rice_finished"))
-                .setResult(ModItems.COOKED_RICE, 5)
-                .setFinishedBubbleColor(0xE9E3DB).setTime(500)
-                .save(consumer, "rice_5");
+        addRiceRecipes(consumer);
+        addDumplingRecipes(consumer);
+        addShengjianMantouRecipes(consumer);
+        addZongziRecipes(consumer);
 
         stockpotRecipeBuilder()
                 .addInput(Items.BONE, Items.BONE, Items.BONE, Items.BONE)
@@ -57,6 +40,12 @@ public class StockpotRecipeProvider extends ModRecipeProvider {
                 .save(consumer, "seafood_miso_soup_cod");
 
         stockpotRecipeBuilder()
+                .addInput(TagCommon.RAW_FISHES, TagCommon.RAW_FISHES,
+                        TagCommon.CROPS_LETTUCE, TagCommon.CROPS_LETTUCE, TagCommon.CROPS_LETTUCE)
+                .setResult(ModItems.SEAFOOD_MISO_SOUP, 1)
+                .save(consumer, "seafood_miso_soup");
+
+        stockpotRecipeBuilder()
                 .addInput(Items.KELP, Items.BONE_MEAL)
                 .setSoupBase(ModSoupBases.SALMON_BUCKET)
                 .setResult(ModItems.SEAFOOD_MISO_SOUP, 1)
@@ -67,6 +56,12 @@ public class StockpotRecipeProvider extends ModRecipeProvider {
                 .setSoupBase(ModSoupBases.COD_BUCKET)
                 .setResult(ModItems.SEAFOOD_MISO_SOUP, 1)
                 .save(consumer, "seafood_miso_soup_cod_entity");
+
+        stockpotRecipeBuilder()
+                .addInput(TagCommon.CROPS_LETTUCE, TagCommon.CROPS_LETTUCE, TagCommon.CROPS_LETTUCE)
+                .setSoupBase(ModSoupBases.TROPICAL_FISH_BUCKET)
+                .setResult(ModItems.SEAFOOD_MISO_SOUP, 1)
+                .save(consumer, "seafood_miso_soup_tropical_entity");
 
         stockpotRecipeBuilder()
                 .addInput(Items.ROTTEN_FLESH, Items.ROTTEN_FLESH,
@@ -135,5 +130,62 @@ public class StockpotRecipeProvider extends ModRecipeProvider {
                         TagCommon.MUSHROOMS, TagCommon.MUSHROOMS, TagCommon.MUSHROOMS)
                 .setResult(ModItems.CHICKEN_AND_MUSHROOM_STEW)
                 .save(consumer);
+
+        stockpotRecipeBuilder()
+                .addInput(TagCommon.RAW_MUTTON, TagCommon.RAW_MUTTON,
+                        TagCommon.RAW_MUTTON, TagCommon.RAW_MUTTON,
+                        ModItems.RAW_NOODLES, ModItems.RAW_NOODLES, ModItems.RAW_NOODLES)
+                .setResult(ModItems.HUI_NOODLE, 1)
+                .save(consumer, "hui_noodle");
+
+        stockpotRecipeBuilder()
+                .addInput(TagCommon.CROPS_LETTUCE, TagCommon.CROPS_LETTUCE,
+                        TagCommon.EGGS, TagCommon.EGGS,
+                        ModItems.RAW_NOODLES, ModItems.RAW_NOODLES, ModItems.RAW_NOODLES)
+                .setResult(ModItems.UDON_NOODLE, 1)
+                .save(consumer, "udon_noodle");
+    }
+
+    private void addRiceRecipes(RecipeOutput consumer) {
+        for (int count = 1; count <= 9; count++) {
+            stockpotRecipeBuilder()
+                    .addInput(this.getIngredientsWithCount(TagCommon.GRAIN_RICE, count))
+                    .setFinishedTexture(modLoc("stockpot/rice_finished"))
+                    .setResult(ModItems.COOKED_RICE, count)
+                    .setFinishedBubbleColor(0xE9E3DB)
+                    .setTime(count * 100)
+                    .save(consumer, "rice_" + count);
+        }
+    }
+
+    private void addDumplingRecipes(RecipeOutput consumer) {
+        for (int count = 1; count <= 9; count++) {
+            stockpotRecipeBuilder()
+                    .addInput(this.getIngredientsWithCount(ModItems.STUFFED_DOUGH_FOOD, count))
+                    .setResult(ModItems.DUMPLING, count)
+                    .setEmptyCarrier()
+                    .save(consumer, "dumpling_count_" + count);
+        }
+    }
+
+    private void addShengjianMantouRecipes(RecipeOutput consumer) {
+        for (int count = 1; count <= 9; count++) {
+            stockpotRecipeBuilder()
+                    .addInput(this.getIngredientsWithCount(ModItems.STUFFED_DOUGH_FOOD, count))
+                    .setResult(FoodBiteRegistry.getItem(FoodBiteRegistry.SHENGJIAN_MANTOU), count)
+                    .setSoupBase(ModSoupBases.LAVA)
+                    .setEmptyCarrier()
+                    .save(consumer, "shengjian_mantou_count_" + count);
+        }
+    }
+
+    private void addZongziRecipes(RecipeOutput consumer) {
+        for (int count = 1; count <= 9; count++) {
+            stockpotRecipeBuilder()
+                    .addInput(this.getIngredientsWithCount(ModItems.RAW_ZONGZI, count))
+                    .setResult(ModItems.ZONGZI, count)
+                    .setEmptyCarrier()
+                    .save(consumer, "zongzi_count_" + count);
+        }
     }
 }

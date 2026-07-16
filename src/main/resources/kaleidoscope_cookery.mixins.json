@@ -6,13 +6,16 @@
   "mixins": [
     "FallingBlockEntityMixin",
     "FarmBlockMixin",
+    "FoodDataAccessor",
+    "GiveGiftToHeroMixin",
     "ItemEntityMixin",
     "LivingEntityMixin",
+    "MobMixin",
     "MobBucketItemMixin",
     "PistonStructureResolverMixin",
+    "PlayerMixin",
     "PowderSnowBlockMixin",
-    "ProjectileMixin",
-    "ServerPlayerMixin"
+    "ProjectileMixin"
   ],
   "injectors": {
     "defaultRequire": 1

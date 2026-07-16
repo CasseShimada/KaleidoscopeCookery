@@ -21,6 +21,7 @@ public class ModPlugin implements IWailaPlugin {
     public static final Identifier CHOPPING_BOARD = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "chopping_board");
     public static final Identifier MILLSTONE = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "millstone");
     public static final Identifier ENAMEL_BASIN = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "enamel_basin");
+    public static final Identifier FOOD_BITE_BLOCK = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "food_bite_block");
     public static final Identifier TABLE = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "table");
     public static final Identifier FRUIT_BASKET = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "fruit_basket");
     public static final Identifier KITCHENWARE_RACK = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "kitchenware_rack");

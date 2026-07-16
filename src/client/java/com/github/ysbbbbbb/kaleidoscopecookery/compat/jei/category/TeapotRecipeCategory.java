@@ -88,9 +88,13 @@ public class TeapotRecipeCategory implements IRecipeCategory<RecipeHolder<Teapot
     }
 
     private static List<ItemStack> getIngredientStacks(TeapotRecipe recipe) {
+        if (recipe.ingredient().isEmpty()) {
+            return List.of();
+        }
+        var ingredient = recipe.ingredient().orElseThrow();
         ClientLevel level = Minecraft.getInstance().level;
         if (level != null) {
-            List<ItemStack> stacks = recipe.ingredient().display()
+            List<ItemStack> stacks = ingredient.display()
                     .resolveForStacks(SlotDisplayContext.fromLevel(level))
                     .stream()
                     .map(stack -> stack.copyWithCount(recipe.ingredientCount()))
@@ -104,7 +108,8 @@ public class TeapotRecipeCategory implements IRecipeCategory<RecipeHolder<Teapot
 
     @SuppressWarnings("deprecation")
     private static List<ItemStack> getIngredientStacksWithoutLevel(TeapotRecipe recipe) {
-        return recipe.ingredient().items()
+        return recipe.ingredient().stream()
+                .flatMap(ingredient -> ingredient.items())
                 .map(item -> item.value().getDefaultInstance().copyWithCount(recipe.ingredientCount()))
                 .toList();
     }

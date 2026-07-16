@@ -1,0 +1,28 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 3.0
+  },
+  "gives": {
+    "id": "kaleidoscope_cookery:recipe_item"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "kaleidoscope_cookery:set_recipe_record",
+      "input": [
+        "minecraft:beef",
+        "minecraft:beef",
+        "minecraft:beef",
+        "minecraft:potato",
+        "minecraft:potato",
+        "minecraft:potato",
+        "minecraft:potato"
+      ],
+      "output": "kaleidoscope_cookery:braised_beef_with_potatoes",
+      "type": "kaleidoscope_cookery:stockpot"
+    }
+  ],
+  "max_uses": 16.0,
+  "xp": 4.0,
+  "reputation_discount": 0.1
+}

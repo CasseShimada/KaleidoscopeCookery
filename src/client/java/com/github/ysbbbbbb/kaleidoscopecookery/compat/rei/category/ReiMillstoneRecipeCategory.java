@@ -3,6 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.category;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.client.util.ClientRecipeLookup;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.rei.ReiUtil;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.output.RandomOutput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
@@ -35,7 +36,7 @@ public class ReiMillstoneRecipeCategory implements DisplayCategory<ReiMillstoneR
     private static final Identifier BG = Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, "textures/gui/jei/millstone.png");
     private static final MutableComponent TITLE = Component.translatable("block.kaleidoscope_cookery.millstone");
 
-    public static final int WIDTH = 176;
+    public static final int WIDTH = 196;
     public static final int HEIGHT = 95;
 
     @Override
@@ -54,10 +55,21 @@ public class ReiMillstoneRecipeCategory implements DisplayCategory<ReiMillstoneR
         widgets.add(Widgets.createSlot(new Point(startX + 69, startY + 39))
                 .entries(display.getInputEntries().getFirst())
                 .markInput());
-        widgets.add(Widgets.createSlot(new Point(startX + 146, startY + 47))
-                .entries(display.getOutputEntries().getFirst())
+        List<EntryIngredient> outputs = display.getOutputEntries();
+        widgets.add(Widgets.createSlot(new Point(startX + 150, startY + 47))
+                .entries(outputs.getFirst())
                 .disableBackground()
                 .markOutput());
+        for (int i = 1; i < outputs.size(); i++) {
+            int x = switch (i) {
+                case 2 -> 128;
+                case 3 -> 172;
+                default -> 150;
+            };
+            widgets.add(Widgets.createSlot(new Point(startX + x, startY + 20))
+                    .entries(outputs.get(i))
+                    .markOutput());
+        }
         if (!display.carrier.isEmpty()) {
             widgets.add(Widgets.createSlot(new Point(startX + 115, startY + 36))
                     .entries(display.carrier)
@@ -99,7 +111,11 @@ public class ReiMillstoneRecipeCategory implements DisplayCategory<ReiMillstoneR
         for (RecipeHolder<MillstoneRecipe> r
                 : ClientRecipeLookup.getRecipes(ModRecipes.MILLSTONE_RECIPE)) {
             List<EntryIngredient> input = ReiUtil.ofIngredients(r.value().getIngredient());
-            List<EntryIngredient> output = ReiUtil.ofItemStacks(r.value().getResult());
+            List<EntryIngredient> output = r.value().results().stream()
+                    .filter(randomOutput -> !randomOutput.isEmpty())
+                    .map(RandomOutput::stack)
+                    .map(ReiUtil::ofItemStack)
+                    .toList();
             EntryIngredient carrier = r.value().getCarrier()
                     .map(ReiUtil::ofIngredient)
                     .orElse(EntryIngredient.empty());

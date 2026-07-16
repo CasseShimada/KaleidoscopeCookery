@@ -1,0 +1,9 @@
+{
+  "pack": {
+    "description": {
+      "translate": "pack.kaleidoscope_cookery.legacy_resources_pack.desc"
+    },
+    "min_format": 88,
+    "max_format": 107
+  }
+}

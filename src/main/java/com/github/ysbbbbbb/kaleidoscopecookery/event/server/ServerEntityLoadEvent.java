@@ -11,6 +11,9 @@ import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.monster.Creeper;
 
 public final class ServerEntityLoadEvent {
+    private static final String LEGACY_CAT_LIE_GOAL_TAG = "kaleidoscope_cookery.cat_lie_goal";
+    private static final String LEGACY_CREEPER_MUSTARD_AVOID_GOAL_TAG =
+            "kaleidoscope_cookery.creeper_mustard_avoid_goal";
     private static final int CAT_LIE_GOAL_PRIORITY = 5;
     private static final double CAT_LIE_SPEED_MODIFIER = 1.1;
     private static final int CAT_LIE_SEARCH_RANGE = 8;
@@ -28,10 +31,12 @@ public final class ServerEntityLoadEvent {
 
     private static void onEntityLoad(Entity entity, ServerLevel level) {
         if (entity instanceof Cat cat) {
+            cat.removeTag(LEGACY_CAT_LIE_GOAL_TAG);
             addCatLieGoal(cat);
             return;
         }
         if (entity instanceof Creeper creeper) {
+            creeper.removeTag(LEGACY_CREEPER_MUSTARD_AVOID_GOAL_TAG);
             addCreeperMustardAvoidGoal(creeper);
         }
     }

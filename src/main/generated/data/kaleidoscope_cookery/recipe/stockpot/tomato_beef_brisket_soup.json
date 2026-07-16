@@ -1,5 +1,6 @@
 {
   "type": "kaleidoscope_cookery:stockpot",
+  "carrier": "minecraft:bowl",
   "ingredients": [
     "#c:raw_beef",
     "#c:raw_beef",

@@ -2,6 +2,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.ContainerHelper;
@@ -33,7 +34,7 @@ public class TableBlockEntity extends BaseBlockEntity {
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.color = DyeColor.byId(input.getIntOr(COLOR_TAG, this.color.getId()));
-        ContainerHelper.loadAllItems(input.childOrEmpty(SHOW_ITEMS), items);
+        LegacyItemStackCompat.loadAllItems(input.childOrEmpty(SHOW_ITEMS), items);
     }
 
     public DyeColor getColor() {

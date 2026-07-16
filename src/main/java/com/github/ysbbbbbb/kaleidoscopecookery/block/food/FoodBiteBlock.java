@@ -2,6 +2,8 @@ package com.github.ysbbbbbb.kaleidoscopecookery.block.food;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModFoods;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteAnimateTicks;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.Quality;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -34,6 +36,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class FoodBiteBlock extends FoodBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final IntegerProperty QUALITY = IntegerProperty.create("quality", 0, Quality.values().length);
+    public static final int DEFAULT_QUALITY = Quality.values().length;
     protected static final IntegerProperty BITES_1 = IntegerProperty.create("bites", 0, 1);
     protected static final IntegerProperty BITES_2 = IntegerProperty.create("bites", 0, 2);
     protected static final IntegerProperty BITES_3 = IntegerProperty.create("bites", 0, 3);
@@ -72,7 +76,10 @@ public class FoodBiteBlock extends FoodBlock {
             throw new IllegalArgumentException("Food bite count " + maxBites
                     + " does not match property range " + this.getMaxBitesFromProperty());
         }
-        this.registerDefaultState(this.defaultBlockState().setValue(this.getBites(), 0).setValue(FACING, Direction.SOUTH));
+        this.registerDefaultState(this.defaultBlockState()
+                .setValue(this.getBites(), 0)
+                .setValue(FACING, Direction.SOUTH)
+                .setValue(QUALITY, DEFAULT_QUALITY));
         this.animateTick = animateTick;
     }
 
@@ -129,14 +136,22 @@ public class FoodBiteBlock extends FoodBlock {
         if (!level.setBlock(pos, state.setValue(bitesProperty, bites + 1), Block.UPDATE_ALL)) {
             return InteractionResult.FAIL;
         }
-        player.getFoodData().eat(foodProperties);
+        int qualityId = state.getValue(QUALITY);
+        double ratio = qualityId == DEFAULT_QUALITY ? 1.0 : Quality.BY_ID.apply(qualityId).getRatio();
+        player.getFoodData().eat(
+                (int) Math.round(foodProperties.nutrition() * ratio),
+                (float) (foodProperties.saturation() * ratio));
         if (consumable != null) {
             for (ConsumeEffect effect : consumable.onConsumeEffects()) {
                 if (effect instanceof ApplyStatusEffectsConsumeEffect apply
                         && apply.probability() > 0.0F
                         && level.getRandom().nextFloat() < apply.probability()) {
                     for (MobEffectInstance instance : apply.effects()) {
-                        player.addEffect(new MobEffectInstance(instance));
+                        int duration = (int) Math.round(instance.getDuration() * ratio);
+                        if (duration > 0) {
+                            player.addEffect(new MobEffectInstance(
+                                    instance.getEffect(), duration, instance.getAmplifier()));
+                        }
                     }
                 }
             }
@@ -149,7 +164,7 @@ public class FoodBiteBlock extends FoodBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(this.getBites(), FACING);
+        builder.add(this.getBites(), FACING, QUALITY);
     }
 
     @Override
@@ -176,7 +191,12 @@ public class FoodBiteBlock extends FoodBlock {
     @Override
     @Nullable
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        int quality = QualityUtils.hasQuality(context.getItemInHand())
+                ? QualityUtils.getQuality(context.getItemInHand()).getId()
+                : DEFAULT_QUALITY;
+        return this.defaultBlockState()
+                .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(QUALITY, quality);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.SteamerRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyIngredientCompat;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyRecipeResultCompat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,8 +15,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 public final class SteamerRecipeSerializer {
     public static final MapCodec<SteamerRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
-                    Ingredient.CODEC.fieldOf("ingredient").forGetter(SteamerRecipe::getIngredient),
-                    ItemStackTemplate.CODEC.fieldOf("result").forGetter(SteamerRecipe::getResultTemplate),
+                    LegacyIngredientCompat.CODEC.fieldOf("ingredient").forGetter(SteamerRecipe::getIngredient),
+                    LegacyRecipeResultCompat.ITEM_STACK_TEMPLATE_CODEC.fieldOf("result").forGetter(SteamerRecipe::getResultTemplate),
                     Codec.INT.optionalFieldOf("cook_tick", 60 * 20).forGetter(SteamerRecipe::getCookTick)
             ).apply(instance, SteamerRecipe::new)
     );

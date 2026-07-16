@@ -1,6 +1,8 @@
 {
   "type": "kaleidoscope_cookery:pot",
-  "ingredients": [],
+  "ingredients": [
+    "#c:eggs"
+  ],
   "result": {
     "id": "kaleidoscope_cookery:fried_egg"
   }

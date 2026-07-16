@@ -4,6 +4,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.advancements.criterion.ModEventTr
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
@@ -44,6 +46,15 @@ public class ThrowableBaoziEntity extends ThrowableItemProjectile {
     @Override
     protected Item getDefaultItem() {
         return ModItems.BAOZI;
+    }
+
+    @Override
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        ItemStack legacyItem = LegacyItemStackCompat.readItemStack(input, "Item");
+        if (!legacyItem.isEmpty()) {
+            this.setItem(legacyItem);
+        }
     }
 
     @Override

@@ -26,7 +26,7 @@ public final class NetworkHandler {
     private static final double FLATULENCE_PARTICLE_Y_OFFSET = 0.25;
     private static final double FLATULENCE_PARTICLE_SPREAD = 0.25;
     private static final double FLATULENCE_PARTICLE_SPEED = 0.1;
-    private static final long FLATULENCE_COOLDOWN_TICKS = 10L;
+    private static final long FLATULENCE_COOLDOWN_TICKS = 1L;
     private static final float FLATULENCE_SOUND_VOLUME = 1.0F;
     private static final float FLATULENCE_SOUND_BASE_PITCH = 0.8F;
     private static final float FLATULENCE_SOUND_PITCH_VARIATION = 0.4F;
@@ -39,7 +39,7 @@ public final class NetworkHandler {
     private static final float BAOZI_THROW_SOUND_PITCH_OFFSET = 0.8F;
     private static final float BAOZI_THROW_INACCURACY = 1.0F;
     private static final float BAOZI_THROW_VELOCITY = 1.5F;
-    private static final int BAOZI_THROW_COOLDOWN_TICKS = 5;
+    private static final int BAOZI_THROW_COOLDOWN_TICKS = 1;
 
     private NetworkHandler() {
     }

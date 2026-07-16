@@ -37,19 +37,23 @@ LEGACY_CLIENT_LOCATIONS = (
 )
 
 SERVER_EVENT_REGISTRATIONS = {
-    "FarmerArmorEffectEvent": SRC / "event/server/effect/FarmerArmorEffectEvent.java",
     "HinderEffectEvent": SRC / "event/server/effect/HinderEffectEvent.java",
     "InstantSmeltingEffectEvent": SRC / "event/server/effect/InstantSmeltingEffectEvent.java",
     "SatiatedShieldEvent": SRC / "event/server/effect/SatiatedShieldEvent.java",
     "FlatulenceServerEvent": SRC / "event/server/effect/FlatulenceServerEvent.java",
-    "PreservationEvent": SRC / "event/server/effect/PreservationEvent.java",
     "ServerEntityLoadEvent": SRC / "event/server/ServerEntityLoadEvent.java",
     "SickleHarvestNetherWartEvent": SRC / "event/server/SickleHarvestNetherWartEvent.java",
     "VitalityEffectEvent": SRC / "event/server/effect/VitalityEffectEvent.java",
 }
 
+LIVING_ENTITY_MIXIN_EVENTS = {
+    "FarmerArmorEffectEvent": SRC / "event/server/effect/FarmerArmorEffectEvent.java",
+    "PreservationEvent": SRC / "event/server/effect/PreservationEvent.java",
+}
+
 INTERACTION_EVENT_REGISTRATIONS = {
     "CaterpillarChickenFeedEvent": SRC / "event/interaction/CaterpillarChickenFeedEvent.java",
+    "FruitBasketTakeOutEvent": SRC / "event/interaction/FruitBasketTakeOutEvent.java",
     "WetFieldHoeUseEvent": SRC / "event/interaction/WetFieldHoeUseEvent.java",
 }
 
@@ -82,14 +86,17 @@ INSTANT_SMELTING_EVENT = SRC / "event/server/effect/InstantSmeltingEffectEvent.j
 LEGACY_INSTANT_SMELTING_MIXIN = SRC / "mixin/BlockMixin.java"
 HINDER_EFFECT_EVENT = SRC / "event/server/effect/HinderEffectEvent.java"
 VITALITY_EFFECT_EVENT = SRC / "event/server/effect/VitalityEffectEvent.java"
+SERVER_ENTITY_LOAD_EVENT = SRC / "event/server/ServerEntityLoadEvent.java"
+EXTRA_LOOT_TABLE_DROP = SRC / "event/server/loot/ExtraLootTableDrop.java"
 PROJECTILE_DODGE_HANDLER = SRC / "event/server/effect/ProjectileDodgeHandler.java"
 PROJECTILE_MIXIN = SRC / "mixin/ProjectileMixin.java"
 VIGOR_EFFECT = SRC / "effect/VigorEffect.java"
-SERVER_PLAYER_MIXIN = SRC / "mixin/ServerPlayerMixin.java"
+FOOD_DATA_ACCESSOR = SRC / "mixin/FoodDataAccessor.java"
 WARMTH_EFFECT = SRC / "effect/WarmthEffect.java"
 LEGACY_NEW_EFFECT_EVENTS = SRC / "event/server/effect/NewEffectEvents.java"
 WET_FIELD_HOE_EVENT = SRC / "event/interaction/WetFieldHoeUseEvent.java"
 CATERPILLAR_CHICKEN_FEED_EVENT = SRC / "event/interaction/CaterpillarChickenFeedEvent.java"
+FRUIT_BASKET_TAKE_OUT_EVENT = SRC / "event/interaction/FruitBasketTakeOutEvent.java"
 CHOPPING_BOARD_BLOCK_ENTITY = SRC / "blockentity/kitchen/ChoppingBoardBlockEntity.java"
 CHOPPING_BOARD_RENDERER = CLIENT_SRC / "client/render/block/ChoppingBoardBlockEntityRender.java"
 POT_BLOCK_ENTITY = SRC / "blockentity/kitchen/PotBlockEntity.java"
@@ -100,6 +107,7 @@ STOCKPOT_RENDERER = CLIENT_SRC / "client/render/block/StockpotBlockEntityRender.
 MOB_SOUP_BASE_RENDERER = CLIENT_SRC / "client/render/soupbase/MobSoupBaseRender.java"
 TEAPOT_BLOCK = SRC / "block/kitchen/TeapotBlock.java"
 TEAPOT_BLOCK_ENTITY = SRC / "blockentity/kitchen/TeapotBlockEntity.java"
+TEAPOT_ITEM = SRC / "item/TeapotItem.java"
 TEAPOT_RENDERER = CLIENT_SRC / "client/render/block/TeapotBlockEntityRender.java"
 TEACUP_BLOCK = SRC / "block/drink/TeacupBlock.java"
 EMPTY_CUP_BLOCK = SRC / "block/drink/EmptyCupBlock.java"
@@ -129,6 +137,11 @@ STRUNG_MUSHROOMS_BLOCK = SRC / "block/misc/StrungMushroomsBlock.java"
 CHILI_RISTRA_BLOCK = SRC / "block/misc/ChiliRistraBlock.java"
 STRAW_BLOCKS = SRC / "block/misc/StrawBlocks.java"
 OIL_POT_BLOCK = SRC / "block/kitchen/OilPotBlock.java"
+OIL_POT_STORAGE = SRC / "inventory/transfer/OilPotStorage.java"
+MILLSTONE_BLOCK_ENTITY = SRC / "blockentity/kitchen/MillstoneBlockEntity.java"
+MILLSTONE_ENTITY_STORAGE = SRC / "api/storage/MillstoneEntityItemStorage.java"
+CHESTED_HORSE_STORAGE = SRC / "inventory/transfer/ChestedHorseItemStorage.java"
+COMMON_REGISTRY = SRC / "init/registry/CommonRegistry.java"
 SICKLE_NETHER_WART_EVENT = SRC / "event/server/SickleHarvestNetherWartEvent.java"
 SICKLE_HARVEST_CALLBACK = SRC / "api/event/SickleHarvestCallback.java"
 SICKLE_ITEM = SRC / "item/SickleItem.java"
@@ -291,15 +304,35 @@ def main() -> int:
     if "player.getMainHandItem()" in teapot_use_item or "mainHandItem.isEmpty()" in teapot_use_item:
         errors.append("TeapotBlock retains legacy hand lookup or empty-stack handling in useItemOn.")
     for required_reference in (
-        "mainHandItem.is(Items.WATER_BUCKET) || mainHandItem.is(Items.LAVA_BUCKET)",
-        "mainHandItem.is(Items.BUCKET)",
+        "ContainerItemContext.forPlayerInteraction(player, hand)",
+        "FluidStorage.ITEM.find(mainHandItem, containerContext)",
+        "teapot.addTeaFluid(level, player, fluidStorage)",
+        "teapot.removeTeaFluid(level, player, fluidStorage)",
     ):
         if required_reference not in teapot_use_item:
-            errors.append(f"TeapotBlock item-specific fluid dispatch is missing {required_reference}.")
-    filled_bucket_check = teapot_use_item.find("mainHandItem.is(Items.WATER_BUCKET)")
-    add_fluid_call = teapot_use_item.find("teapot.addTeaFluid(")
-    if add_fluid_call < filled_bucket_check:
-        errors.append("TeapotBlock still probes addTeaFluid before identifying a filled bucket.")
+            errors.append(f"TeapotBlock generic fluid-storage dispatch is missing {required_reference}.")
+    for hardcoded_bucket in ("Items.WATER_BUCKET", "Items.LAVA_BUCKET", "Items.BUCKET"):
+        if hardcoded_bucket in teapot_use_item:
+            errors.append(f"TeapotBlock still hardcodes a vanilla fluid container: {hardcoded_bucket}")
+    for required_reference in (
+        "fluidStorage.extract(fluidVariant, FluidConstants.BUCKET, transaction) != FluidConstants.BUCKET",
+        "fluidStorage.insert(fluidVariant, FluidConstants.BUCKET, transaction) != FluidConstants.BUCKET",
+        "if (!level.isClientSide()) {\n                transaction.commit();",
+        "FluidVariantAttributes.getEmptySound(fluidVariant)",
+        "FluidVariantAttributes.getFillSound(fluidVariant)",
+    ):
+        if required_reference not in teapot_block_entity:
+            errors.append(f"TeapotBlockEntity generic one-bucket transfer is missing {required_reference}.")
+    teapot_item = TEAPOT_ITEM.read_text(encoding="utf-8")
+    for required_reference in (
+        "ContainerItemContext.withConstant(pickup)",
+        "FluidStorage.ITEM.find(pickup, containerContext)",
+        "view.getResource().getFluid()",
+    ):
+        if required_reference not in teapot_item:
+            errors.append(f"Held teapot generic pickup inspection is missing {required_reference}.")
+    if "pickup.getItem() instanceof BucketItem" in teapot_item:
+        errors.append("Held teapot still restricts picked-up fluid detection to BucketItem.")
     teapot_renderer = TEAPOT_RENDERER.read_text(encoding="utf-8")
     if "new WeakHashMap<>()" not in teapot_renderer or "boilingStates.computeIfAbsent(teapot" not in teapot_renderer:
         errors.append("Teapot renderer does not own weakly keyed boiling animation state.")
@@ -381,6 +414,16 @@ def main() -> int:
         if f"{event_class}.register();" not in mod_events:
             errors.append(f"ModEvents does not register {event_class}.")
 
+    living_entity_mixin_text = (SRC / "mixin/LivingEntityMixin.java").read_text(encoding="utf-8")
+    for event_class, path in LIVING_ENTITY_MIXIN_EVENTS.items():
+        if not path.exists():
+            errors.append(f"Living-entity event handler source is missing: {path.relative_to(ROOT)}")
+            continue
+        if f"{event_class}." not in living_entity_mixin_text:
+            errors.append(f"LivingEntityMixin does not delegate to {event_class}.")
+        if f"{event_class}.register();" in mod_events:
+            errors.append(f"ModEvents still globally registers Mixin-bound handler {event_class}.")
+
     for path in LEGACY_SERVER_EVENT_PATHS:
         if path.exists():
             errors.append(f"Legacy duplicate server event still exists: {path.relative_to(ROOT)}")
@@ -413,11 +456,12 @@ def main() -> int:
     satiated_shield_text = (SRC / "event/server/effect/SatiatedShieldEvent.java").read_text(encoding="utf-8")
     for required_reference in (
         "ServerLivingEntityEvents.ALLOW_DAMAGE.register(SatiatedShieldEvent::onAllowDamage)",
-        "REMAINING_DAMAGE_BYPASS.contains(player.getUUID())",
+        "FINAL_DAMAGE_BYPASS.contains(player.getUUID())",
         "source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)",
-        "player.causeFoodExhaustion(exhaustionAmount)",
-        "float excessExhaustion = exhaustionAmount - availableExhaustion",
-        "applyBypassingShield(player, source, excessExhaustion / exhaustionPerDamage)",
+        "float finalDamage = calculateFinalDamage(player, source, originalDamage, config)",
+        "finalDamage += Math.max(0, reducedDamage - absorbedDamage)",
+        "player.causeFoodExhaustion(Math.max(0, exhaustionAmount))",
+        "applyBypassingShield(player, source, finalDamage)",
         "return false;",
     ):
         if required_reference not in satiated_shield_text:
@@ -442,6 +486,22 @@ def main() -> int:
     if "BlockMixin" in mixin_data.get("mixins", []):
         errors.append("Legacy instant smelting BlockMixin is still registered.")
 
+    fruit_basket_take_out_text = FRUIT_BASKET_TAKE_OUT_EVENT.read_text(encoding="utf-8")
+    for required_reference in (
+        "UseBlockCallback.EVENT.register(FruitBasketTakeOutEvent::onUseBlock)",
+        "hand != InteractionHand.MAIN_HAND || !player.isSecondaryUseActive()",
+        "stack.is(Items.DEBUG_STICK)",
+        "stack.is(Items.FIREWORK_ROCKET)",
+        '"touhou_little_maid", "smart_slab_has_maid"',
+        "stack.getItem() instanceof BlockItem && hitResult.getDirection() != Direction.UP",
+        "fruitBasket.takeOut(player)",
+    ):
+        if required_reference not in fruit_basket_take_out_text:
+            errors.append(f"Fruit basket held-item takeout is missing {required_reference}.")
+    fruit_basket_block_text = FRUIT_BASKET_BLOCK.read_text(encoding="utf-8")
+    if "if (player.isSecondaryUseActive()) {\n                return takeOut(" in fruit_basket_block_text:
+        errors.append("FruitBasketBlock still handles unreachable held-item secondary use directly.")
+
     if HINDER_EFFECT_EVENT.exists():
         hinder_text = HINDER_EFFECT_EVENT.read_text(encoding="utf-8")
         for required_reference in (
@@ -461,6 +521,56 @@ def main() -> int:
         ):
             if required_reference not in vitality_text:
                 errors.append(f"Vitality effect event is missing {required_reference}.")
+
+    server_entity_load_text = SERVER_ENTITY_LOAD_EVENT.read_text(encoding="utf-8")
+    for required_reference in (
+        "ServerEntityEvents.ENTITY_LOAD",
+        "CAT_LIE_GOAL_PRIORITY = 5",
+        "CAT_LIE_SPEED_MODIFIER = 1.1",
+        "CAT_LIE_SEARCH_RANGE = 8",
+        "CREEPER_MUSTARD_AVOID_GOAL_PRIORITY = 3",
+        "CREEPER_MUSTARD_AVOID_DISTANCE = 6.0F",
+        "CREEPER_MUSTARD_WALK_SPEED_MODIFIER = 1.0",
+        "CREEPER_MUSTARD_SPRINT_SPEED_MODIFIER = 1.2",
+        'LEGACY_CAT_LIE_GOAL_TAG = "kaleidoscope_cookery.cat_lie_goal"',
+        '"kaleidoscope_cookery.creeper_mustard_avoid_goal"',
+        "cat.removeTag(LEGACY_CAT_LIE_GOAL_TAG)",
+        "creeper.removeTag(LEGACY_CREEPER_MUSTARD_AVOID_GOAL_TAG)",
+        "alreadyInstalled",
+    ):
+        if required_reference not in server_entity_load_text:
+            errors.append(f"Server entity-load AI migration is missing {required_reference}.")
+
+    extra_loot_text = EXTRA_LOOT_TABLE_DROP.read_text(encoding="utf-8")
+    for required_reference in (
+        '"entities/hoglin"), 2',
+        '"entities/pig"), 1',
+        '"entities/piglin"), 2',
+        '"entities/piglin_brute"), 2',
+        '"entities/zoglin"), 2',
+        '"entities/zombified_piglin"), 1',
+        "DONKEY_MEAT_ROLLS = 2",
+        "COOKERY_SEED_DROP_CHANCE = 0.125F",
+        "VANILLA_SEED_DROP_CHANCE = 0.02F",
+        "getSeed(Items.BEETROOT_SEEDS, VANILLA_SEED_DROP_CHANCE",
+        "getSeed(Items.PUMPKIN_SEEDS, VANILLA_SEED_DROP_CHANCE",
+        "getSeed(Items.MELON_SEEDS, VANILLA_SEED_DROP_CHANCE",
+        ".add(beetroot).add(pumpkin).add(melon)",
+        ".add(oil).when(toolMatches)",
+        ".add(meat).when(toolMatches)",
+    ):
+        if required_reference not in extra_loot_text:
+            errors.append(f"Extra loot migration is missing {required_reference}.")
+    oil_pool = extra_loot_text.split("private static void addOilDrop", 1)[-1].split(
+        "private static void addDonkeyMeatDrop", 1
+    )[0]
+    if "EmptyLootItem" in oil_pool or ".add(empty)" in oil_pool:
+        errors.append("Oil loot pools still halve Forge's guaranteed per-roll drop with an empty entry.")
+    seed_pool = extra_loot_text.split("private static void addSeedDrop", 1)[-1].split(
+        "private static LootPoolSingletonContainer.Builder<?> getSeed", 1
+    )[0]
+    if "EmptyLootItem" in seed_pool or ".add(empty)" in seed_pool or "SEED_EMPTY_WEIGHT" in extra_loot_text:
+        errors.append("Straw-hat seed loot still replaces the three vanilla candidates with an empty entry.")
 
     if LEGACY_NEW_EFFECT_EVENTS.exists():
         errors.append(f"Legacy combined effect handler still exists: {LEGACY_NEW_EFFECT_EVENTS.relative_to(ROOT)}")
@@ -497,18 +607,23 @@ def main() -> int:
     vigor_effect_text = VIGOR_EFFECT.read_text(encoding="utf-8")
     if "addExhaustion(" in vigor_effect_text:
         errors.append("VigorEffect still creates negative exhaustion during effect ticks.")
-    server_player_mixin_text = SERVER_PLAYER_MIXIN.read_text(encoding="utf-8")
     for required_reference in (
-        'method = "checkMovementStatistics"',
-        "ServerPlayer;causeFoodExhaustion(F)V",
-        "ordinal = 3",
-        "player.hasEffect(ModEffects.VIGOR)",
-        "player.causeFoodExhaustion(exhaustion)",
+        "shouldApplyEffectTickThisTick",
+        "applyEffectTick(ServerLevel level, LivingEntity livingEntity, int amplifier)",
+        "player.isSprinting()",
+        "FoodDataAccessor",
+        "kaleidoscopeCookery$setExhaustionLevel(0.0F)",
     ):
-        if required_reference not in server_player_mixin_text:
-            errors.append(f"Vigor sprint exhaustion handling is missing {required_reference}.")
-    if "ServerPlayerMixin" not in mixin_data.get("mixins", []):
-        errors.append("ServerPlayerMixin is not registered as a common mixin.")
+        if required_reference not in vigor_effect_text:
+            errors.append(f"Vigor effect-tick exhaustion handling is missing {required_reference}.")
+    food_data_accessor_text = FOOD_DATA_ACCESSOR.read_text(encoding="utf-8")
+    for required_reference in ('@Mixin(FoodData.class)', '@Accessor("exhaustionLevel")'):
+        if required_reference not in food_data_accessor_text:
+            errors.append(f"Vigor FoodData accessor is missing {required_reference}.")
+    if "FoodDataAccessor" not in mixin_data.get("mixins", []):
+        errors.append("FoodDataAccessor is not registered as a common mixin.")
+    if "ServerPlayerMixin" in mixin_data.get("mixins", []):
+        errors.append("Vigor still relies on the weaker ServerPlayer sprint-call redirect.")
 
     warmth_effect_text = WARMTH_EFFECT.read_text(encoding="utf-8")
     if "BlockPos.betweenClosed(" not in warmth_effect_text:
@@ -652,6 +767,8 @@ def main() -> int:
         errors.append("PlateBlock does not emit a block-destroy event when the empty plate is removed.")
     if "GameEvent.Context.of(player, state)" not in plate_block_text:
         errors.append("PlateBlock game events do not include the interacting player and prior block state.")
+    if "new ArrayList<>(super.getDrops(state, params))" not in plate_block_text:
+        errors.append("PlateBlock bypasses its baseline bowl loot table when adding remaining servings.")
 
     stackable_food_text = STACKABLE_FOOD_BLOCK.read_text(encoding="utf-8")
     for required_reference in (
@@ -677,7 +794,7 @@ def main() -> int:
     bite_state_update = "if (!level.setBlock(pos, state.setValue(bitesProperty, bites + 1), Block.UPDATE_ALL))"
     if bite_state_update not in food_bite_text:
         errors.append("FoodBiteBlock does not confirm bite-state updates before feeding the player.")
-    if food_bite_text.find(bite_state_update) > food_bite_text.find("player.getFoodData().eat(foodProperties)"):
+    if food_bite_text.find(bite_state_update) > food_bite_text.find("player.getFoodData().eat("):
         errors.append("FoodBiteBlock feeds the player before confirming its bite-state update.")
 
     two_block_food_text = FOOD_BITE_ONE_BY_TWO_BLOCK.read_text(encoding="utf-8")
@@ -882,12 +999,19 @@ def main() -> int:
         errors.append("OilPotBlock still handles empty-hand extraction through the item interaction path.")
     if "stack.shrink(addOilCount)" in oil_pot_text:
         errors.append("OilPotBlock still manually shrinks oil instead of using ItemStack.consume().")
+    oil_pot_use_item = oil_pot_text.split("public @NotNull InteractionResult useItemOn(", 1)[-1].split(
+        "public @NotNull InteractionResult useWithoutItem(", 1
+    )[0]
+    if "getItemInHand(" in oil_pot_use_item or "getMainHandItem()" in oil_pot_use_item:
+        errors.append("OilPotBlock rereads a player hand instead of using the supplied interaction stack.")
     if oil_pot_text.count("if (level.isClientSide())") < 2:
         errors.append("OilPotBlock does not keep both oil transfer predictions client-side.")
     if oil_pot_text.count("if (!oilPot.setOilCount(") != 2:
         errors.append("OilPotBlock does not confirm both oil count updates before moving items.")
     if "level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME" in oil_pot_text:
         errors.append("OilPotBlock still uses legacy sided results that hide failed oil transfers.")
+    if oil_pot_text.count("return InteractionResult.CONSUME;") != 2:
+        errors.append("OilPotBlock committed transfers do not use the server-side consume result.")
     insert_commit = oil_pot_text.find("if (!oilPot.setOilCount(currentOilCount + addOilCount))")
     extract_commit = oil_pot_text.find("if (!oilPot.setOilCount(currentOilCount - takeCount))")
     if insert_commit > oil_pot_text.find("stack.consume(addOilCount, player)"):
@@ -898,6 +1022,53 @@ def main() -> int:
         errors.append("OilPotBlock gives extracted oil before confirming storage removal.")
     if oil_pot_text.count("GameEvent.BLOCK_CHANGE") < 2:
         errors.append("OilPotBlock does not emit block-change events for both oil transfer directions.")
+
+    oil_pot_storage = OIL_POT_STORAGE.read_text(encoding="utf-8")
+    common_registry = COMMON_REGISTRY.read_text(encoding="utf-8")
+    for required_reference in (
+        "implements SingleSlotStorage<ItemVariant>",
+        "resource.getItem() != ModItems.OIL",
+        "OilPotBlockEntity.MAX_OIL_COUNT - currentCount",
+        "this.oilPot.setOilCount(this.pendingCount)",
+        "protected void onFinalCommit()",
+    ):
+        if required_reference not in oil_pot_storage:
+            errors.append(f"Oil pot Fabric storage is missing {required_reference}.")
+    if "ItemStorage.SIDED.registerForBlockEntity((oilPot, direction) -> oilPot.getItemStorage(), ModBlocks.OIL_POT_BE)" not in common_registry:
+        errors.append("Oil pot Fabric item storage is not registered for every side.")
+
+    millstone_block_entity = MILLSTONE_BLOCK_ENTITY.read_text(encoding="utf-8")
+    millstone_entity_storage = MILLSTONE_ENTITY_STORAGE.read_text(encoding="utf-8")
+    chested_horse_storage = CHESTED_HORSE_STORAGE.read_text(encoding="utf-8")
+    for required_reference in (
+        "EntityApiLookup<Storage<ItemVariant>, Void>",
+        '"millstone_entity_item_storage"',
+        "return SOURCE.find(entity, null);",
+    ):
+        if required_reference not in millstone_entity_storage:
+            errors.append(f"Millstone entity storage lookup is missing {required_reference}.")
+    if "MillstoneEntityItemStorage.SOURCE.registerFallback" not in common_registry \
+            or "new ChestedHorseItemStorage(horse)" not in common_registry:
+        errors.append("Chested-horse storage is not registered as the millstone entity lookup fallback.")
+    for required_reference in (
+        "extends SnapshotParticipant<List<ItemStack>>",
+        "this.updateSnapshots(transaction);",
+        "AbstractHorse.INVENTORY_SLOT_OFFSET + inventoryIndex",
+        "this.slot(slot).set(snapshot.get(slot).copy());",
+    ):
+        if required_reference not in chested_horse_storage:
+            errors.append(f"Chested-horse transactional storage is missing {required_reference}.")
+    for required_reference in (
+        "MillstoneEntityItemStorage.find(this.bindEntity)",
+        "try (Transaction transaction = Transaction.openOuter())",
+        "view.extract(resource, maxAmount, transaction)",
+        "serverLevel.getEntitiesOfClass(ItemEntity.class",
+        "stack.copyWithCount(countCanInsert)",
+    ):
+        if required_reference not in millstone_block_entity:
+            errors.append(f"Millstone automatic input path is missing {required_reference}.")
+    if "bindEntity instanceof AbstractChestedHorse" in millstone_block_entity:
+        errors.append("Millstone still hard-codes bound-entity extraction to chested horses.")
 
     pot_block_text = (SRC / "block/kitchen/PotBlock.java").read_text(encoding="utf-8")
     for required_reference in (

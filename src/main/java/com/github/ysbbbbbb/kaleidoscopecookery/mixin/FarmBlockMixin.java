@@ -22,7 +22,7 @@ public class FarmBlockMixin {
             at = @At("HEAD"), cancellable = true
     )
     private static void onTurnToDirt(Entity entity, BlockState state, Level level, BlockPos pos, CallbackInfo ci) {
-        if (level instanceof ServerLevel serverLevel && hasNearbyScarecrow(serverLevel, pos)) {
+        if (entity != null && level instanceof ServerLevel serverLevel && hasNearbyScarecrow(serverLevel, pos)) {
             ci.cancel();
         }
     }

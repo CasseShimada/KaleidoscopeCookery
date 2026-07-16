@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable
 
-from resource_roots import iter_resource_files
+from resource_roots import iter_resource_files, resolve_resource
 
 
 MOD_ID = "kaleidoscope_cookery"
@@ -49,29 +49,54 @@ ALLOWED_ITEM_DEFINITION_VARIANTS = {
 }
 
 CUSTOM_DROP_BLOCKS = {
-    "apple_platter",
     "bamboo_tube_rice",
-    "baozi_plate",
     "barley_tea",
-    "berry_platter",
     "biluochun",
-    "chorus_fruit_platter",
     "empty_cup",
     "flower_tea",
     "millstone",
     "oolong",
-    "qingtuan_plate",
     "recipe_block",
     "sakura_fubuki",
-    "shengjian_mantou_plate",
     "steamer",
-    "sticky_candy_plate",
-    "sticky_rice_cake_plate",
     "teapot",
     "tieguanyin",
+}
+
+BASELINE_PLATE_LOOT_BLOCKS = {
+    "apple_platter",
+    "baozi_plate",
+    "berry_platter",
+    "chorus_fruit_platter",
+    "qingtuan_plate",
+    "shengjian_mantou_plate",
+    "sticky_candy_plate",
+    "sticky_rice_cake_plate",
     "tomato_platter",
     "watermelon_platter",
     "zongzi_plate",
+}
+
+REQUIRED_LANGUAGES = {
+    "en_us",
+    "es_es",
+    "ja_jp",
+    "ko_kr",
+    "lol_us",
+    "lzh",
+    "pt_br",
+    "ru_ru",
+    "zh_cn",
+    "zh_tw",
+}
+
+REQUIRED_PONDER_SCENES = {
+    "enamel_basin/enamel_basin_introduction.nbt",
+    "millstone/millstone_introduction.nbt",
+    "pot/pot_introduction.nbt",
+    "shawarma_spit/shawarma_spit_introduction.nbt",
+    "steamer/steamer_introduction.nbt",
+    "stockpot/stockpot_introduction.nbt",
 }
 
 
@@ -220,9 +245,36 @@ def validate_registry_id_constants() -> list[str]:
     return errors
 
 
+def validate_plate_loot_tables() -> list[str]:
+    errors: list[str] = []
+    for block_id in sorted(BASELINE_PLATE_LOOT_BLOCKS):
+        path = resolve_resource("data", MOD_ID, "loot_table", "blocks", f"{block_id}.json")
+        if not path.exists():
+            errors.append(f"Forge plate loot table missing: {block_id}")
+            continue
+        data = parse_json(path)
+        pools = data.get("pools")
+        if not isinstance(pools, list) or len(pools) != 1:
+            errors.append(f"{path.relative_to(ROOT)} must contain exactly one bowl loot pool.")
+            continue
+        pool = pools[0]
+        entries = pool.get("entries") if isinstance(pool, dict) else None
+        conditions = pool.get("conditions") if isinstance(pool, dict) else None
+        entry_names = [entry.get("name") for entry in entries if isinstance(entry, dict)] \
+            if isinstance(entries, list) else []
+        condition_ids = [condition.get("condition") for condition in conditions if isinstance(condition, dict)] \
+            if isinstance(conditions, list) else []
+        if entry_names != ["minecraft:bowl"]:
+            errors.append(f"{path.relative_to(ROOT)} does not restore the single Forge bowl drop.")
+        if condition_ids != ["minecraft:survives_explosion"]:
+            errors.append(f"{path.relative_to(ROOT)} does not restore survives_explosion.")
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     errors.extend(validate_registry_id_constants())
+    errors.extend(validate_plate_loot_tables())
 
     json_errors: list[str] = []
     for path in iter_resource_files(pattern="*.json"):
@@ -234,6 +286,7 @@ def main() -> int:
 
     item_ids = collect_registered_items()
     block_ids = collect_registered_blocks()
+    effect_ids = collect_string_calls(JAVA_ROOT / "init/ModEffects.java", "register")
 
     item_defs = {path.stem for path in (ASSETS / "items").glob("*.json")}
     blockstates = {path.stem for path in (ASSETS / "blockstates").glob("*.json")}
@@ -241,6 +294,13 @@ def main() -> int:
         path.stem
         for path in iter_resource_files("data", MOD_ID, "loot_table", "blocks", pattern="*.json")
     }
+    effect_textures = {path.stem for path in (ASSETS / "textures/mob_effect").glob("*.png")}
+    languages = {path.stem for path in (ASSETS / "lang").glob("*.json")}
+    ponder_root = ASSETS / "ponder"
+    ponder_scenes = {
+        path.relative_to(ponder_root).as_posix()
+        for path in ponder_root.rglob("*.nbt")
+    } if ponder_root.exists() else set()
 
     report_missing(
         "registered items without item definitions",
@@ -282,6 +342,18 @@ def main() -> int:
         (f"{MOD_ID}:{block_id}" for block_id in CUSTOM_DROP_BLOCKS & block_loot_tables),
         errors,
     )
+    report_missing(
+        "registered effects without mob-effect textures",
+        (f"{MOD_ID}:{effect_id}" for effect_id in effect_ids - effect_textures),
+        errors,
+    )
+    report_missing(
+        "mob-effect textures without registered effects",
+        (f"{MOD_ID}:{effect_id}" for effect_id in effect_textures - effect_ids),
+        errors,
+    )
+    report_missing("baseline languages", REQUIRED_LANGUAGES - languages, errors)
+    report_missing("baseline Ponder scenes in the main pack", REQUIRED_PONDER_SCENES - ponder_scenes, errors)
 
     lang_en = parse_json(ASSETS / "lang/en_us.json")
     lang_zh = parse_json(ASSETS / "lang/zh_cn.json")
@@ -346,6 +418,9 @@ def main() -> int:
     print(f"  blockstates: {len(blockstates)}")
     print(f"  block loot tables: {len(block_loot_tables)}")
     print(f"  custom drop blocks: {len(CUSTOM_DROP_BLOCKS)}")
+    print(f"  mob effects/textures: {len(effect_ids)}/{len(effect_textures)}")
+    print(f"  baseline languages: {len(REQUIRED_LANGUAGES)}")
+    print(f"  main-pack Ponder scenes: {len(ponder_scenes)}")
     return 0
 
 

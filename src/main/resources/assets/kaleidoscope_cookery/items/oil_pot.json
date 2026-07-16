@@ -2,10 +2,19 @@
   "model": {
     "type": "minecraft:condition",
     "property": "minecraft:has_component",
-    "component": "kaleidoscope_cookery:oil_pot_count",
+    "component": "kaleidoscope_cookery:oil_pot_oil_count",
     "on_false": {
-      "type": "minecraft:model",
-      "model": "kaleidoscope_cookery:item/pot_no_oil"
+      "type": "minecraft:condition",
+      "property": "minecraft:has_component",
+      "component": "kaleidoscope_cookery:oil_pot_count",
+      "on_false": {
+        "type": "minecraft:model",
+        "model": "kaleidoscope_cookery:item/pot_no_oil"
+      },
+      "on_true": {
+        "type": "minecraft:model",
+        "model": "kaleidoscope_cookery:item/pot_has_oil"
+      }
     },
     "on_true": {
       "type": "minecraft:model",

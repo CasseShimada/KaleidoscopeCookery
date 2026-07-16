@@ -1,0 +1,14 @@
+{
+  "type": "kaleidoscope_cookery:stockpot",
+  "carrier": "minecraft:bowl",
+  "ingredients": [
+    "#c:raw_fishes",
+    "#c:raw_fishes",
+    "#c:crops/lettuce",
+    "#c:crops/lettuce",
+    "#c:crops/lettuce"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:seafood_miso_soup"
+  }
+}

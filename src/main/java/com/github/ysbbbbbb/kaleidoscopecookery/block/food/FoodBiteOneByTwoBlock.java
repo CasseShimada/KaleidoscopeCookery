@@ -47,6 +47,7 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(getBites(), 0)
                 .setValue(FACING, Direction.SOUTH)
+                .setValue(QUALITY, DEFAULT_QUALITY)
                 .setValue(POSITION, RIGHT));
     }
 
@@ -114,7 +115,7 @@ public class FoodBiteOneByTwoBlock extends FoodBiteBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(getBites(), FACING, POSITION);
+        builder.add(getBites(), FACING, QUALITY, POSITION);
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModParticles;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -99,7 +100,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         // 先尝试把物品里的数据 0-3 取出，放到 4-7
         NonNullList<ItemStack> itemsInStack = NonNullList.withSize(4, ItemStack.EMPTY);
         ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), data);
-        ContainerHelper.loadAllItems(input, itemsInStack);
+        LegacyItemStackCompat.loadAllItems(input, itemsInStack);
         for (int i = 0; i < 4; i++) {
             merge.set(i + 4, itemsInStack.get(i));
         }
@@ -140,7 +141,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         int[] cookingTime = new int[8];
         if (steamerTag != null) {
             ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), steamerTag);
-            ContainerHelper.loadAllItems(input, items);
+            LegacyItemStackCompat.loadAllItems(input, items);
             steamerTag.getIntArray(COOKING_PROGRESS_TAG).ifPresent(value -> {
                 int length = Math.min(cookingProgress.length, value.length);
                 System.arraycopy(value, 0, cookingProgress, 0, length);
@@ -469,7 +470,7 @@ public class SteamerBlockEntity extends BaseBlockEntity implements ISteamer {
         }
         Arrays.fill(this.cookingProgress, 0);
         Arrays.fill(this.cookingTime, 0);
-        ContainerHelper.loadAllItems(input, this.items);
+        LegacyItemStackCompat.loadAllItems(input, this.items);
         input.getIntArray(COOKING_PROGRESS_TAG).ifPresent(times -> {
             int length = Math.min(this.cookingTime.length, times.length);
             System.arraycopy(times, 0, this.cookingProgress, 0, length);

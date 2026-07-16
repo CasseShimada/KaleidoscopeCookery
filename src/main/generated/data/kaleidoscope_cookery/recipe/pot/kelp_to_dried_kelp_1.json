@@ -1,0 +1,9 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "ingredients": [
+    "minecraft:kelp"
+  ],
+  "result": {
+    "id": "minecraft:dried_kelp"
+  }
+}

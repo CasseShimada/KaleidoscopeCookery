@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.world.item.consume_effects.ConsumeEffect;
 
@@ -15,19 +16,38 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public final class QualityUtils {
+    public static final String LEGACY_QUALITY = "kaleidoscope_cookery:quality";
+
     private QualityUtils() {
     }
 
     public static void setQuality(ItemStack food, Quality quality) {
         food.set(ModDataComponents.QUALITY, quality);
+        removeLegacyQuality(food);
     }
 
     public static Quality getQuality(ItemStack food) {
-        return food.getOrDefault(ModDataComponents.QUALITY, Quality.STANDARD);
+        Quality current = food.get(ModDataComponents.QUALITY);
+        if (current != null) {
+            return current;
+        }
+        CustomData customData = food.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return Quality.STANDARD;
+        }
+        int id = customData.copyTag().getIntOr(LEGACY_QUALITY, Quality.STANDARD.getId());
+        Quality migrated = Quality.BY_ID.apply(id);
+        food.set(ModDataComponents.QUALITY, migrated);
+        removeLegacyQuality(food);
+        return migrated;
     }
 
     public static boolean hasQuality(ItemStack food) {
-        return food.has(ModDataComponents.QUALITY);
+        if (food.has(ModDataComponents.QUALITY)) {
+            return true;
+        }
+        CustomData customData = food.get(DataComponents.CUSTOM_DATA);
+        return customData != null && customData.copyTag().contains(LEGACY_QUALITY);
     }
 
     public static List<MobEffectInstance> modifyEffects(List<MobEffectInstance> effectInstances, Quality quality) {
@@ -77,6 +97,23 @@ public final class QualityUtils {
     public static void acceptQualityTooltip(ItemStack stack, Consumer<net.minecraft.network.chat.Component> tooltip) {
         if (hasQuality(stack)) {
             tooltip.accept(getQuality(stack).getTooltip());
+        }
+    }
+
+    private static void removeLegacyQuality(ItemStack food) {
+        CustomData customData = food.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return;
+        }
+        var tag = customData.copyTag();
+        if (!tag.contains(LEGACY_QUALITY)) {
+            return;
+        }
+        tag.remove(LEGACY_QUALITY);
+        if (tag.isEmpty()) {
+            food.remove(DataComponents.CUSTOM_DATA);
+        } else {
+            food.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
     }
 }

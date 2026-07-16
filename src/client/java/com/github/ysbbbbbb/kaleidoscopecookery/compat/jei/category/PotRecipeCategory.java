@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
@@ -57,7 +58,8 @@ public class PotRecipeCategory implements IRecipeCategory<RecipeHolder<PotRecipe
     }
 
     public static List<RecipeHolder<PotRecipe>> getRecipes() {
-        List<RecipeHolder<PotRecipe>> recipes = ClientRecipeLookup.getRecipes(ModRecipes.POT_RECIPE);
+        List<RecipeHolder<PotRecipe>> recipes =
+                new ArrayList<>(ClientRecipeLookup.getRecipes(ModRecipes.POT_RECIPE));
         recipes.sort(RECIPE_ORDER);
         return recipes;
     }

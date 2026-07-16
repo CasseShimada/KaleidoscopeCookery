@@ -2,6 +2,8 @@ package com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer;
 
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.FlexStockpotRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotVisuals;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyIngredientCompat;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyRecipeResultCompat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -18,11 +20,11 @@ import static com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.Stockp
 
 public final class FlexStockpotRecipeSerializer {
     public static final MapCodec<FlexStockpotRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(FlexStockpotRecipe::getIngredients),
+            LegacyIngredientCompat.CODEC.listOf().fieldOf("ingredients").forGetter(FlexStockpotRecipe::getIngredients),
             Identifier.CODEC.optionalFieldOf("soup_base", DEFAULT_SOUP_BASE).forGetter(FlexStockpotRecipe::soupBase),
-            ItemStackTemplate.CODEC.fieldOf("result").forGetter(FlexStockpotRecipe::result),
+            LegacyRecipeResultCompat.ITEM_STACK_TEMPLATE_CODEC.fieldOf("result").forGetter(FlexStockpotRecipe::result),
             Codec.INT.optionalFieldOf("time", DEFAULT_TIME).forGetter(FlexStockpotRecipe::time),
-            Ingredient.CODEC.optionalFieldOf("carrier", DEFAULT_CARRIER).forGetter(FlexStockpotRecipe::carrier),
+            LegacyIngredientCompat.CODEC.optionalFieldOf("carrier", DEFAULT_CARRIER).forGetter(FlexStockpotRecipe::carrier),
             StockpotVisuals.CODEC.forGetter(FlexStockpotRecipe::visuals)
     ).apply(instance, FlexStockpotRecipe::new));
 

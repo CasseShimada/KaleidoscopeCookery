@@ -10,8 +10,12 @@ public final class ModSounds {
     public static final SoundEvent BLOCK_RECIPE_BLOCK = variableRange("block.recipe_block");
     public static final SoundEvent BLOCK_MILLSTONE = variableRange("block.millstone");
     public static final SoundEvent BLOCK_STOCKPOT = fixedRange("block.stockpot");
-    public static final SoundEvent BLOCK_TEAPOT_PROCESSING = fixedRange("block.teapot_processing");
+    public static final SoundEvent BLOCK_TEAPOT_PROCESSING = fixedRange("block.teapot.processing");
+    /** Compatibility alias used by the interim Fabric port. */
+    @Deprecated(forRemoval = false)
+    public static final SoundEvent FABRIC_BLOCK_TEAPOT_PROCESSING = fixedRange("block.teapot_processing");
     public static final SoundEvent BLOCK_PADDY = fixedRange("block.paddy");
+    public static final SoundEvent TRASH_CAN = fixedRange("block.trash_can");
     public static final SoundEvent ENTITY_FART = fixedRange("entity.fart");
     public static final SoundEvent ITEM_DOUGH_TRANSFORM = fixedRange("item.dough_transform");
 
@@ -22,8 +26,10 @@ public final class ModSounds {
         register("block.recipe_block", BLOCK_RECIPE_BLOCK);
         register("block.millstone", BLOCK_MILLSTONE);
         register("block.stockpot", BLOCK_STOCKPOT);
-        register("block.teapot_processing", BLOCK_TEAPOT_PROCESSING);
+        register("block.teapot.processing", BLOCK_TEAPOT_PROCESSING);
+        register("block.teapot_processing", FABRIC_BLOCK_TEAPOT_PROCESSING);
         register("block.paddy", BLOCK_PADDY);
+        register("block.trash_can", TRASH_CAN);
         register("entity.fart", ENTITY_FART);
         register("item.dough_transform", ITEM_DOUGH_TRANSFORM);
     }

@@ -1,0 +1,9 @@
+{
+  "type": "kaleidoscope_cookery:pot",
+  "ingredients": [
+    "minecraft:mutton"
+  ],
+  "result": {
+    "id": "minecraft:cooked_mutton"
+  }
+}

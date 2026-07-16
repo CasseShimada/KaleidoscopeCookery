@@ -3,6 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.BaseBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.sounds.SoundEvents;
@@ -71,7 +72,7 @@ public class FruitBasketBlockEntity extends BaseBlockEntity {
     @Override
     public void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        ContainerHelper.loadAllItems(input.childOrEmpty(ITEMS), this.items.items);
+        LegacyItemStackCompat.loadAllItems(input.childOrEmpty(ITEMS), this.items.items);
     }
 
     public NonNullList<ItemStack> getItems() {

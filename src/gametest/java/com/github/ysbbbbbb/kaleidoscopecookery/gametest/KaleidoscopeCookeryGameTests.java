@@ -4,9 +4,12 @@ import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.ActionEventCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.event.SickleHarvestCallback;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.recipe.soupbase.ISoupBase;
+import com.github.ysbbbbbb.kaleidoscopecookery.api.storage.MillstoneEntityItemStorage;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteThreeByThreeBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.ChairBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.FruitBasketBlock;
+import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.PlateBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.decoration.TableBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.EmptyCupBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.drink.TeacupBlock;
@@ -27,6 +30,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.StrungMushroomsBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.misc.TrashCanBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.FruitBasketBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.OilPotBlockEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.RecipeBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.TableBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.decoration.ChairBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.ChoppingBoardBlockEntity;
@@ -40,91 +44,217 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.TeapotBlockEn
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.misc.TrashCanBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfig;
 import com.github.ysbbbbbb.kaleidoscopecookery.config.GeneralConfigTestAccess;
+import com.github.ysbbbbbb.kaleidoscopecookery.config.ClientConfig;
+import com.github.ysbbbbbb.kaleidoscopecookery.config.ClientConfigTestAccess;
+import com.github.ysbbbbbb.kaleidoscopecookery.compat.FoodEffectTooltipsCompatTestAccess;
+import com.github.ysbbbbbb.kaleidoscopecookery.compat.farmersdelight.FarmersDelightCompat;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.SimpleInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.StockpotInput;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.container.TeapotInput;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.output.RandomOutput;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.ChoppingBoardRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.FlexPotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.FlexStockpotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.MillstoneRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.PotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.RiceBowlRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.SteamerRecipe;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.StockpotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.recipe.TeapotRecipe;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.ChoppingBoardRecipeSerializer;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.FlexPotRecipeSerializer;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.FlexStockpotRecipeSerializer;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.MillstoneRecipeSerializer;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.PotRecipeSerializer;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.RiceBowlRecipeSerializer;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.SteamerRecipeSerializer;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.StockpotRecipeSerializer;
+import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.TeapotRecipeSerializer;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SimpleSoupBase;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.soupbase.SoupBaseManager;
 import com.github.ysbbbbbb.kaleidoscopecookery.entity.ScarecrowEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.entity.ThrowableBaoziEntity;
+import com.github.ysbbbbbb.kaleidoscopecookery.entity.ai.CatLieOnBlockGoal;
+import com.github.ysbbbbbb.kaleidoscopecookery.effect.FlatulenceEffect;
 import com.github.ysbbbbbb.kaleidoscopecookery.effect.WarmthEffect;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModAttachmentType;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModDataComponents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEffects;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEntities;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModEvents;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModLootTables;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSounds;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModTrigger;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModSoupBases;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.ModVillager;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.TeacupRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.PlateRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.registry.FoodBiteRegistry;
+import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.inventory.ItemStackContainer;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.FruitBasketItem;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.OilPotItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RawDoughItem;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.TeapotItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.TransmutationLunchBagItem;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.RecipeItem;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.Quality;
+import com.github.ysbbbbbb.kaleidoscopecookery.item.quality.QualityUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.network.NetworkHandler;
+import com.github.ysbbbbbb.kaleidoscopecookery.network.message.FlatulenceMessage;
+import net.fabricmc.loader.api.FabricLoader;
+import com.github.ysbbbbbb.kaleidoscopecookery.network.message.ThrowBaoziMessage;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyPlayerDataCompat;
+import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
+import io.netty.buffer.Unpooled;
+import net.minecraft.nbt.NbtOps;
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.entity.event.v1.effect.ServerMobEffectEvents;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.behavior.GiveGiftToHero;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.animal.chicken.Chicken;
+import net.minecraft.world.entity.animal.cow.Cow;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
+import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.world.entity.animal.parrot.Parrot;
 import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.projectile.ProjectileDeflection;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.UseRemainder;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.VillagerTrade;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.PowderSnowBlock;
+import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class KaleidoscopeCookeryGameTests {
+    private static final Map<UUID, Storage<ItemVariant>> TEST_MILLSTONE_ENTITY_STORAGES =
+            new ConcurrentHashMap<>();
+    private static boolean millstoneEntityStorageTestProviderRegistered;
+
+    @GameTest
+    public void plateDropsCombineBaselineBowlWithRemainingServings(GameTestHelper helper) {
+        Block block = PlateRegistry.getBlock(PlateRegistry.APPLE_PLATTER);
+        helper.assertTrue(block instanceof PlateBlock, "Apple platter is not a PlateBlock");
+        PlateBlock plate = (PlateBlock) block;
+        BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
+
+        BlockState fullState = plate.defaultBlockState();
+        List<ItemStack> fullDrops = Block.getDrops(fullState, helper.getLevel(), pos, null);
+        int fullBowls = fullDrops.stream().filter(stack -> stack.is(Items.BOWL)).mapToInt(ItemStack::getCount).sum();
+        int fullApples = fullDrops.stream().filter(stack -> stack.is(Items.APPLE)).mapToInt(ItemStack::getCount).sum();
+        helper.assertValueEqual(fullBowls, 1, "Full plate lost the Forge bowl loot-table drop");
+        helper.assertValueEqual(fullApples, 4, "Full plate did not preserve remaining servings");
+
+        BlockState emptyState = fullState.setValue(plate.getServingsProperty(), 0);
+        List<ItemStack> emptyDrops = Block.getDrops(emptyState, helper.getLevel(), pos, null);
+        int emptyBowls = emptyDrops.stream().filter(stack -> stack.is(Items.BOWL)).mapToInt(ItemStack::getCount).sum();
+        int emptyApples = emptyDrops.stream().filter(stack -> stack.is(Items.APPLE)).mapToInt(ItemStack::getCount).sum();
+        helper.assertValueEqual(emptyBowls, 1, "Empty plate lost the Forge bowl loot-table drop");
+        helper.assertValueEqual(emptyApples, 0, "Empty plate incorrectly dropped consumed servings");
+        helper.succeed();
+    }
+
     @GameTest
     @SuppressWarnings("deprecation")
     public void registrationsKeepStableIds(GameTestHelper helper) {
@@ -136,6 +266,10 @@ public final class KaleidoscopeCookeryGameTests {
                 "Pot block registry does not contain the registered instance");
         helper.assertValueEqual(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(ModBlocks.RECIPE_BLOCK_BE),
                 id("recipe_book"), "Legacy recipe block entity ID changed");
+        helper.assertValueEqual(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(ModBlocks.FORGE_RECIPE_BLOCK_BE),
+                id("recipe_block"), "Forge recipe block entity compatibility ID changed");
+        helper.assertTrue(ModBlocks.FORGE_RECIPE_BLOCK_BE.isValid(ModBlocks.RECIPE_BLOCK.defaultBlockState()),
+                "Forge recipe block entity compatibility type rejects the recipe block");
         helper.assertTrue(BuiltInRegistries.RECIPE_SERIALIZER.getValue(potId) == ModRecipes.POT_SERIALIZER,
                 "Pot recipe serializer registry does not contain the registered instance");
         helper.assertTrue(BuiltInRegistries.RECIPE_TYPE.getValue(potId) == ModRecipes.POT_RECIPE,
@@ -148,6 +282,19 @@ public final class KaleidoscopeCookeryGameTests {
                 id("mod_event"), "Mod event trigger registry ID changed");
         helper.assertValueEqual(BuiltInRegistries.TRIGGER_TYPES.getKey(ModTrigger.FLATULENCE_FLY_HEIGHT),
                 id("flatulence_fly_height"), "Flatulence distance trigger registry ID changed");
+        helper.assertValueEqual(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(ModDataComponents.OIL_POT_OIL_COUNT),
+                id("oil_pot_oil_count"), "NeoForge oil pot component compatibility ID changed");
+        helper.assertValueEqual(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(ModDataComponents.OIL_POT_COUNT),
+                id("oil_pot_count"), "Interim Fabric oil pot component compatibility ID changed");
+        helper.assertTrue(BuiltInRegistries.SOUND_EVENT.getValue(id("block.teapot.processing"))
+                        == ModSounds.BLOCK_TEAPOT_PROCESSING,
+                "Legacy teapot processing sound ID is not registered");
+        helper.assertTrue(BuiltInRegistries.SOUND_EVENT.getValue(id("block.trash_can")) == ModSounds.TRASH_CAN,
+                "Legacy trash can sound ID is not registered");
+        helper.assertValueEqual(EnamelBasinBlock.MAX_OIL_COUNT, 32,
+                "Enamel basin no longer accepts legacy oil-count block states");
+        helper.assertValueEqual(ModBlocks.ENAMEL_BASIN.defaultBlockState().getValue(EnamelBasinBlock.OIL_COUNT), 0,
+                "Crafted enamel basins no longer default to empty");
         helper.assertValueEqual(
                 DefaultAttributes.getSupplier(ModEntities.SCARECROW).getBaseValue(Attributes.STEP_HEIGHT),
                 0.0, "Scarecrow-specific default attributes are not registered");
@@ -155,6 +302,1242 @@ public final class KaleidoscopeCookeryGameTests {
                         && ModEvents.CHECK_SPECIAL_ITEM == ActionEventCallback.CheckSpecialItem.EVENT
                         && ModEvents.DEDUCT_SPECIAL_ITEM == ActionEventCallback.DeductSpecialItem.EVENT,
                 "Legacy event fields do not bridge to the Fabric-style callback events");
+        helper.succeed();
+    }
+
+    @GameTest
+    @SuppressWarnings("deprecation")
+    public void oilPotReadsAndMigratesLegacyData(GameTestHelper helper) {
+        ItemStack interimFabricStack = new ItemStack(ModItems.OIL_POT);
+        interimFabricStack.set(ModDataComponents.OIL_POT_COUNT, 37);
+        helper.assertValueEqual(OilPotItem.getOilCount(interimFabricStack), 37,
+                "Interim Fabric oil pot component was not read");
+
+        OilPotItem.setOilCount(interimFabricStack, 38);
+        helper.assertValueEqual(interimFabricStack.get(ModDataComponents.OIL_POT_OIL_COUNT), 38,
+                "Interim Fabric oil pot data was not migrated to the NeoForge-compatible component");
+        helper.assertTrue(!interimFabricStack.has(ModDataComponents.OIL_POT_COUNT),
+                "Interim Fabric oil pot component remained after migration");
+
+        ItemStack forgeStack = new ItemStack(ModItems.OIL_POT);
+        CompoundTag forgeTag = new CompoundTag();
+        forgeTag.putInt("oil_count", 41);
+        forgeTag.putString("unrelated", "preserve-me");
+        forgeStack.set(DataComponents.CUSTOM_DATA, CustomData.of(forgeTag));
+        helper.assertValueEqual(OilPotItem.getOilCount(forgeStack), 41,
+                "Forge oil_count custom NBT was not read");
+
+        OilPotItem.setOilCount(forgeStack, 42);
+        helper.assertValueEqual(forgeStack.get(ModDataComponents.OIL_POT_OIL_COUNT), 42,
+                "Forge oil pot data was not migrated to the NeoForge-compatible component");
+        CustomData remaining = forgeStack.get(DataComponents.CUSTOM_DATA);
+        helper.assertTrue(remaining != null, "Unrelated Forge custom data was removed during migration");
+        CompoundTag remainingTag = remaining.copyTag();
+        helper.assertValueEqual(remainingTag.getStringOr("unrelated", ""), "preserve-me",
+                "Unrelated Forge custom data changed during migration");
+        helper.assertTrue(!remainingTag.contains("oil_count"),
+                "Migrated Forge oil_count custom NBT remained duplicated");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void compatibilityCodecReadsForge120ItemStack(GameTestHelper helper) {
+        CompoundTag legacyStack = legacyStack(Items.APPLE, 3);
+        RegistryOps<net.minecraft.nbt.Tag> ops = RegistryOps.create(
+                NbtOps.INSTANCE, helper.getLevel().registryAccess());
+        ItemStack decoded = LegacyItemStackCompat.ITEM_STACK_CODEC.parse(ops, legacyStack).getOrThrow();
+        helper.assertTrue(decoded.is(Items.APPLE) && decoded.getCount() == 3,
+                "Compatibility codec cannot read the Forge 1.20.1 stack format");
+
+        CompoundTag handler = legacyItemHandler(4, Map.of(2, legacyStack(Items.CARROT, 5)));
+        NonNullList<ItemStack> slots = NonNullList.withSize(4, ItemStack.EMPTY);
+        LegacyItemStackCompat.loadAllItems(TagValueInput.create(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), handler), slots);
+        helper.assertTrue(slots.get(2).is(Items.CARROT) && slots.get(2).getCount() == 5,
+                "Compatibility codec did not preserve a Forge ItemStackHandler slot");
+
+        CompoundTag richStack = legacyStack(Items.DIAMOND_SWORD, 1);
+        CompoundTag richTag = new CompoundTag();
+        richTag.putInt("Damage", 17);
+        CompoundTag display = new CompoundTag();
+        display.putString("Name", "{\"text\":\"Migration blade\"}");
+        richTag.put("display", display);
+        CompoundTag sharpness = new CompoundTag();
+        sharpness.putString("id", "minecraft:sharpness");
+        sharpness.putShort("lvl", (short) 3);
+        ListTag enchantments = new ListTag();
+        enchantments.add(sharpness);
+        richTag.put("Enchantments", enchantments);
+        richTag.putString("migration_marker", "preserve-me");
+        richStack.put("tag", richTag);
+
+        ItemStack decodedRichStack = LegacyItemStackCompat.ITEM_STACK_CODEC.parse(ops, richStack).getOrThrow();
+        assertRichLegacyStack(helper, decodedRichStack);
+        net.minecraft.nbt.Tag resaved = ItemStack.CODEC.encodeStart(ops, decodedRichStack).getOrThrow();
+        ItemStack reloadedRichStack = ItemStack.CODEC.parse(ops, resaved).getOrThrow();
+        assertRichLegacyStack(helper, reloadedRichStack);
+        helper.succeed();
+    }
+
+    @GameTest
+    public void foodBiteQualityPreservesForgeStateAndLegacyItemData(GameTestHelper helper) {
+        int foodBlockCount = 0;
+        for (Block block : BuiltInRegistries.BLOCK) {
+            Identifier blockId = BuiltInRegistries.BLOCK.getKey(block);
+            if (!blockId.getNamespace().equals(KaleidoscopeCookery.MOD_ID)
+                    || !(block instanceof FoodBiteBlock foodBlock)) {
+                continue;
+            }
+            foodBlockCount++;
+            helper.assertTrue(foodBlock.getStateDefinition().getProperty("quality") == FoodBiteBlock.QUALITY,
+                    "Food block lost the Forge quality property: " + blockId);
+            helper.assertValueEqual(FoodBiteBlock.QUALITY.getPossibleValues(), List.of(0, 1, 2, 3, 4),
+                    "Food block quality range changed: " + blockId);
+            helper.assertValueEqual(foodBlock.defaultBlockState().getValue(FoodBiteBlock.QUALITY),
+                    FoodBiteBlock.DEFAULT_QUALITY, "Food block missing-quality default changed: " + blockId);
+        }
+        helper.assertTrue(foodBlockCount > 0, "No registered Cookery food bite blocks were checked");
+
+        FoodBiteBlock candiedPotato = (FoodBiteBlock) BuiltInRegistries.BLOCK.getValue(
+                FoodBiteRegistry.CANDIED_POTATO);
+        ItemStack placedStack = new ItemStack(candiedPotato);
+        QualityUtils.setQuality(placedStack, Quality.SUPERB);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos relativePos = new BlockPos(1, 1, 1);
+        BlockPos absolutePos = helper.absolutePos(relativePos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        BlockState placedState = candiedPotato.getStateForPlacement(new BlockPlaceContext(
+                helper.getLevel(), player, InteractionHand.MAIN_HAND, placedStack, hit));
+        helper.assertTrue(placedState != null
+                        && placedState.getValue(FoodBiteBlock.QUALITY) == Quality.SUPERB.getId(),
+                "Food placement did not copy the item quality into the Forge block state");
+
+        List<ItemStack> drops = Block.getDrops(placedState, helper.getLevel(), absolutePos, null);
+        ItemStack foodDrop = drops.stream().filter(stack -> stack.is(candiedPotato.asItem()))
+                .findFirst().orElseThrow(() -> new AssertionError("Unbitten quality food did not drop itself"));
+        helper.assertValueEqual(QualityUtils.getQuality(foodDrop), Quality.SUPERB,
+                "Food loot did not copy the Forge block quality into the item component");
+
+        CompoundTag legacyFood = legacyStack(candiedPotato, 1);
+        CompoundTag legacyFoodTag = new CompoundTag();
+        legacyFoodTag.putInt(QualityUtils.LEGACY_QUALITY, Quality.EXCELLENT.getId());
+        legacyFoodTag.putString("unrelated", "preserve-me");
+        legacyFood.put("tag", legacyFoodTag);
+        RegistryOps<net.minecraft.nbt.Tag> ops = RegistryOps.create(
+                NbtOps.INSTANCE, helper.getLevel().registryAccess());
+        ItemStack migratedFood = LegacyItemStackCompat.ITEM_STACK_CODEC.parse(ops, legacyFood).getOrThrow();
+        helper.assertTrue(QualityUtils.hasQuality(migratedFood),
+                "Forge food quality NBT was not recognized after ItemStack DataFix");
+        helper.assertValueEqual(QualityUtils.getQuality(migratedFood), Quality.EXCELLENT,
+                "Forge food quality NBT changed meaning during component migration");
+        CustomData migratedCustomData = migratedFood.get(DataComponents.CUSTOM_DATA);
+        helper.assertTrue(migratedCustomData != null
+                        && migratedCustomData.copyTag().getStringOr("unrelated", "").equals("preserve-me")
+                        && !migratedCustomData.copyTag().contains(QualityUtils.LEGACY_QUALITY),
+                "Food quality migration removed unrelated custom data or retained the old key");
+
+        helper.setBlock(relativePos, placedState);
+        player.getFoodData().setFoodLevel(0);
+        player.getFoodData().setSaturation(0.0F);
+        InteractionResult eatResult = candiedPotato.useWithoutItem(
+                placedState, helper.getLevel(), absolutePos, player, hit);
+        helper.assertValueEqual(eatResult, InteractionResult.CONSUME,
+                "Quality food block did not consume a bite");
+        helper.assertValueEqual(player.getFoodData().getFoodLevel(), 6,
+                "Superb block food did not apply the Forge 1.2 nutrition multiplier");
+        MobEffectInstance warmth = player.getEffect(ModEffects.WARMTH);
+        helper.assertTrue(warmth != null && warmth.getDuration() == 1920,
+                "Superb block food did not apply the Forge 1.2 effect-duration multiplier");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void blockEntitiesReadForge120ItemStorage(GameTestHelper helper) {
+        BlockPos basketPos = new BlockPos(1, 1, 1);
+        helper.setBlock(basketPos, ModBlocks.FRUIT_BASKET);
+        FruitBasketBlockEntity basket = helper.getBlockEntity(basketPos, FruitBasketBlockEntity.class);
+        CompoundTag basketTag = new CompoundTag();
+        basketTag.put("BasketItems", legacyItemHandler(8, Map.of(
+                0, legacyStack(Items.APPLE, 3),
+                7, legacyStack(Items.CARROT, 2))));
+        basket.loadCustomOnly(valueInput(helper, basketTag));
+        helper.assertTrue(basket.getItems().get(0).is(Items.APPLE)
+                        && basket.getItems().get(0).getCount() == 3
+                        && basket.getItems().get(7).is(Items.CARROT)
+                        && basket.getItems().get(7).getCount() == 2,
+                "Fruit basket lost Forge ItemStackHandler contents or slot order");
+
+        BlockPos tablePos = new BlockPos(2, 1, 1);
+        helper.setBlock(tablePos, ModBlocks.TABLE_OAK.defaultBlockState()
+                .setValue(TableBlock.HAS_CARPET, true));
+        TableBlockEntity table = helper.getBlockEntity(tablePos, TableBlockEntity.class);
+        CompoundTag tableTag = new CompoundTag();
+        tableTag.putInt("CarpetColor", DyeColor.RED.getId());
+        tableTag.put("ShowItems", legacyItemHandler(4, Map.of(3, legacyStack(Items.BREAD, 4))));
+        table.loadCustomOnly(valueInput(helper, tableTag));
+        helper.assertTrue(table.getItems().get(3).is(Items.BREAD)
+                        && table.getItems().get(3).getCount() == 4,
+                "Table lost Forge display contents or slot order");
+
+        BlockPos recipePos = new BlockPos(3, 1, 1);
+        helper.setBlock(recipePos, ModBlocks.RECIPE_BLOCK);
+        RecipeBlockEntity recipeBlock = helper.getBlockEntity(recipePos, RecipeBlockEntity.class);
+        CompoundTag recipeTag = new CompoundTag();
+        recipeTag.put("ShowItems", legacyItemHandler(1, Map.of(0, legacyStack(Items.PAPER, 1))));
+        recipeBlock.loadCustomOnly(valueInput(helper, recipeTag));
+        helper.assertTrue(recipeBlock.getItem().is(Items.PAPER),
+                "Recipe block did not unwrap its Forge ItemStackHandler contents");
+
+        BlockPos steamerPos = new BlockPos(4, 1, 1);
+        helper.setBlock(steamerPos, ModBlocks.STEAMER);
+        SteamerBlockEntity steamer = helper.getBlockEntity(steamerPos, SteamerBlockEntity.class);
+        CompoundTag steamerTag = legacyItemHandler(8, Map.of(6, legacyStack(Items.POTATO, 1)));
+        steamerTag.putIntArray("CookingProgress", new int[]{0, 0, 0, 0, 0, 0, 11, 0});
+        steamerTag.putIntArray("CookingTime", new int[]{0, 0, 0, 0, 0, 0, 20, 0});
+        steamer.loadCustomOnly(valueInput(helper, steamerTag));
+        helper.assertTrue(steamer.getItems().get(6).is(Items.POTATO)
+                        && steamer.getCookingProgress()[6] == 11
+                        && steamer.getCookingTime()[6] == 20,
+                "Steamer lost Forge contents, slot order, or cooking progress");
+
+        BlockPos trashPos = new BlockPos(5, 1, 1);
+        helper.setBlock(trashPos, ModBlocks.TRASH_CAN);
+        TrashCanBlockEntity trashCan = helper.getBlockEntity(trashPos, TrashCanBlockEntity.class);
+        CompoundTag trashTag = new CompoundTag();
+        trashTag.put("Storage", legacyItemHandler(3, Map.of(1, legacyStack(Items.BONE, 6))));
+        trashCan.loadCustomOnly(valueInput(helper, trashTag));
+        helper.assertTrue(trashCan.getStoredItems().getFirst().is(Items.BONE)
+                        && trashCan.getStoredItems().getFirst().getCount() == 6,
+                "Trash can lost Forge ItemStackHandler contents");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void millstoneRecipesPreserveRandomMultiOutputs(GameTestHelper helper) {
+        var ops = RegistryOps.create(JsonOps.INSTANCE, helper.getLevel().registryAccess());
+        MillstoneRecipe multiOutput = MillstoneRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "ingredient": "minecraft:wheat",
+                  "results": [
+                    {"id": "minecraft:apple", "count": 2, "chance": 2.0},
+                    {"id": "minecraft:carrot", "chance": -1.0}
+                  ],
+                  "carrier": "minecraft:bowl"
+                }
+                """)).getOrThrow();
+
+        helper.assertValueEqual(multiOutput.results().size(), 2,
+                "Millstone results array did not preserve every output");
+        helper.assertValueEqual(multiOutput.results().getFirst().chance(), 1.0F,
+                "Millstone chance above one was not clamped like the Forge recipe");
+        helper.assertValueEqual(multiOutput.results().get(1).chance(), 0.0F,
+                "Millstone chance below zero was not clamped like the Forge recipe");
+        helper.assertTrue(multiOutput.getCarrier().isPresent()
+                        && multiOutput.getCarrier().orElseThrow().test(Items.BOWL.getDefaultInstance()),
+                "Millstone multi-output codec lost the Fabric carrier extension");
+
+        List<ItemStack> rolled = multiOutput.rollResults(3, RandomSource.create(123L));
+        int appleCount = rolled.stream().filter(stack -> stack.is(Items.APPLE))
+                .mapToInt(ItemStack::getCount).sum();
+        helper.assertValueEqual(appleCount, 6,
+                "Millstone did not roll the guaranteed output once per input unit");
+        helper.assertTrue(rolled.stream().noneMatch(stack -> stack.is(Items.CARROT)),
+                "Millstone emitted a zero-chance output");
+
+        MillstoneRecipe singleOutput = MillstoneRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "ingredient": "minecraft:wheat",
+                  "result": {"id": "minecraft:bread", "count": 1}
+                }
+                """)).getOrThrow();
+        helper.assertTrue(singleOutput.results().size() == 1 && singleOutput.getResult().is(Items.BREAD),
+                "Millstone no longer accepts the historical/current single result field");
+        helper.assertTrue(MillstoneRecipeSerializer.CODEC.codec().encodeStart(ops, multiOutput)
+                        .getOrThrow().getAsJsonObject().has("results"),
+                "Millstone multi-output recipe did not save through the stable results field");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void customRecipeSerializersReadForgeJsonShapes(GameTestHelper helper) {
+        var ops = RegistryOps.create(JsonOps.INSTANCE, helper.getLevel().registryAccess());
+
+        PotRecipe pot = PotRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "carrier": {"item": "minecraft:bowl"},
+                  "ingredients": [
+                    {"item": "minecraft:wheat"},
+                    [{"item": "minecraft:carrot"}, {"tag": "minecraft:planks"}]
+                  ],
+                  "result": {"item": "minecraft:bread", "count": 2}
+                }
+                """)).getOrThrow();
+        helper.assertTrue(pot.carrier().orElseThrow().test(Items.BOWL.getDefaultInstance())
+                        && pot.ingredients().getFirst().test(Items.WHEAT.getDefaultInstance())
+                        && pot.ingredients().get(1).test(Items.OAK_PLANKS.getDefaultInstance())
+                        && pot.result().create().is(Items.BREAD)
+                        && pot.result().create().getCount() == 2,
+                "Pot serializer lost Forge object/array ingredients, carrier, or result.item");
+
+        FlexPotRecipe flexPot = FlexPotRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "ingredients": [{"item": "minecraft:potato"}],
+                  "result": {"item": "minecraft:baked_potato"}
+                }
+                """)).getOrThrow();
+        helper.assertTrue(flexPot.carrier().isEmpty()
+                        && flexPot.ingredients().getFirst().test(Items.POTATO.getDefaultInstance())
+                        && flexPot.result().create().is(Items.BAKED_POTATO),
+                "Flex pot serializer did not preserve the Forge empty-carrier default");
+
+        ChoppingBoardRecipe chopping = ChoppingBoardRecipeSerializer.CODEC.codec().parse(
+                ops, JsonParser.parseString("""
+                        {
+                          "ingredient": [{"item": "minecraft:porkchop"}, {"tag": "minecraft:planks"}],
+                          "result": {"item": "minecraft:stick", "count": 3}
+                        }
+                        """)).getOrThrow();
+        helper.assertTrue(chopping.getIngredient().test(Items.PORKCHOP.getDefaultInstance())
+                        && chopping.getIngredient().test(Items.OAK_PLANKS.getDefaultInstance())
+                        && chopping.getResult().is(Items.STICK)
+                        && chopping.getResult().getCount() == 3,
+                "Chopping-board serializer lost a Forge ingredient array or result.item");
+
+        StockpotRecipe stockpot = StockpotRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "ingredients": [{"tag": "minecraft:planks"}],
+                  "result": {"item": "minecraft:mushroom_stew"},
+                  "carrier": {"item": "minecraft:apple"},
+                  "empty_carrier": true
+                }
+                """)).getOrThrow();
+        helper.assertTrue(stockpot.getIngredients().getFirst().test(Items.OAK_PLANKS.getDefaultInstance())
+                        && stockpot.carrier().isEmpty()
+                        && stockpot.result().create().is(Items.MUSHROOM_STEW),
+                "Stockpot serializer did not give Forge empty_carrier precedence over carrier");
+
+        FlexStockpotRecipe flexStockpot = FlexStockpotRecipeSerializer.CODEC.codec().parse(
+                ops, JsonParser.parseString("""
+                        {
+                          "ingredients": [{"item": "minecraft:beef"}],
+                          "carrier": {"item": "minecraft:bucket"},
+                          "result": {"item": "minecraft:rabbit_stew"}
+                        }
+                        """)).getOrThrow();
+        helper.assertTrue(flexStockpot.getIngredients().getFirst().test(Items.BEEF.getDefaultInstance())
+                        && flexStockpot.carrier().test(Items.BUCKET.getDefaultInstance())
+                        && flexStockpot.result().create().is(Items.RABBIT_STEW),
+                "Flex stockpot serializer lost Forge ingredient, carrier, or result.item");
+
+        SteamerRecipe steamer = SteamerRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "ingredient": {"item": "minecraft:potato"},
+                  "result": {"item": "minecraft:baked_potato"}
+                }
+                """)).getOrThrow();
+        helper.assertTrue(steamer.getIngredient().test(Items.POTATO.getDefaultInstance())
+                        && steamer.getResult().is(Items.BAKED_POTATO),
+                "Steamer serializer lost a Forge ingredient or result.item");
+
+        MillstoneRecipe millstone = MillstoneRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "ingredient": [{"item": "minecraft:wheat"}, {"tag": "minecraft:planks"}],
+                  "result": {"item": "minecraft:bread"}
+                }
+                """)).getOrThrow();
+        helper.assertTrue(millstone.getIngredient().test(Items.WHEAT.getDefaultInstance())
+                        && millstone.getIngredient().test(Items.OAK_PLANKS.getDefaultInstance())
+                        && millstone.getResult().is(Items.BREAD),
+                "Millstone serializer lost a Forge ingredient array or result.item");
+
+        TeapotRecipe teapot = TeapotRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "tea_fluid": "minecraft:water",
+                  "result": {"item": "minecraft:honey_bottle"}
+                }
+                """)).getOrThrow();
+        helper.assertTrue(teapot.ingredient().isEmpty() && teapot.result().create().is(Items.HONEY_BOTTLE),
+                "Teapot serializer did not preserve the Forge empty-ingredient default");
+
+        RiceBowlRecipe riceBowl = RiceBowlRecipeSerializer.CODEC.codec().parse(ops, JsonParser.parseString("""
+                {
+                  "ingredient": {"item": "minecraft:carrot"},
+                  "result": {"item": "minecraft:rabbit_stew"}
+                }
+                """)).getOrThrow();
+        helper.assertTrue(riceBowl.getIngredient().test(Items.CARROT.getDefaultInstance())
+                        && riceBowl.getResult().is(Items.RABBIT_STEW),
+                "Rice-bowl serializer lost a Forge ingredient or result.item");
+
+        RegistryFriendlyByteBuf flexPotBuffer = new RegistryFriendlyByteBuf(
+                Unpooled.buffer(), helper.getLevel().registryAccess());
+        RegistryFriendlyByteBuf stockpotBuffer = new RegistryFriendlyByteBuf(
+                Unpooled.buffer(), helper.getLevel().registryAccess());
+        RegistryFriendlyByteBuf teapotBuffer = new RegistryFriendlyByteBuf(
+                Unpooled.buffer(), helper.getLevel().registryAccess());
+        try {
+            FlexPotRecipeSerializer.STREAM_CODEC.encode(flexPotBuffer, flexPot);
+            StockpotRecipeSerializer.STREAM_CODEC.encode(stockpotBuffer, stockpot);
+            TeapotRecipeSerializer.STREAM_CODEC.encode(teapotBuffer, teapot);
+            helper.assertTrue(FlexPotRecipeSerializer.STREAM_CODEC.decode(flexPotBuffer).carrier().isEmpty(),
+                    "Flex pot StreamCodec changed an empty carrier during recipe sync");
+            helper.assertTrue(StockpotRecipeSerializer.STREAM_CODEC.decode(stockpotBuffer).carrier().isEmpty(),
+                    "Stockpot StreamCodec changed empty_carrier during recipe sync");
+            helper.assertTrue(TeapotRecipeSerializer.STREAM_CODEC.decode(teapotBuffer).ingredient().isEmpty(),
+                    "Teapot StreamCodec changed an empty ingredient during recipe sync");
+        } finally {
+            flexPotBuffer.release();
+            stockpotBuffer.release();
+            teapotBuffer.release();
+        }
+
+        var encodedStockpot = StockpotRecipeSerializer.CODEC.codec().encodeStart(ops, stockpot)
+                .getOrThrow().getAsJsonObject();
+        helper.assertTrue(encodedStockpot.get("empty_carrier").getAsBoolean()
+                        && !encodedStockpot.has("carrier")
+                        && encodedStockpot.getAsJsonObject("result").has("id")
+                        && !encodedStockpot.getAsJsonObject("result").has("item"),
+                "Compatible stockpot recipe did not re-encode through stable 26.2 fields");
+        helper.assertFalse(FlexPotRecipeSerializer.CODEC.codec().encodeStart(ops, flexPot)
+                        .getOrThrow().getAsJsonObject().has("carrier"),
+                "Flex pot empty carrier was not omitted when re-encoding");
+        helper.assertFalse(TeapotRecipeSerializer.CODEC.codec().encodeStart(ops, teapot)
+                        .getOrThrow().getAsJsonObject().has("ingredient"),
+                "Teapot empty ingredient was not omitted when re-encoding");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void millstoneReadsAndResavesForgeFourSlotStorage(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.MILLSTONE);
+        MillstoneBlockEntity millstone = helper.getBlockEntity(pos, MillstoneBlockEntity.class);
+        UUID boundEntity = UUID.fromString("12345678-1234-5678-9abc-def012345678");
+        CompoundTag forgeTag = new CompoundTag();
+        forgeTag.putIntArray("EntityId", UUIDUtil.uuidToIntArray(boundEntity));
+        forgeTag.put("InputItem", legacyStack(Items.WHEAT, 4));
+        forgeTag.put("OutputItem", legacyItemHandler(4, Map.of(
+                0, legacyStack(Items.APPLE, 3),
+                2, legacyStack(Items.CARROT, 5))));
+        forgeTag.putString("CarrierIngredient", "{\"item\":\"minecraft:bowl\"}");
+        millstone.loadCustomOnly(valueInput(helper, forgeTag));
+
+        List<ItemStack> outputs = millstone.getOutputs();
+        helper.assertTrue(millstone.hasEntity() && millstone.getInput().is(Items.WHEAT)
+                        && millstone.getInput().getCount() == 4,
+                "Millstone lost the Forge UUID or input stack");
+        helper.assertTrue(outputs.size() == MillstoneBlockEntity.OUTPUT_SLOT_COUNT
+                        && outputs.get(0).is(Items.APPLE) && outputs.get(0).getCount() == 3
+                        && outputs.get(1).isEmpty()
+                        && outputs.get(2).is(Items.CARROT) && outputs.get(2).getCount() == 5,
+                "Millstone lost Forge output slots, counts, or empty-slot order");
+        helper.assertTrue(millstone.getCarrier().isPresent()
+                        && millstone.getCarrier().orElseThrow().test(Items.BOWL.getDefaultInstance()),
+                "Millstone did not read a legacy JSON CarrierIngredient");
+
+        CompoundTag saved = millstone.saveCustomOnly(helper.getLevel().registryAccess());
+        BlockPos reloadedPos = new BlockPos(2, 1, 1);
+        helper.setBlock(reloadedPos, ModBlocks.MILLSTONE);
+        MillstoneBlockEntity reloaded = helper.getBlockEntity(reloadedPos, MillstoneBlockEntity.class);
+        reloaded.loadCustomOnly(valueInput(helper, saved));
+        List<ItemStack> reloadedOutputs = reloaded.getOutputs();
+        helper.assertTrue(reloadedOutputs.get(0).is(Items.APPLE)
+                        && reloadedOutputs.get(0).getCount() == 3
+                        && reloadedOutputs.get(1).isEmpty()
+                        && reloadedOutputs.get(2).is(Items.CARROT)
+                        && reloadedOutputs.get(2).getCount() == 5,
+                "Millstone four-slot outputs changed after a Fabric save and reload");
+
+        RegistryOps<net.minecraft.nbt.Tag> nbtOps = RegistryOps.create(
+                NbtOps.INSTANCE, helper.getLevel().registryAccess());
+        CompoundTag interimFabricTag = new CompoundTag();
+        interimFabricTag.put("OutputItem", ItemStack.CODEC.encodeStart(
+                nbtOps, new ItemStack(Items.POTATO, 7)).getOrThrow());
+        reloaded.loadCustomOnly(valueInput(helper, interimFabricTag));
+        helper.assertTrue(reloaded.getOutputs().getFirst().is(Items.POTATO)
+                        && reloaded.getOutputs().getFirst().getCount() == 7,
+                "Millstone did not migrate the interim Fabric single-output save format");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void kitchenBlockEntitiesReadAndResaveForgeStacks(GameTestHelper helper) {
+        BlockPos potPos = new BlockPos(1, 1, 1);
+        helper.setBlock(potPos, ModBlocks.POT);
+        PotBlockEntity pot = helper.getBlockEntity(potPos, PotBlockEntity.class);
+        CompoundTag potTag = new CompoundTag();
+        potTag.put("Inputs", legacyItemHandler(9, Map.of(
+                0, legacyStack(Items.BEEF, 2),
+                8, legacyStack(Items.CARROT, 3))));
+        potTag.putString("Carrier", "{\"item\":\"minecraft:bowl\"}");
+        potTag.put("Result", legacyStack(Items.RABBIT_STEW, 2));
+        potTag.putInt("Status", PotBlockEntity.FINISHED);
+        potTag.putInt("CurrentTick", 37);
+        potTag.putInt("StirFryCount", 4);
+        potTag.putLong("Seed", 987654321L);
+        pot.loadCustomOnly(valueInput(helper, potTag));
+        helper.assertTrue(pot.getInputs().get(0).is(Items.BEEF)
+                        && pot.getInputs().get(0).getCount() == 2
+                        && pot.getInputs().get(8).is(Items.CARROT)
+                        && pot.getInputs().get(8).getCount() == 3
+                        && pot.getResult().is(Items.RABBIT_STEW)
+                        && pot.getResult().getCount() == 2,
+                "Pot lost Forge inputs, slot order, or result");
+        helper.assertTrue(pot.hasCarrier() && pot.getStatus() == PotBlockEntity.FINISHED
+                        && pot.getCurrentTick() == 37 && pot.getSeed() == 987654321L,
+                "Pot lost Forge Carrier or cooking state");
+        CompoundTag savedPot = pot.saveCustomOnly(helper.getLevel().registryAccess());
+        PotBlockEntity reloadedPot = new PotBlockEntity(potPos, ModBlocks.POT.defaultBlockState());
+        reloadedPot.loadCustomOnly(valueInput(helper, savedPot));
+        helper.assertTrue(reloadedPot.getInputs().get(8).is(Items.CARROT)
+                        && reloadedPot.getResult().is(Items.RABBIT_STEW) && reloadedPot.hasCarrier(),
+                "Pot changed its migrated inventory or Carrier after saving");
+
+        BlockPos stockpotPos = new BlockPos(2, 1, 1);
+        helper.setBlock(stockpotPos, ModBlocks.STOCKPOT);
+        StockpotBlockEntity stockpot = helper.getBlockEntity(stockpotPos, StockpotBlockEntity.class);
+        CompoundTag stockpotTag = new CompoundTag();
+        stockpotTag.put("Inputs", legacyItemHandler(9, Map.of(
+                1, legacyStack(Items.POTATO, 4),
+                7, legacyStack(Items.BEETROOT, 2))));
+        stockpotTag.putString("RecipeId", "kaleidoscope_cookery:stockpot/legacy_fixture");
+        stockpotTag.putString("SoupBaseId", "minecraft:water_bucket");
+        stockpotTag.put("Result", legacyStack(Items.BEETROOT_SOUP, 3));
+        stockpotTag.putInt("Status", 3);
+        stockpotTag.putInt("CurrentTick", 91);
+        stockpotTag.putInt("TakeoutCount", 6);
+        stockpotTag.put("LidItem", legacyStack(Items.IRON_INGOT, 1));
+        stockpot.loadCustomOnly(valueInput(helper, stockpotTag));
+        helper.assertTrue(stockpot.getInputs().get(1).is(Items.POTATO)
+                        && stockpot.getInputs().get(1).getCount() == 4
+                        && stockpot.getInputs().get(7).is(Items.BEETROOT)
+                        && stockpot.getResult().is(Items.BEETROOT_SOUP)
+                        && stockpot.getResult().getCount() == 3
+                        && stockpot.getLidItem().is(Items.IRON_INGOT),
+                "Stockpot lost Forge inputs, result, lid, or slot order");
+        helper.assertTrue(stockpot.getTakeoutCount() == 6
+                        && stockpot.getSoupBaseId().equals(Identifier.fromNamespaceAndPath("minecraft", "water")),
+                "Stockpot lost its takeout count or legacy soup-base alias migration");
+        StockpotBlockEntity reloadedStockpot = new StockpotBlockEntity(
+                stockpotPos, ModBlocks.STOCKPOT.defaultBlockState());
+        reloadedStockpot.loadCustomOnly(valueInput(helper,
+                stockpot.saveCustomOnly(helper.getLevel().registryAccess())));
+        helper.assertTrue(reloadedStockpot.getInputs().get(7).is(Items.BEETROOT)
+                        && reloadedStockpot.getResult().is(Items.BEETROOT_SOUP)
+                        && reloadedStockpot.getLidItem().is(Items.IRON_INGOT),
+                "Stockpot changed migrated stacks after saving");
+
+        BlockPos teapotPos = new BlockPos(3, 1, 1);
+        helper.setBlock(teapotPos, ModBlocks.TEAPOT);
+        TeapotBlockEntity teapot = helper.getBlockEntity(teapotPos, TeapotBlockEntity.class);
+        CompoundTag teapotTag = new CompoundTag();
+        teapotTag.put("Input", legacyStack(Items.WHEAT_SEEDS, 5));
+        teapotTag.putString("TeaFluidId", "minecraft:water");
+        teapotTag.put("Result", legacyStack(Items.POTION, 2));
+        teapotTag.putInt("Status", 2);
+        teapotTag.putInt("CurrentTick", 55);
+        teapot.loadCustomOnly(valueInput(helper, teapotTag));
+        helper.assertTrue(teapot.getInput().is(Items.WHEAT_SEEDS) && teapot.getInput().getCount() == 5
+                        && teapot.getResult().is(Items.POTION) && teapot.getResult().getCount() == 2
+                        && teapot.getTeaFluidId().equals(Identifier.fromNamespaceAndPath("minecraft", "water"))
+                        && teapot.getStatus() == 2 && teapot.getCurrentTick() == 55,
+                "Teapot lost Forge input, result, fluid, or processing state");
+        TeapotBlockEntity reloadedTeapot = new TeapotBlockEntity(teapotPos, ModBlocks.TEAPOT.defaultBlockState());
+        reloadedTeapot.loadCustomOnly(valueInput(helper,
+                teapot.saveCustomOnly(helper.getLevel().registryAccess())));
+        helper.assertTrue(reloadedTeapot.getInput().is(Items.WHEAT_SEEDS)
+                        && reloadedTeapot.getResult().is(Items.POTION),
+                "Teapot changed migrated stacks after saving");
+
+        BlockPos boardPos = new BlockPos(4, 1, 1);
+        helper.setBlock(boardPos, ModBlocks.CHOPPING_BOARD);
+        ChoppingBoardBlockEntity board = helper.getBlockEntity(boardPos, ChoppingBoardBlockEntity.class);
+        CompoundTag boardTag = new CompoundTag();
+        boardTag.putString("ModelId", "kaleidoscope_cookery:block/chopping_board/legacy_fixture");
+        boardTag.put("CurrentCutStack", legacyStack(Items.COD, 2));
+        boardTag.put("ResultItem", legacyStack(Items.COOKED_COD, 3));
+        boardTag.putInt("MaxCutCount", 4);
+        boardTag.putInt("CurrentCutCount", 4);
+        board.loadCustomOnly(valueInput(helper, boardTag));
+        helper.assertTrue(board.getCurrentCutStack().is(Items.COD)
+                        && board.getCurrentCutStack().getCount() == 2
+                        && board.getStoredDrops().getFirst().is(Items.COOKED_COD)
+                        && board.getStoredDrops().getFirst().getCount() == 3
+                        && board.getMaxCutCount() == 4 && board.getCurrentCutCount() == 4,
+                "Chopping board lost Forge stacks or cut progress");
+        ChoppingBoardBlockEntity reloadedBoard = new ChoppingBoardBlockEntity(
+                boardPos, ModBlocks.CHOPPING_BOARD.defaultBlockState());
+        reloadedBoard.loadCustomOnly(valueInput(helper,
+                board.saveCustomOnly(helper.getLevel().registryAccess())));
+        helper.assertTrue(reloadedBoard.getCurrentCutStack().is(Items.COD)
+                        && reloadedBoard.getStoredDrops().getFirst().is(Items.COOKED_COD),
+                "Chopping board changed migrated stacks after saving");
+
+        BlockPos racksPos = new BlockPos(5, 1, 1);
+        helper.setBlock(racksPos, ModBlocks.KITCHENWARE_RACKS);
+        KitchenwareRacksBlockEntity racks = helper.getBlockEntity(racksPos, KitchenwareRacksBlockEntity.class);
+        CompoundTag racksTag = new CompoundTag();
+        racksTag.put("LeftItem", legacyStack(Items.WOODEN_SHOVEL, 1));
+        racksTag.put("RightItem", legacyStack(Items.IRON_SWORD, 1));
+        racks.loadCustomOnly(valueInput(helper, racksTag));
+        helper.assertTrue(racks.getItemLeft().is(Items.WOODEN_SHOVEL)
+                        && racks.getItemRight().is(Items.IRON_SWORD),
+                "Kitchenware racks lost Forge left/right slot order");
+        KitchenwareRacksBlockEntity reloadedRacks = new KitchenwareRacksBlockEntity(
+                racksPos, ModBlocks.KITCHENWARE_RACKS.defaultBlockState());
+        reloadedRacks.loadCustomOnly(valueInput(helper,
+                racks.saveCustomOnly(helper.getLevel().registryAccess())));
+        helper.assertTrue(reloadedRacks.getItemLeft().is(Items.WOODEN_SHOVEL)
+                        && reloadedRacks.getItemRight().is(Items.IRON_SWORD),
+                "Kitchenware racks changed migrated slots after saving");
+
+        BlockPos shawarmaPos = new BlockPos(6, 1, 1);
+        helper.setBlock(shawarmaPos, ModBlocks.SHAWARMA_SPIT);
+        ShawarmaSpitBlockEntity shawarma = helper.getBlockEntity(shawarmaPos, ShawarmaSpitBlockEntity.class);
+        CompoundTag shawarmaTag = new CompoundTag();
+        shawarmaTag.put("CookingItem", legacyStack(Items.BEEF, 6));
+        shawarmaTag.put("CookedItem", legacyStack(Items.COOKED_BEEF, 6));
+        shawarmaTag.putInt("CookTime", 123);
+        shawarma.loadCustomOnly(valueInput(helper, shawarmaTag));
+        helper.assertTrue(shawarma.getStoredItem().is(Items.BEEF)
+                        && shawarma.getStoredItem().getCount() == 6 && shawarma.getCookTime() == 123,
+                "Shawarma spit lost its Forge cooking stack or timer");
+        shawarmaTag.remove("CookingItem");
+        shawarma.loadCustomOnly(valueInput(helper, shawarmaTag));
+        helper.assertTrue(shawarma.getStoredItem().is(Items.COOKED_BEEF)
+                        && shawarma.getStoredItem().getCount() == 6,
+                "Shawarma spit lost its Forge cooked output stack");
+        ShawarmaSpitBlockEntity reloadedShawarma = new ShawarmaSpitBlockEntity(
+                shawarmaPos, ModBlocks.SHAWARMA_SPIT.defaultBlockState());
+        reloadedShawarma.loadCustomOnly(valueInput(helper,
+                shawarma.saveCustomOnly(helper.getLevel().registryAccess())));
+        helper.assertTrue(reloadedShawarma.getStoredItem().is(Items.COOKED_BEEF)
+                        && reloadedShawarma.getStoredItem().getCount() == 6
+                        && reloadedShawarma.getCookTime() == 123,
+                "Shawarma spit changed its migrated output or timer after saving");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void entitiesReadAndResaveForgePersistentData(GameTestHelper helper) {
+        ScarecrowEntity scarecrow = new ScarecrowEntity(ModEntities.SCARECROW, helper.getLevel());
+        CompoundTag shoulder = new CompoundTag();
+        shoulder.putString("id", "minecraft:parrot");
+        shoulder.putInt("Variant", 3);
+        CompoundTag scarecrowTag = new CompoundTag();
+        scarecrowTag.put("HandItems", legacyItemHandler(2, Map.of(
+                0, legacyStack(Items.STICK, 2),
+                1, legacyStack(Items.SHIELD, 1))));
+        scarecrowTag.put("ArmorItems", legacyItemHandler(4, Map.of(
+                0, legacyStack(Items.IRON_BOOTS, 1),
+                3, legacyStack(Items.IRON_HELMET, 1))));
+        scarecrowTag.put("ShoulderEntity", shoulder);
+        scarecrow.readAdditionalSaveData(valueInput(helper, scarecrowTag));
+        helper.assertTrue(scarecrow.getItemBySlot(EquipmentSlot.MAINHAND).is(Items.STICK)
+                        && scarecrow.getItemBySlot(EquipmentSlot.MAINHAND).getCount() == 2
+                        && scarecrow.getItemBySlot(EquipmentSlot.OFFHAND).is(Items.SHIELD)
+                        && scarecrow.getItemBySlot(EquipmentSlot.FEET).is(Items.IRON_BOOTS)
+                        && scarecrow.getItemBySlot(EquipmentSlot.HEAD).is(Items.IRON_HELMET),
+                "Scarecrow lost Forge hand/armor handler stacks or slot order");
+        helper.assertTrue(scarecrow.getShoulderEntity().getIntOr("Variant", -1) == 3,
+                "Scarecrow lost its persisted shoulder entity");
+
+        CompoundTag forgeParrotTag = shoulder.copy();
+        forgeParrotTag.putFloat("Health", 4.5F);
+        forgeParrotTag.putIntArray("UUID", UUIDUtil.uuidToIntArray(
+                UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")));
+        var restoredShoulder = net.minecraft.world.entity.EntityType.create(
+                        valueInput(helper, forgeParrotTag), helper.getLevel(),
+                        new EntitySpawnRequest(EntitySpawnReason.LOAD, false))
+                .orElseThrow(() -> helper.assertionException(
+                        "Forge 1.20.1 ShoulderEntity could not be created by the current release path"));
+        helper.assertTrue(restoredShoulder instanceof Parrot parrot
+                        && parrot.getVariant() == Parrot.Variant.YELLOW_BLUE
+                        && parrot.getHealth() == 4.5F,
+                "Forge 1.20.1 ShoulderEntity lost its integer Variant or health while loading");
+
+        TagValueOutput scarecrowOutput = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess());
+        scarecrow.addAdditionalSaveData(scarecrowOutput);
+        ScarecrowEntity reloadedScarecrow = new ScarecrowEntity(ModEntities.SCARECROW, helper.getLevel());
+        reloadedScarecrow.readAdditionalSaveData(valueInput(helper, scarecrowOutput.buildResult()));
+        helper.assertTrue(reloadedScarecrow.getItemBySlot(EquipmentSlot.MAINHAND).is(Items.STICK)
+                        && reloadedScarecrow.getItemBySlot(EquipmentSlot.HEAD).is(Items.IRON_HELMET)
+                        && reloadedScarecrow.getShoulderEntity().getIntOr("Variant", -1) == 3,
+                "Scarecrow changed migrated equipment or shoulder data after saving");
+
+        CompoundTag replacement = new CompoundTag();
+        replacement.put("HandItems", legacyItemHandler(2,
+                Map.of(1, legacyStack(Items.TORCH, 1))));
+        replacement.put("ArmorItems", legacyItemHandler(4, Map.of()));
+        reloadedScarecrow.readAdditionalSaveData(valueInput(helper, replacement));
+        helper.assertTrue(reloadedScarecrow.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty()
+                        && reloadedScarecrow.getItemBySlot(EquipmentSlot.OFFHAND).is(Items.TORCH)
+                        && reloadedScarecrow.getItemBySlot(EquipmentSlot.HEAD).isEmpty(),
+                "Scarecrow retained stale equipment while loading sparse Forge handlers");
+
+        ThrowableBaoziEntity throwable = new ThrowableBaoziEntity(ModEntities.THROWABLE_BAOZI, helper.getLevel());
+        CompoundTag throwableTag = new CompoundTag();
+        throwableTag.put("Item", legacyStack(Items.APPLE, 1));
+        throwable.readAdditionalSaveData(valueInput(helper, throwableTag));
+        helper.assertTrue(throwable.getItem().is(Items.APPLE),
+                "Throwable baozi replaced its Forge Item stack with the default baozi");
+        TagValueOutput throwableOutput = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess());
+        throwable.saveWithoutId(throwableOutput);
+        ThrowableBaoziEntity reloadedThrowable = new ThrowableBaoziEntity(
+                ModEntities.THROWABLE_BAOZI, helper.getLevel());
+        reloadedThrowable.readAdditionalSaveData(valueInput(helper, throwableOutput.buildResult()));
+        helper.assertTrue(reloadedThrowable.getItem().is(Items.APPLE),
+                "Throwable baozi changed its migrated Item stack after saving");
+
+        SitEntity seat = new SitEntity(helper.getLevel(), helper.absolutePos(new BlockPos(1, 1, 1)),
+                0.5, SitEntity.TRASH_CAN);
+        TagValueOutput seatOutput = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess());
+        seat.saveWithoutId(seatOutput);
+        CompoundTag seatTag = seatOutput.buildResult();
+        helper.assertValueEqual(seatTag.getIntOr("SitType", -1), SitEntity.TRASH_CAN,
+                "Seat no longer saves the legacy SitType integer field");
+        SitEntity reloadedSeat = new SitEntity(ModEntities.SIT, helper.getLevel());
+        reloadedSeat.load(valueInput(helper, seatTag));
+        helper.assertValueEqual(reloadedSeat.getSitType(), SitEntity.TRASH_CAN,
+                "Seat did not reload the legacy SitType value");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void generalConfigImportsLegacyForgeToml(GameTestHelper helper) {
+        GeneralConfig config = GeneralConfigTestAccess.fromLegacyToml("""
+                [unrelated]
+                SatiatedShieldAbsorbEnabled = true
+
+                [cookery]
+                SatiatedShieldAbsorbEnabled = false
+                SatiatedShieldAbsorbExcessDamage = false
+                IS_SATIATED_SHIELD_DISABLE_WHEN_HUNGRY_EFFECT = false
+                SATIATED_SHIELD_MIN_FOOD_LEVEL = 7
+                SATIATED_SHIELD_ADDITIONAL_EXHAUSTION_PER_DAMAGE = 3.5
+                SATIATED_SHIELD_DAMAGE_REDUCTION_PERCENT = 0.75 # inline comment
+                SATIATED_SHIELD_MAX_DAMAGE_REDUCTION = 48.0
+                SATIATED_SHIELD_MIN_DAMAGE = 1.25
+                SATIATED_SHIELD_WEAKNESS_DAMAGE_MULTIPLIER = 4.0
+                """);
+
+        helper.assertFalse(config.satiatedShieldAbsorbEnabled(),
+                "Legacy absorb-enabled setting was not imported from [cookery]");
+        helper.assertFalse(config.satiatedShieldAbsorbExcessDamage(),
+                "Legacy excess-damage setting was not imported");
+        helper.assertFalse(config.satiatedShieldDisableWhenHungryEffect(),
+                "Legacy Hunger-effect setting was not imported");
+        helper.assertValueEqual(config.satiatedShieldMinFoodLevel(), 7,
+                "Legacy minimum food level was not imported");
+        helper.assertValueEqual(config.satiatedShieldAdditionalExhaustionPerDamage(), 3.5,
+                "Legacy exhaustion-per-damage value was not imported");
+        helper.assertValueEqual(config.satiatedShieldDamageReductionPercent(), 0.75,
+                "Legacy damage-reduction percentage was not imported");
+        helper.assertValueEqual(config.satiatedShieldMaxDamageReduction(), 48.0,
+                "Legacy maximum damage reduction was not imported");
+        helper.assertValueEqual(config.satiatedShieldMinDamage(), 1.25,
+                "Legacy minimum damage was not imported");
+        helper.assertValueEqual(config.satiatedShieldWeaknessDamageMultiplier(), 4.0,
+                "Legacy weakness multiplier was not imported");
+
+        GeneralConfig invalid = GeneralConfigTestAccess.fromLegacyToml("""
+                [cookery]
+                SATIATED_SHIELD_MIN_FOOD_LEVEL = 0
+                SATIATED_SHIELD_ADDITIONAL_EXHAUSTION_PER_DAMAGE = 41.0
+                SATIATED_SHIELD_DAMAGE_REDUCTION_PERCENT = 1.5
+                SATIATED_SHIELD_MAX_DAMAGE_REDUCTION = -1.0
+                SATIATED_SHIELD_MIN_DAMAGE = -1.0
+                SATIATED_SHIELD_WEAKNESS_DAMAGE_MULTIPLIER = 0.5
+                """);
+        helper.assertValueEqual(invalid.satiatedShieldMinFoodLevel(), 4,
+                "Out-of-range legacy values did not fall back to Forge defaults");
+        helper.assertValueEqual(invalid.satiatedShieldAdditionalExhaustionPerDamage(), 2.0,
+                "Out-of-range exhaustion value did not fall back to the Forge default");
+        helper.assertValueEqual(invalid.satiatedShieldDamageReductionPercent(), 1.0,
+                "Out-of-range reduction percentage did not fall back to the Forge default");
+        helper.assertValueEqual(invalid.satiatedShieldMaxDamageReduction(), 64.0,
+                "Out-of-range maximum reduction did not fall back to the Forge default");
+        helper.assertValueEqual(invalid.satiatedShieldMinDamage(), 0.0,
+                "Out-of-range minimum damage did not fall back to the Forge default");
+        helper.assertValueEqual(invalid.satiatedShieldWeaknessDamageMultiplier(), 2.0,
+                "Out-of-range weakness multiplier did not fall back to the Forge default");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void clientTooltipConfigAndOptionalModPreserveForgeBehavior(GameTestHelper helper) {
+        ClientConfig disabled = ClientConfigTestAccess.fromLegacyToml("""
+                [unrelated]
+                ShowFoodEffectTooltips = true
+
+                [cookery]
+                ShowFoodEffectTooltips = false # preserve the Forge client key
+                """);
+        helper.assertFalse(disabled.showFoodEffectTooltips(),
+                "Legacy Forge client tooltip setting was not imported from [cookery]");
+
+        ClientConfig invalid = ClientConfigTestAccess.fromLegacyToml("""
+                [cookery]
+                ShowFoodEffectTooltips = sometimes
+                """);
+        helper.assertTrue(invalid.showFoodEffectTooltips(),
+                "Invalid legacy tooltip setting did not fall back to the Forge default");
+        helper.assertTrue(FoodEffectTooltipsCompatTestAccess.shouldShowCookeryEffectTooltips(true, false),
+                "Cookery effect tooltips were hidden without either suppression condition");
+        helper.assertFalse(FoodEffectTooltipsCompatTestAccess.shouldShowCookeryEffectTooltips(false, false),
+                "Disabled client config still showed Cookery effect tooltips");
+        helper.assertFalse(FoodEffectTooltipsCompatTestAccess.shouldShowCookeryEffectTooltips(true, true),
+                "Food Effect Tooltips installation did not suppress duplicate Cookery effect lines");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void farmersDelightCookingRecipeCompatUsesTargetApiWhenInstalled(GameTestHelper helper) {
+        if (!FabricLoader.getInstance().isModLoaded(FarmersDelightCompat.ID)) {
+            helper.succeed();
+            return;
+        }
+
+        record ExpectedRecipe(String path, String output, int ingredients, int time) {}
+        List<ExpectedRecipe> expectedRecipes = List.of(
+                new ExpectedRecipe("cooking/beef_stew", "beef_stew", 3, 200),
+                new ExpectedRecipe("cooking/dumplings", "dumplings", 4, 200),
+                new ExpectedRecipe("cooking/cabbage_rolls", "cabbage_rolls", 2, 100)
+        );
+        List<RecipeHolder<StockpotRecipe>> displayedRecipes = new ArrayList<>();
+        FarmersDelightCompat.appendStockpotRecipes(helper.getLevel(), displayedRecipes);
+
+        for (ExpectedRecipe expected : expectedRecipes) {
+            Identifier recipeId = Identifier.fromNamespaceAndPath("farmersdelight", expected.path());
+            ResourceKey<Recipe<?>> recipeKey = ResourceKey.create(Registries.RECIPE, recipeId);
+            RecipeHolder<?> raw = helper.getLevel().recipeAccess().byKey(recipeKey)
+                    .orElseThrow(() -> helper.assertionException(
+                            "Missing Farmer's Delight recipe " + recipeId));
+            RecipeHolder<StockpotRecipe> converted = FarmersDelightCompat.tryTransformRecipeHolder(
+                    raw, helper.getLevel());
+            helper.assertTrue(converted != null,
+                    "Farmer's Delight 26.2 CookingPotRecipe did not convert: " + recipeId);
+            StockpotRecipe recipe = converted.value();
+            helper.assertValueEqual(recipe.ingredients().size(), expected.ingredients(),
+                    "Converted Farmer's Delight recipe changed its ingredient count: " + recipeId);
+            helper.assertTrue(recipe.result().create().is(BuiltInRegistries.ITEM.getValue(
+                            Identifier.fromNamespaceAndPath("farmersdelight", expected.output()))),
+                    "Converted Farmer's Delight recipe changed its output: " + recipeId);
+            helper.assertValueEqual(recipe.time(), expected.time(),
+                    "Converted Farmer's Delight recipe changed its cooking time: " + recipeId);
+            helper.assertTrue(recipe.carrier().isPresent()
+                            && recipe.carrier().get().test(Items.BOWL.getDefaultInstance()),
+                    "Converted Farmer's Delight recipe did not retain its bowl container: " + recipeId);
+
+            List<ItemStack> inputs = recipe.ingredients().stream()
+                    .map(ingredient -> ingredient.items().findFirst().orElseThrow().value().getDefaultInstance())
+                    .toList();
+            RecipeHolder<StockpotRecipe> matched = FarmersDelightCompat.findMatchingRecipe(
+                    helper.getLevel(), new StockpotInput(inputs, StockpotRecipeSerializer.DEFAULT_SOUP_BASE));
+            helper.assertTrue(matched != null && matched.id().identifier().equals(recipeId),
+                    "Cookery stockpot input did not match the installed Farmer's Delight recipe: " + recipeId);
+            helper.assertTrue(displayedRecipes.stream()
+                            .anyMatch(holder -> holder.id().identifier().equals(recipeId)),
+                    "Recipe viewers did not receive the converted Farmer's Delight recipe: " + recipeId);
+        }
+        helper.succeed();
+    }
+
+    @GameTest
+    public void optionalCompatibilityTagsPreserveForgeMembership(GameTestHelper helper) {
+        helper.assertTrue(BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(EntityTypes.COD)
+                        .is(TagMod.RICE_GROWTH_BOOSTER),
+                "Cod no longer qualifies as a rice growth booster");
+        helper.assertFalse(BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(EntityTypes.COW)
+                        .is(TagMod.RICE_GROWTH_BOOSTER),
+                "Non-aquatic mobs unexpectedly qualify as rice growth boosters");
+
+        TagKey<Block> carryOnBlacklist = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("carryon", "block_blacklist"));
+        List<Identifier> missingCarryOnBlocks = BuiltInRegistries.BLOCK.entrySet().stream()
+                .filter(entry -> entry.getKey().identifier().getNamespace().equals(KaleidoscopeCookery.MOD_ID))
+                .filter(entry -> !entry.getValue().defaultBlockState().is(carryOnBlacklist))
+                .map(entry -> entry.getKey().identifier())
+                .toList();
+        helper.assertTrue(missingCarryOnBlocks.isEmpty(),
+                "Carry On blacklist omitted Cookery blocks: %s".formatted(missingCarryOnBlocks));
+
+        TagKey<Block> springCrops = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("sereneseasons", "spring_crops"));
+        TagKey<Block> summerCrops = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("sereneseasons", "summer_crops"));
+        TagKey<Block> autumnCrops = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("sereneseasons", "autumn_crops"));
+        helper.assertTrue(ModBlocks.LETTUCE_CROP.defaultBlockState().is(springCrops),
+                "Serene Seasons spring crops lost lettuce");
+        helper.assertTrue(ModBlocks.TOMATO_CROP.defaultBlockState().is(summerCrops)
+                        && ModBlocks.CHILI_CROP.defaultBlockState().is(summerCrops)
+                        && ModBlocks.RICE_CROP.defaultBlockState().is(summerCrops),
+                "Serene Seasons summer crops lost tomato, chili, or rice");
+        helper.assertTrue(ModBlocks.TOMATO_CROP.defaultBlockState().is(autumnCrops)
+                        && ModBlocks.CHILI_CROP.defaultBlockState().is(autumnCrops)
+                        && ModBlocks.RICE_CROP.defaultBlockState().is(autumnCrops)
+                        && ModBlocks.LETTUCE_CROP.defaultBlockState().is(autumnCrops),
+                "Serene Seasons autumn crops lost a Cookery crop");
+
+        TagKey<Item> eggs = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "eggs"));
+        TagKey<Item> rawMeats = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "raw_meats"));
+        TagKey<Item> seeds = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "seeds"));
+        TagKey<Item> commonKnives = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "tools/knives"));
+        helper.assertTrue(ModItems.FRIED_EGG.getDefaultInstance().is(eggs),
+                "The c:eggs migration lost the Forge-baseline fried egg");
+        helper.assertTrue(ModItems.RAW_CUT_SMALL_MEATS.getDefaultInstance().is(rawMeats),
+                "The c:raw_meats migration lost the Forge-baseline small meat cuts");
+        helper.assertTrue(ModItems.WILD_RICE_SEED.getDefaultInstance().is(seeds)
+                        && ModItems.RICE_SEED.getDefaultInstance().is(seeds),
+                "The c:seeds migration lost wild rice or rice");
+        helper.assertTrue(ModItems.IRON_KITCHEN_KNIFE.getDefaultInstance().is(commonKnives)
+                        && ModItems.GOLD_KITCHEN_KNIFE.getDefaultInstance().is(commonKnives)
+                        && ModItems.DIAMOND_KITCHEN_KNIFE.getDefaultInstance().is(commonKnives)
+                        && ModItems.NETHERITE_KITCHEN_KNIFE.getDefaultInstance().is(commonKnives),
+                "The c:tools/knives migration lost a Cookery kitchen knife");
+
+        TagKey<Block> ultimineExcluded = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("ftbultimine", "excluded_blocks"));
+        TagKey<Block> ultimineSingleCropBlacklist = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath(
+                        "ftbultimine", "single_crop_harvesting_blacklist"));
+        helper.assertTrue(ModBlocks.RICE_CROP.defaultBlockState().is(ultimineExcluded)
+                        && ModBlocks.RICE_CROP.defaultBlockState().is(ultimineSingleCropBlacklist),
+                "FTB Ultimine tags no longer protect the multi-block rice crop");
+
+        TagKey<Block> heatSources = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("farmersdelight", "heat_sources"));
+        TagKey<Item> knives = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("farmersdelight", "tools/knives"));
+        helper.assertTrue(ModBlocks.STOVE.defaultBlockState().is(heatSources),
+                "Farmer's Delight heat sources lost the Cookery stove");
+        helper.assertTrue(ModItems.IRON_KITCHEN_KNIFE.getDefaultInstance().is(knives)
+                        && ModItems.GOLD_KITCHEN_KNIFE.getDefaultInstance().is(knives)
+                        && ModItems.DIAMOND_KITCHEN_KNIFE.getDefaultInstance().is(knives)
+                        && ModItems.NETHERITE_KITCHEN_KNIFE.getDefaultInstance().is(knives),
+                "Farmer's Delight knife tag lost a Cookery kitchen knife");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void oilBlockPreservesForgeNonStickyPistonBehavior(GameTestHelper helper) {
+        try {
+            Method isSticky = PistonStructureResolver.class.getDeclaredMethod("isSticky", BlockState.class);
+            Method canStick = PistonStructureResolver.class.getDeclaredMethod(
+                    "canStickToEachOther", BlockState.class, BlockState.class);
+            isSticky.setAccessible(true);
+            canStick.setAccessible(true);
+
+            BlockState oil = ModBlocks.OIL_BLOCK.defaultBlockState();
+            helper.assertFalse((boolean) isSticky.invoke(null, oil),
+                    "Oil block became sticky even though both Forge baselines return false");
+            for (BlockState other : List.of(
+                    Blocks.STONE.defaultBlockState(),
+                    Blocks.SLIME_BLOCK.defaultBlockState(),
+                    Blocks.HONEY_BLOCK.defaultBlockState())) {
+                helper.assertFalse((boolean) canStick.invoke(null, oil, other),
+                        "Oil block stuck to " + other.getBlock());
+                helper.assertFalse((boolean) canStick.invoke(null, other, oil),
+                        "Block stuck to oil in the reverse argument order: " + other.getBlock());
+            }
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError("Could not inspect Minecraft 26.2 piston adhesion methods", exception);
+        }
+        helper.succeed();
+    }
+
+    @GameTest
+    public void scarecrowOnlyPreventsEntityFarmlandTrampling(GameTestHelper helper) {
+        BlockPos farmlandPos = new BlockPos(1, 1, 1);
+        BlockPos absoluteFarmlandPos = helper.absolutePos(farmlandPos);
+        helper.spawn(ModEntities.SCARECROW, new BlockPos(3, 1, 1));
+
+        helper.setBlock(farmlandPos, Blocks.FARMLAND.defaultBlockState());
+        FarmlandBlock.turnToDirt(
+                null, helper.getBlockState(farmlandPos), helper.getLevel(), absoluteFarmlandPos);
+        helper.assertBlockPresent(Blocks.DIRT, farmlandPos);
+
+        helper.setBlock(farmlandPos, Blocks.FARMLAND.defaultBlockState());
+        Player trampler = helper.makeMockPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, trampler, new BlockPos(1, 2, 1));
+        FarmlandBlock.turnToDirt(
+                trampler, helper.getBlockState(farmlandPos), helper.getLevel(), absoluteFarmlandPos);
+        helper.assertBlockPresent(Blocks.FARMLAND, farmlandPos);
+        helper.succeed();
+    }
+
+    @GameTest
+    public void droppedFlourHydratesEveryTenTicksWithoutLosingCount(GameTestHelper helper) {
+        BlockPos waterPos = new BlockPos(1, 1, 1);
+        BlockPos absoluteWaterPos = helper.absolutePos(waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+        ItemEntity flour = new ItemEntity(
+                helper.getLevel(),
+                absoluteWaterPos.getX() + 0.5,
+                absoluteWaterPos.getY() + 0.2,
+                absoluteWaterPos.getZ() + 0.5,
+                new ItemStack(ModItems.FLOUR, 7));
+        flour.setDeltaMovement(Vec3.ZERO);
+        helper.assertTrue(helper.getLevel().addFreshEntity(flour),
+                "Flour item entity could not be added to the test world");
+
+        helper.runAfterDelay(12, () -> {
+            helper.assertTrue(flour.getItem().is(ModItems.RAW_DOUGH),
+                    "Flour did not hydrate after its tenth item-entity tick");
+            helper.assertValueEqual(flour.getItem().getCount(), 7,
+                    "Flour hydration changed the dropped stack count");
+            helper.succeed();
+        });
+    }
+
+    @GameTest
+    public void fallingSteamerTimeoutDropsBothLayersAndDiscardsEntity(GameTestHelper helper) {
+        BlockPos sourcePos = new BlockPos(3, 4, 3);
+        BlockPos absoluteSourcePos = helper.absolutePos(sourcePos);
+        BlockState state = ModBlocks.STEAMER.defaultBlockState().setValue(SteamerBlock.HALF, false);
+        helper.setBlock(sourcePos, state);
+
+        FallingBlockEntity falling = FallingBlockEntity.fall(helper.getLevel(), absoluteSourcePos, state);
+        CompoundTag data = legacyItemHandler(8, Map.of(
+                0, legacyStack(Items.POTATO, 2),
+                6, legacyStack(Items.CARROT, 3)));
+        data.putIntArray(SteamerBlockEntity.COOKING_PROGRESS_TAG,
+                new int[]{11, 0, 0, 0, 0, 0, 17, 0});
+        data.putIntArray(SteamerBlockEntity.COOKING_TIME_TAG,
+                new int[]{40, 0, 0, 0, 0, 0, 80, 0});
+        falling.blockData = data;
+        falling.time = 600;
+        falling.setNoGravity(true);
+
+        falling.tick();
+
+        helper.assertTrue(falling.isRemoved(),
+                "Cancelling the timeout drop left the falling steamer entity alive");
+        List<ItemStack> steamerDrops = helper.getLevel().getEntitiesOfClass(
+                        ItemEntity.class, new AABB(absoluteSourcePos).inflate(3.0),
+                        entity -> entity.getItem().is(ModItems.STEAMER))
+                .stream().map(ItemEntity::getItem).toList();
+        helper.assertValueEqual(steamerDrops.size(), 2,
+                "A full falling steamer did not split into two item drops");
+
+        boolean foundLowerLayer = false;
+        boolean foundUpperLayer = false;
+        for (ItemStack drop : steamerDrops) {
+            TypedEntityData<?> typedData = drop.get(DataComponents.BLOCK_ENTITY_DATA);
+            helper.assertTrue(typedData != null, "A non-empty steamer layer lost its block-entity data");
+            helper.assertValueEqual(drop.get(DataComponents.MAX_STACK_SIZE), 1,
+                    "A filled steamer drop lost its single-stack component");
+            CompoundTag dropTag = typedData.copyTagWithoutId();
+            NonNullList<ItemStack> items = NonNullList.withSize(4, ItemStack.EMPTY);
+            LegacyItemStackCompat.loadAllItems(valueInput(helper, dropTag), items);
+            int[] progress = dropTag.getIntArray(SteamerBlockEntity.COOKING_PROGRESS_TAG).orElseThrow();
+            int[] times = dropTag.getIntArray(SteamerBlockEntity.COOKING_TIME_TAG).orElseThrow();
+            foundLowerLayer |= items.get(0).is(Items.POTATO)
+                    && items.get(0).getCount() == 2 && progress[0] == 11 && times[0] == 40;
+            foundUpperLayer |= items.get(2).is(Items.CARROT)
+                    && items.get(2).getCount() == 3 && progress[2] == 17 && times[2] == 80;
+        }
+        helper.assertTrue(foundLowerLayer && foundUpperLayer,
+                "Falling steamer drops did not preserve both layers and their cooking progress");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void tundraStriderPreservesSpeedAndPowderSnowSemantics(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 2, 2));
+        helper.setBlock(new BlockPos(2, 1, 2), Blocks.ICE);
+        helper.assertFalse(PowderSnowBlock.canEntityWalkOnPowderSnow(player),
+                "Control player unexpectedly walked on powder snow");
+
+        player.getActiveEffectsMap().put(ModEffects.TUNDRA_STRIDER,
+                new MobEffectInstance(ModEffects.TUNDRA_STRIDER, 200));
+        helper.assertTrue(PowderSnowBlock.canEntityWalkOnPowderSnow(player),
+                "Tundra Strider did not grant the Forge powder-snow exception");
+        try {
+            Method speedFactor = net.minecraft.world.entity.LivingEntity.class
+                    .getDeclaredMethod("getBlockSpeedFactor");
+            speedFactor.setAccessible(true);
+            float actual = (float) speedFactor.invoke(player);
+            float friction = Blocks.ICE.getFriction();
+            float expected = 1.1F + Math.max(1.0F - friction, 0.0F) * 0.5F;
+            helper.assertValueEqual(actual, expected,
+                    "Tundra Strider speed factor no longer matches the Forge formula");
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError("Could not inspect the Minecraft 26.2 block speed factor", exception);
+        }
+        helper.succeed();
+    }
+
+    @GameTest
+    public void projectileDodgeSkipsImpactAndPreservesEffectFlags(GameTestHelper helper) {
+        Player target = helper.makeMockPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, target, new BlockPos(3, 1, 3));
+        MobEffectInstance dodge = new MobEffectInstance(
+                ModEffects.PROJECTILE_DODGE, 500, 2, true, false, false);
+        target.getActiveEffectsMap().put(ModEffects.PROJECTILE_DODGE, dodge);
+        ThrowableBaoziEntity projectile = new ThrowableBaoziEntity(helper.getLevel(), target);
+        projectile.setPos(target.getX(), target.getY(), target.getZ());
+
+        ProjectileDeflection result = invokeProjectileImpact(projectile, new EntityHitResult(target));
+        MobEffectInstance remaining = target.getEffect(ModEffects.PROJECTILE_DODGE);
+        helper.assertValueEqual(result, ProjectileDeflection.NONE,
+                "Projectile dodge did not return the 26.2 skip-impact sentinel");
+        helper.assertFalse(projectile.isRemoved(),
+                "Projectile dodge still ran the original baozi impact");
+        helper.assertTrue(remaining != null && remaining.getDuration() == 300,
+                "Projectile dodge did not consume exactly 200 effect ticks");
+        helper.assertTrue(remaining.getAmplifier() == 2 && remaining.isAmbient()
+                        && !remaining.isVisible() && !remaining.showIcon(),
+                "Projectile dodge changed the effect amplifier or display flags");
+
+        Player control = helper.makeMockPlayer(GameType.SURVIVAL);
+        ThrowableBaoziEntity controlProjectile = new ThrowableBaoziEntity(helper.getLevel(), control);
+        invokeProjectileImpact(controlProjectile, new EntityHitResult(control));
+        helper.assertTrue(controlProjectile.isRemoved(),
+                "Projectile impact was skipped without the dodge effect");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void villagePoolsContainKitchenStructuresAtForgeWeight(GameTestHelper helper) {
+        Map<String, String> kitchens = Map.of(
+                "village/plains/houses", "village/houses/plains_kitchen",
+                "village/snowy/houses", "village/houses/snowy_kitchen",
+                "village/savanna/houses", "village/houses/savanna_kitchen",
+                "village/desert/houses", "village/houses/desert_kitchen",
+                "village/taiga/houses", "village/houses/taiga_kitchen");
+        var templatePools = helper.getLevel().registryAccess().lookupOrThrow(Registries.TEMPLATE_POOL);
+        for (Map.Entry<String, String> kitchen : kitchens.entrySet()) {
+            StructureTemplatePool pool = templatePools.getValueOrThrow(ResourceKey.create(
+                    Registries.TEMPLATE_POOL, vanillaId(kitchen.getKey())));
+            Identifier structureId = id(kitchen.getValue());
+            long expandedWeight = pool.templates.stream()
+                    .filter(element -> element instanceof SinglePoolElement single
+                            && single.getTemplateLocation().equals(structureId))
+                    .count();
+            long rawEntries = pool.rawTemplates.stream()
+                    .filter(entry -> entry.getFirst() instanceof SinglePoolElement single
+                            && single.getTemplateLocation().equals(structureId)
+                            && entry.getSecond() == 4)
+                    .count();
+            helper.assertValueEqual(expandedWeight, 4L,
+                    "Village kitchen expanded weight changed for " + kitchen.getKey());
+            helper.assertValueEqual(rawEntries, 1L,
+                    "Village kitchen raw pool entry changed for " + kitchen.getKey());
+        }
+        helper.succeed();
+    }
+
+    @GameTest
+    public void preservationRemovesOnlyFoodEffectsAfterConsumption(GameTestHelper helper) {
+        ItemStack poisonousApple = new ItemStack(Items.APPLE);
+        poisonousApple.set(DataComponents.CONSUMABLE, Consumable.builder()
+                .consumeSeconds(0.05F)
+                .onConsume(new ApplyStatusEffectsConsumeEffect(
+                        new MobEffectInstance(MobEffects.POISON, 200)))
+                .build());
+        helper.assertTrue(!poisonousApple.is(TagMod.PRESERVATION_FOOD),
+                "Preservation behavior test unexpectedly uses the narrowed compatibility tag");
+
+        Player protectedPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        protectedPlayer.getActiveEffectsMap().put(ModEffects.PRESERVATION,
+                new MobEffectInstance(ModEffects.PRESERVATION, 200));
+        protectedPlayer.getActiveEffectsMap().put(MobEffects.HUNGER,
+                new MobEffectInstance(MobEffects.HUNGER, 200));
+        protectedPlayer.setItemInHand(InteractionHand.MAIN_HAND, poisonousApple.copy());
+        protectedPlayer.startUsingItem(InteractionHand.MAIN_HAND);
+        invokeCompleteUsingItem(protectedPlayer);
+
+        helper.assertTrue(!protectedPlayer.hasEffect(MobEffects.POISON),
+                "Preservation did not remove the harmful effect applied by completed food consumption");
+        helper.assertTrue(protectedPlayer.hasEffect(MobEffects.HUNGER),
+                "Preservation removed an unrelated pre-existing harmful effect");
+
+        Player control = helper.makeMockPlayer(GameType.SURVIVAL);
+        control.setItemInHand(InteractionHand.MAIN_HAND, poisonousApple.copy());
+        control.startUsingItem(InteractionHand.MAIN_HAND);
+        invokeCompleteUsingItem(control);
+        helper.assertTrue(control.hasEffect(MobEffects.POISON),
+                "The food control did not apply its harmful effect before Preservation handling");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void farmerArmorUsesLivingEntityTickCadence(GameTestHelper helper) {
+        Zombie armoredZombie = createFarmerArmorZombie(helper, new BlockPos(1, 1, 1), true);
+        armoredZombie.tickCount = 20;
+        armoredZombie.tick();
+        MobEffectInstance dolphinsGrace = armoredZombie.getEffect(MobEffects.DOLPHINS_GRACE);
+        helper.assertTrue(dolphinsGrace != null && dolphinsGrace.getDuration() == 25,
+                "A non-player living entity did not receive the 25-tick full farmer armor effect at tick 20");
+
+        Zombie incompleteZombie = createFarmerArmorZombie(helper, new BlockPos(3, 1, 1), false);
+        incompleteZombie.tickCount = 20;
+        incompleteZombie.tick();
+        helper.assertTrue(!incompleteZombie.hasEffect(MobEffects.DOLPHINS_GRACE),
+                "Incomplete farmer armor granted Dolphin's Grace to a non-player living entity");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void trashCanPassengerCannotBecomeMobTarget(GameTestHelper helper) {
+        BlockPos seatPos = helper.absolutePos(new BlockPos(1, 1, 1));
+        SitEntity trashCanSeat = new SitEntity(helper.getLevel(), seatPos, 0.875, SitEntity.TRASH_CAN);
+        helper.assertTrue(helper.getLevel().addFreshEntity(trashCanSeat),
+                "Trash-can seat could not be added to the test world");
+        Player hiddenPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        hiddenPlayer.setPos(Vec3.atCenterOf(seatPos));
+        helper.assertTrue(hiddenPlayer.startRiding(trashCanSeat, true, true),
+                "Test player could not mount the trash-can seat");
+
+        Zombie zombie = new Zombie(helper.getLevel());
+        zombie.setTarget(hiddenPlayer);
+        helper.assertTrue(zombie.getTarget() == null,
+                "Mob acquired a player already hiding in a trash can");
+
+        Player visiblePlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        zombie.setTarget(visiblePlayer);
+        helper.assertTrue(zombie.getTarget() == visiblePlayer,
+                "Trash-can target prevention rejected a visible control player");
+        zombie.setTarget(hiddenPlayer);
+        helper.assertTrue(zombie.getTarget() == visiblePlayer,
+                "Rejected trash-can targeting replaced the mob's existing target");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void enamelBasinReturnsStoredOilAndBasin(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.ENAMEL_BASIN.defaultBlockState()
+                .setValue(EnamelBasinBlock.OIL_COUNT, 13));
+        BlockPos absolutePos = helper.absolutePos(pos);
+
+        helper.assertTrue(helper.getLevel().destroyBlock(absolutePos, true),
+                "Filled enamel basin could not be destroyed");
+        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(
+                ItemEntity.class, new AABB(absolutePos).inflate(2.0));
+        int oilCount = drops.stream()
+                .filter(entity -> entity.getItem().is(ModItems.OIL))
+                .mapToInt(entity -> entity.getItem().getCount())
+                .sum();
+        int basinCount = drops.stream()
+                .filter(entity -> entity.getItem().is(ModItems.ENAMEL_BASIN))
+                .mapToInt(entity -> entity.getItem().getCount())
+                .sum();
+
+        helper.assertValueEqual(oilCount, 13,
+                "Breaking an enamel basin did not return every stored Forge oil unit");
+        helper.assertValueEqual(basinCount, 1,
+                "Breaking an enamel basin did not return the basin item");
         helper.succeed();
     }
 
@@ -650,6 +2033,108 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
+    public void teapotTransfersOneBucketThroughGenericFabricFluidStorage(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.TEAPOT);
+        TeapotBlockEntity teapot = helper.getBlockEntity(pos, TeapotBlockEntity.class);
+        Cow user = helper.spawn(EntityTypes.COW, new BlockPos(2, 1, 1));
+        SingleVariantStorage<FluidVariant> tank = new SingleVariantStorage<>() {
+            @Override
+            protected FluidVariant getBlankVariant() {
+                return FluidVariant.blank();
+            }
+
+            @Override
+            protected long getCapacity(FluidVariant variant) {
+                return FluidConstants.BUCKET * 2;
+            }
+        };
+        tank.variant = FluidVariant.of(Fluids.WATER);
+        tank.amount = FluidConstants.BUCKET - 1;
+
+        helper.assertFalse(teapot.addTeaFluid(helper.getLevel(), user, tank),
+                "Teapot accepted less than one Fabric bucket unit");
+        helper.assertValueEqual(tank.amount, FluidConstants.BUCKET - 1,
+                "Failed teapot transfer changed the source storage");
+
+        tank.amount = FluidConstants.BUCKET;
+        helper.assertTrue(teapot.addTeaFluid(helper.getLevel(), user, tank),
+                "Teapot rejected a generic Fabric fluid storage");
+        helper.assertValueEqual(teapot.getTeaFluidId(), vanillaId("water"),
+                "Generic Fabric transfer stored the wrong fluid");
+        helper.assertValueEqual(tank.amount, 0L,
+                "Teapot did not extract exactly one Fabric bucket unit");
+
+        helper.assertTrue(teapot.removeTeaFluid(helper.getLevel(), user, tank),
+                "Teapot could not return fluid to a generic Fabric storage");
+        helper.assertValueEqual(tank.getResource(), FluidVariant.of(Fluids.WATER),
+                "Teapot returned the wrong fluid variant");
+        helper.assertValueEqual(tank.amount, FluidConstants.BUCKET,
+                "Teapot did not insert exactly one Fabric bucket unit");
+        helper.assertValueEqual(teapot.getTeaFluidId(), TeapotRecipeSerializer.EMPTY_TEA_FLUID,
+                "Teapot retained fluid after a generic storage extraction");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void heldTeapotStoresFluidAndSneakAttackClearsIt(GameTestHelper helper) {
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack teapot = new ItemStack(ModItems.TEAPOT);
+        player.setItemInHand(InteractionHand.MAIN_HAND, teapot);
+
+        helper.assertTrue(TeapotItem.fillFluid(teapot, Fluids.WATER, player),
+                "Held teapot rejected a valid water source");
+        TypedEntityData<?> data = teapot.get(DataComponents.BLOCK_ENTITY_DATA);
+        helper.assertTrue(data != null, "Held teapot did not store block entity data");
+        helper.assertValueEqual(data.copyTagWithoutId().getString(TeapotBlockEntity.TEA_FLUID_ID).orElse(""),
+                vanillaId("water").toString(), "Held teapot stored the wrong fluid ID");
+        helper.assertValueEqual(teapot.get(DataComponents.MAX_STACK_SIZE), 1,
+                "Filled teapot did not retain its single-stack component");
+        helper.assertFalse(TeapotItem.fillFluid(teapot, Fluids.LAVA, player),
+                "Held teapot accepted a second fluid");
+
+        player.setShiftKeyDown(true);
+        BlockPos target = helper.absolutePos(new BlockPos(1, 1, 1));
+        InteractionResult clearResult = AttackBlockCallback.EVENT.invoker().interact(
+                player, helper.getLevel(), InteractionHand.MAIN_HAND, target, Direction.UP);
+
+        helper.assertValueEqual(clearResult, InteractionResult.SUCCESS,
+                "Sneak-attacking a block with a teapot did not cancel the attack");
+        helper.assertTrue(teapot.get(DataComponents.BLOCK_ENTITY_DATA) == null,
+                "Sneak-attacking a block did not clear the held teapot");
+        helper.assertTrue(teapot.get(DataComponents.MAX_STACK_SIZE) == null,
+                "Cleared teapot retained its temporary max-stack component");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void finishedHeldTeapotPoursOnEntities(GameTestHelper helper) {
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        Chicken target = helper.spawn(EntityTypes.CHICKEN, new BlockPos(1, 1, 1));
+        ItemStack teapot = new ItemStack(ModItems.TEAPOT);
+        TagValueOutput output = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess());
+        output.putInt(TeapotBlockEntity.STATUS, com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.ITeapot.FINISHED);
+        output.store(TeapotBlockEntity.RESULT, ItemStack.CODEC, new ItemStack(Items.HONEY_BOTTLE, 2));
+        net.minecraft.world.item.BlockItem.setBlockEntityData(teapot, ModBlocks.TEAPOT_BE, output);
+        player.setItemInHand(InteractionHand.MAIN_HAND, teapot);
+        float initialHealth = target.getHealth();
+
+        InteractionResult result = ((TeapotItem) ModItems.TEAPOT).interactLivingEntity(
+                teapot, player, target, InteractionHand.MAIN_HAND);
+
+        helper.assertValueEqual(result, InteractionResult.SUCCESS,
+                "Finished held teapot did not report a successful entity pour");
+        helper.assertValueEqual(target.getHealth(), initialHealth - 3.0F,
+                "Finished held teapot dealt the wrong damage");
+        helper.assertValueEqual(TeapotItem.getPourOut(teapot, helper.getLevel()).getCount(), 1,
+                "Finished held teapot did not consume exactly one result");
+        helper.succeed();
+    }
+
+    @GameTest
     public void oilPotTransfersCommitBeforeMovingItems(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ModBlocks.OIL_POT);
@@ -657,7 +2142,7 @@ public final class KaleidoscopeCookeryGameTests {
         ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
         moveIntoTest(helper, player, new BlockPos(2, 1, 1));
         ItemStack oil = new ItemStack(ModItems.OIL, 3);
-        player.setItemInHand(InteractionHand.MAIN_HAND, oil);
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
         BlockPos absolutePos = helper.absolutePos(pos);
         BlockHitResult hitResult = new BlockHitResult(
                 Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
@@ -667,18 +2152,20 @@ public final class KaleidoscopeCookeryGameTests {
         InteractionResult insertResult = oilPotBlock.useItemOn(
                 oil, state, helper.getLevel(), absolutePos, player, InteractionHand.MAIN_HAND, hitResult);
 
-        helper.assertValueEqual(insertResult, InteractionResult.SUCCESS,
+        helper.assertValueEqual(insertResult, InteractionResult.CONSUME,
                 "Oil pot insertion did not report a committed transfer");
         helper.assertValueEqual(oilPot.getOilCount(), 3,
                 "Oil pot insertion stored the wrong oil count");
         helper.assertTrue(oil.isEmpty(),
                 "Oil pot insertion did not consume the transferred items");
+        helper.assertTrue(player.getMainHandItem().is(Items.STONE),
+                "Oil pot reread the player's hand instead of using the supplied stack");
 
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         InteractionResult extractResult = oilPotBlock.useWithoutItem(
                 helper.getLevel().getBlockState(absolutePos), helper.getLevel(), absolutePos, player, hitResult);
 
-        helper.assertValueEqual(extractResult, InteractionResult.SUCCESS,
+        helper.assertValueEqual(extractResult, InteractionResult.CONSUME,
                 "Oil pot extraction did not report a committed transfer");
         helper.assertValueEqual(oilPot.getOilCount(), 0,
                 "Oil pot extraction did not remove the stored oil");
@@ -898,6 +2385,161 @@ public final class KaleidoscopeCookeryGameTests {
         inputSnapshot.shrink(1);
         helper.assertValueEqual(millstone.getInput().getCount(), 3,
                 "Mutating a millstone input snapshot changed the stored stack");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void millstoneUsesEntityStorageLookupAndDroppedItemFallback(GameTestHelper helper) {
+        registerMillstoneEntityStorageTestProvider();
+
+        BlockPos droppedInputPos = new BlockPos(1, 1, 1);
+        helper.setBlock(droppedInputPos, ModBlocks.MILLSTONE);
+        MillstoneBlockEntity droppedInputMillstone = helper.getBlockEntity(
+                droppedInputPos, MillstoneBlockEntity.class);
+        Cow rejectedStorageCow = helper.spawn(EntityTypes.COW, new BlockPos(1, 1, 2));
+        rejectedStorageCow.tickCount = 10;
+        droppedInputMillstone.bindEntity(rejectedStorageCow);
+        SingleVariantStorage<ItemVariant> rejectedStorage = testItemStorage(Items.BEDROCK, 4);
+        TEST_MILLSTONE_ENTITY_STORAGES.put(rejectedStorageCow.getUUID(), rejectedStorage);
+
+        BlockPos absoluteDroppedInputPos = helper.absolutePos(droppedInputPos);
+        ItemEntity droppedWheat = new ItemEntity(
+                helper.getLevel(),
+                absoluteDroppedInputPos.getX() + 0.5,
+                absoluteDroppedInputPos.getY() + 1.25,
+                absoluteDroppedInputPos.getZ() + 0.5,
+                new ItemStack(Items.WHEAT, 5));
+        helper.assertTrue(helper.getLevel().addFreshEntity(droppedWheat),
+                "Could not add the millstone dropped-item fixture");
+        droppedInputMillstone.tick(helper.getLevel());
+
+        helper.assertTrue(droppedInputMillstone.getInput().is(Items.WHEAT)
+                        && droppedInputMillstone.getInput().getCount() == 5,
+                "Millstone did not fall back to its Forge dropped-item input path");
+        helper.assertValueEqual(rejectedStorage.getAmount(), 4L,
+                "Rejected entity storage extraction was not rolled back");
+        helper.assertFalse(droppedWheat.isAlive(),
+                "Millstone left an empty dropped-item entity behind");
+
+        BlockPos entityInputPos = new BlockPos(4, 1, 1);
+        helper.setBlock(entityInputPos, ModBlocks.MILLSTONE);
+        MillstoneBlockEntity entityInputMillstone = helper.getBlockEntity(
+                entityInputPos, MillstoneBlockEntity.class);
+        Cow entityStorageCow = helper.spawn(EntityTypes.COW, new BlockPos(4, 1, 2));
+        entityStorageCow.tickCount = 10;
+        entityInputMillstone.bindEntity(entityStorageCow);
+        SingleVariantStorage<ItemVariant> entityStorage = testItemStorage(Items.WHEAT, 11);
+        TEST_MILLSTONE_ENTITY_STORAGES.put(entityStorageCow.getUUID(), entityStorage);
+
+        helper.assertTrue(MillstoneEntityItemStorage.find(entityStorageCow) == entityStorage,
+                "Cookery entity item-storage lookup did not discover a registered provider");
+        entityInputMillstone.tick(helper.getLevel());
+
+        helper.assertTrue(entityInputMillstone.getInput().is(Items.WHEAT)
+                        && entityInputMillstone.getInput().getCount() == MillstoneBlockEntity.MAX_INPUT_COUNT,
+                "Millstone did not extract a full batch from generic entity storage");
+        helper.assertValueEqual(entityStorage.getAmount(), 3L,
+                "Millstone generic entity extraction did not commit exactly eight items");
+
+        var donkey = helper.spawn(EntityTypes.DONKEY, new BlockPos(6, 1, 2));
+        donkey.setChest(true);
+        invokeCreateHorseInventory(donkey);
+        int donkeyStorageSlot = AbstractHorse.INVENTORY_SLOT_OFFSET + 2;
+        helper.assertTrue(donkey.getSlot(donkeyStorageSlot).set(new ItemStack(Items.WHEAT, 11)),
+                "Could not initialize the chested-horse inventory fixture");
+        Storage<ItemVariant> donkeyStorage = MillstoneEntityItemStorage.find(donkey);
+        helper.assertTrue(donkeyStorage != null,
+                "Vanilla chested horses are not exposed through the millstone entity lookup fallback");
+        StorageView<ItemVariant> donkeyWheat = donkeyStorage.nonEmptyViews().iterator().next();
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertValueEqual(donkeyWheat.extract(
+                            ItemVariant.of(Items.WHEAT), MillstoneBlockEntity.MAX_INPUT_COUNT, transaction),
+                    8L, "Chested-horse storage rejected transactional extraction");
+        }
+        helper.assertValueEqual(donkey.getSlot(donkeyStorageSlot).get().getCount(), 11,
+                "Aborted chested-horse extraction was not rolled back");
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertValueEqual(donkeyWheat.extract(
+                            ItemVariant.of(Items.WHEAT), MillstoneBlockEntity.MAX_INPUT_COUNT, transaction),
+                    8L, "Chested-horse storage rejected committed extraction");
+            transaction.commit();
+        }
+        helper.assertValueEqual(donkey.getSlot(donkeyStorageSlot).get().getCount(), 3,
+                "Committed chested-horse extraction did not update the real entity inventory");
+
+        TEST_MILLSTONE_ENTITY_STORAGES.remove(rejectedStorageCow.getUUID());
+        TEST_MILLSTONE_ENTITY_STORAGES.remove(entityStorageCow.getUUID());
+        helper.succeed();
+    }
+
+    @GameTest
+    public void oilPotStoragePreservesForgeAutomationSemantics(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.OIL_POT);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        OilPotBlockEntity oilPot = helper.getBlockEntity(pos, OilPotBlockEntity.class);
+        Storage<ItemVariant> discoveredStorage = ItemStorage.SIDED.find(helper.getLevel(), absolutePos, Direction.NORTH);
+        helper.assertTrue(discoveredStorage == oilPot.getItemStorage(),
+                "Oil pot did not expose its Fabric item storage from the side");
+        helper.assertTrue(ItemStorage.SIDED.find(helper.getLevel(), absolutePos, Direction.UP) != null
+                        && ItemStorage.SIDED.find(helper.getLevel(), absolutePos, Direction.DOWN) != null,
+                "Oil pot storage was not exposed on every Forge-compatible side");
+        var storage = oilPot.getItemStorage();
+        ItemVariant oil = ItemVariant.of(ModItems.OIL);
+
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertValueEqual(storage.insert(oil, 300, transaction), 256L,
+                    "Oil pot storage did not preserve its 256-item capacity");
+            helper.assertValueEqual(oilPot.getOilCount(), 0,
+                    "Oil pot changed block-entity state before transaction commit");
+            helper.assertValueEqual(storage.getAmount(), 256L,
+                    "Oil pot did not expose its pending transaction amount");
+        }
+        helper.assertValueEqual(storage.getAmount(), 0L,
+                "Aborted oil pot insertion was not rolled back");
+
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertValueEqual(storage.insert(ItemVariant.of(Items.WHEAT), 1, transaction), 0L,
+                    "Oil pot accepted a non-oil item");
+            helper.assertValueEqual(storage.insert(oil, 200, transaction), 200L,
+                    "Oil pot rejected a valid committed insertion");
+            transaction.commit();
+        }
+        helper.assertValueEqual(oilPot.getOilCount(), 200,
+                "Committed Fabric insertion did not update the oil pot");
+        helper.assertTrue(helper.getLevel().getBlockState(absolutePos).getValue(OilPotBlock.HAS_OIL),
+                "Committed Fabric insertion did not update HAS_OIL");
+
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertValueEqual(storage.extract(oil, 75, transaction), 75L,
+                    "Oil pot rejected a valid transactional extraction");
+        }
+        helper.assertValueEqual(oilPot.getOilCount(), 200,
+                "Aborted oil pot extraction changed the stored count");
+
+        try (Transaction transaction = Transaction.openOuter()) {
+            helper.assertValueEqual(storage.extract(oil, 200, transaction), 200L,
+                    "Oil pot rejected a committed full extraction");
+            transaction.commit();
+        }
+        helper.assertValueEqual(oilPot.getOilCount(), 0,
+                "Committed Fabric extraction did not empty the oil pot");
+        helper.assertFalse(helper.getLevel().getBlockState(absolutePos).getValue(OilPotBlock.HAS_OIL),
+                "Committed Fabric extraction did not clear HAS_OIL");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void chefProfessionUsesCookeryHeroGiftLootTable(GameTestHelper helper) {
+        try {
+            Field giftsField = GiveGiftToHero.class.getDeclaredField("GIFTS");
+            giftsField.setAccessible(true);
+            Map<?, ?> gifts = (Map<?, ?>) giftsField.get(null);
+            helper.assertValueEqual(gifts.get(ModVillager.CHEF_KEY), ModLootTables.CHEF_GIFT,
+                    "Chef profession still falls back to the unemployed hero gift");
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError("Could not inspect Minecraft 26.2 villager hero gifts", exception);
+        }
         helper.succeed();
     }
 
@@ -1137,6 +2779,58 @@ public final class KaleidoscopeCookeryGameTests {
                 "Fruit basket did not remove the first occupied slot");
         helper.assertValueEqual(countItem(player, Items.APPLE), 64,
                 "Fruit basket did not give the extracted stack to the player");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void fruitBasketHeldItemTakeoutPreservesInteractionExceptions(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.FRUIT_BASKET);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        FruitBasketBlockEntity basket = helper.getBlockEntity(pos, FruitBasketBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        player.setShiftKeyDown(true);
+
+        basket.putOn(new ItemStack(Items.APPLE, 2), false);
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.CARROT.getDefaultInstance());
+        BlockHitResult topHit = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+        InteractionResult ordinaryResult = UseBlockCallback.EVENT.invoker().interact(
+                player, helper.getLevel(), InteractionHand.MAIN_HAND, topHit);
+        helper.assertValueEqual(ordinaryResult, InteractionResult.CONSUME,
+                "Held-item secondary use did not take an item stack out of the fruit basket");
+        helper.assertTrue(basket.getItems().stream().allMatch(ItemStack::isEmpty),
+                "Held-item secondary use left the extracted fruit-basket stack behind");
+
+        basket.putOn(Items.APPLE.getDefaultInstance(), false);
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.STONE.getDefaultInstance());
+        BlockHitResult sideHit = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.NORTH, absolutePos, false);
+        InteractionResult sideBlockResult = UseBlockCallback.EVENT.invoker().interact(
+                player, helper.getLevel(), InteractionHand.MAIN_HAND, sideHit);
+        helper.assertValueEqual(sideBlockResult, InteractionResult.PASS,
+                "Fruit basket intercepted a block item used away from its top face");
+        helper.assertTrue(basket.getItems().stream().anyMatch(stack -> stack.is(Items.APPLE)),
+                "Side-face block-item use removed fruit-basket contents");
+
+        InteractionResult topBlockResult = UseBlockCallback.EVENT.invoker().interact(
+                player, helper.getLevel(), InteractionHand.MAIN_HAND, topHit);
+        helper.assertValueEqual(topBlockResult, InteractionResult.CONSUME,
+                "Fruit basket did not accept top-face takeout while holding a block item");
+        helper.assertTrue(basket.getItems().stream().allMatch(ItemStack::isEmpty),
+                "Top-face block-item takeout left fruit-basket contents behind");
+
+        basket.putOn(Items.APPLE.getDefaultInstance(), false);
+        for (Item excluded : List.of(Items.DEBUG_STICK, Items.FIREWORK_ROCKET)) {
+            player.setItemInHand(InteractionHand.MAIN_HAND, excluded.getDefaultInstance());
+            InteractionResult excludedResult = UseBlockCallback.EVENT.invoker().interact(
+                    player, helper.getLevel(), InteractionHand.MAIN_HAND, topHit);
+            helper.assertValueEqual(excludedResult, InteractionResult.PASS,
+                    "Fruit basket intercepted excluded held item " + excluded);
+            helper.assertTrue(basket.getItems().stream().anyMatch(stack -> stack.is(Items.APPLE)),
+                    "Excluded held item removed fruit-basket contents");
+        }
         helper.succeed();
     }
 
@@ -1396,6 +3090,77 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
+    public void serverboundActionPayloadsRoundTripWithoutClientFields(GameTestHelper helper) {
+        RegistryFriendlyByteBuf flatulenceBuffer = new RegistryFriendlyByteBuf(
+                Unpooled.buffer(), helper.getLevel().registryAccess());
+        RegistryFriendlyByteBuf baoziBuffer = new RegistryFriendlyByteBuf(
+                Unpooled.buffer(), helper.getLevel().registryAccess());
+        try {
+            FlatulenceMessage.STREAM_CODEC.encode(flatulenceBuffer, FlatulenceMessage.INSTANCE);
+            ThrowBaoziMessage.STREAM_CODEC.encode(baoziBuffer, ThrowBaoziMessage.INSTANCE);
+            helper.assertValueEqual(flatulenceBuffer.readableBytes(), 0,
+                    "Flatulence payload serialized client-controlled fields");
+            helper.assertValueEqual(baoziBuffer.readableBytes(), 0,
+                    "Baozi payload serialized client-controlled fields");
+            helper.assertTrue(FlatulenceMessage.STREAM_CODEC.decode(flatulenceBuffer) == FlatulenceMessage.INSTANCE,
+                    "Flatulence unit payload did not round-trip");
+            helper.assertTrue(ThrowBaoziMessage.STREAM_CODEC.decode(baoziBuffer) == ThrowBaoziMessage.INSTANCE,
+                    "Baozi unit payload did not round-trip");
+        } finally {
+            flatulenceBuffer.release();
+            baoziBuffer.release();
+        }
+        helper.succeed();
+    }
+
+    @GameTest
+    public void networkActionsValidateServerStateAndThrottleSameTick(GameTestHelper helper) {
+        ServerPlayer flatulencePlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, flatulencePlayer, new BlockPos(1, 1, 1));
+        double initialVelocity = flatulencePlayer.getDeltaMovement().y;
+        invokeNetworkHandler("handleFlatulence", flatulencePlayer);
+        helper.assertValueEqual(flatulencePlayer.getDeltaMovement().y, initialVelocity,
+                "Flatulence action trusted a client without the server-side effect");
+
+        flatulencePlayer.getActiveEffectsMap().put(ModEffects.FLATULENCE,
+                new MobEffectInstance(ModEffects.FLATULENCE, 200));
+        invokeNetworkHandler("handleFlatulence", flatulencePlayer);
+        helper.assertValueEqual(flatulencePlayer.getDeltaMovement().y, initialVelocity + 0.75,
+                "Flatulence action did not apply the baseline jump");
+        invokeNetworkHandler("handleFlatulence", flatulencePlayer);
+        helper.assertValueEqual(flatulencePlayer.getDeltaMovement().y, initialVelocity + 0.75,
+                "Flatulence action accepted two packets in the same tick");
+
+        ServerPlayer baoziPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, baoziPlayer, new BlockPos(3, 1, 1));
+        replaceMockPlayerCooldowns(baoziPlayer);
+        ItemStack baozis = new ItemStack(ModItems.BAOZI, 2);
+        baoziPlayer.setItemInHand(InteractionHand.MAIN_HAND, baozis);
+        AABB projectileArea = baoziPlayer.getBoundingBox().inflate(16.0);
+        invokeNetworkHandler("handleThrowBaozi", baoziPlayer);
+        helper.assertValueEqual(baozis.getCount(), 2,
+                "Baozi action trusted a client without server-side sneaking");
+        helper.assertTrue(helper.getLevel().getEntitiesOfClass(
+                        ThrowableBaoziEntity.class, projectileArea).isEmpty(),
+                "Baozi action spawned a projectile without server-side sneaking");
+
+        baoziPlayer.setShiftKeyDown(true);
+        invokeNetworkHandler("handleThrowBaozi", baoziPlayer);
+        helper.assertValueEqual(baozis.getCount(), 1,
+                "Baozi action consumed the wrong held-item count");
+        helper.assertValueEqual(helper.getLevel().getEntitiesOfClass(
+                        ThrowableBaoziEntity.class, projectileArea).size(), 1,
+                "Baozi action did not spawn exactly one projectile");
+        invokeNetworkHandler("handleThrowBaozi", baoziPlayer);
+        helper.assertValueEqual(baozis.getCount(), 1,
+                "Baozi action accepted two packets during its one-tick cooldown");
+        helper.assertValueEqual(helper.getLevel().getEntitiesOfClass(
+                        ThrowableBaoziEntity.class, projectileArea).size(), 1,
+                "Baozi cooldown allowed a second projectile in the same tick");
+        helper.succeed();
+    }
+
+    @GameTest
     public void scarecrowDeathReleasesFreshShoulderEntity(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         ScarecrowEntity scarecrow = helper.spawn(ModEntities.SCARECROW, pos);
@@ -1553,6 +3318,93 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
+    public void recipeItemConsumesGenericTransferContainerContents(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ModBlocks.POT);
+        BlockPos absolutePos = helper.absolutePos(pos);
+        helper.getLevel().setBlockAndUpdate(absolutePos,
+                helper.getLevel().getBlockState(absolutePos).setValue(PotBlock.HAS_OIL, true));
+        PotBlockEntity pot = helper.getBlockEntity(pos, PotBlockEntity.class);
+
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack recipeItem = ModItems.RECIPE_ITEM.getDefaultInstance();
+        RecipeItem.setRecipe(recipeItem, RecipeItem.RecipeRecord.pot(
+                Items.SUSPICIOUS_STEW, Items.APPLE, Items.APPLE));
+        player.setItemInHand(InteractionHand.MAIN_HAND, recipeItem);
+
+        ItemStack shulkerBox = Items.SHULKER_BOX.getDefaultInstance();
+        shulkerBox.set(DataComponents.CONTAINER,
+                ItemContainerContents.fromItems(List.of(new ItemStack(Items.APPLE, 3))));
+        player.getInventory().setItem(1, shulkerBox);
+        BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atCenterOf(absolutePos), Direction.UP, absolutePos, false);
+
+        InteractionResult result = ModItems.RECIPE_ITEM.useOn(
+                new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult));
+
+        helper.assertValueEqual(result, InteractionResult.CONSUME,
+                "Recipe item did not accept ingredients stored in a generic item storage");
+        long potApples = pot.getInputs().stream().filter(stack -> stack.is(Items.APPLE)).count();
+        helper.assertValueEqual(potApples, 2L,
+                "Recipe item did not put both container-supplied ingredients into the pot");
+        ItemStack storedShulker = player.getInventory().getItem(1);
+        int remainingApples = storedShulker.getOrDefault(DataComponents.CONTAINER,
+                        ItemContainerContents.EMPTY)
+                .nonEmptyItemCopyStream()
+                .filter(stack -> stack.is(Items.APPLE))
+                .mapToInt(ItemStack::getCount)
+                .sum();
+        helper.assertTrue(storedShulker.is(Items.SHULKER_BOX),
+                "Generic container deduction replaced the outer shulker box");
+        helper.assertValueEqual(remainingApples, 1,
+                "Generic container deduction did not commit the shulker contents mutation");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void chefRecipeTradeBuildsRecipeRecordWhenOfferIsGenerated(GameTestHelper helper) {
+        ResourceKey<VillagerTrade> tradeKey = ResourceKey.create(
+                Registries.VILLAGER_TRADE, id("chef/2/emerald_recipe_braised_beef"));
+        VillagerTrade trade = helper.getLevel().registryAccess()
+                .lookupOrThrow(Registries.VILLAGER_TRADE)
+                .getValueOrThrow(tradeKey);
+        Villager villager = helper.spawn(EntityTypes.VILLAGER, new BlockPos(1, 1, 1));
+        LootParams lootParams = new LootParams.Builder(helper.getLevel())
+                .withParameter(LootContextParams.ORIGIN, villager.position())
+                .withParameter(LootContextParams.THIS_ENTITY, villager)
+                .withParameter(LootContextParams.ADDITIONAL_COST_COMPONENT_ALLOWED, Unit.INSTANCE)
+                .create(LootContextParamSets.VILLAGER_TRADE);
+        LootContext lootContext = new LootContext.Builder(lootParams).create(Optional.empty());
+        MerchantOffer offer = trade.getOffer(lootContext);
+
+        helper.assertTrue(offer != null, "Chef recipe trade did not generate an offer");
+        helper.assertTrue(offer.getBaseCostA().is(Items.EMERALD) && offer.getBaseCostA().getCount() == 3,
+                "Chef recipe trade lost its emerald price");
+        helper.assertValueEqual(offer.getMaxUses(), 16, "Chef recipe trade max uses changed");
+        helper.assertValueEqual(offer.getXp(), 4, "Chef recipe trade XP changed");
+
+        ItemStack result = offer.assemble();
+        helper.assertTrue(result.is(ModItems.RECIPE_ITEM), "Chef recipe trade did not give a recipe item");
+        RecipeItem.RecipeRecord record = RecipeItem.getRecipe(result);
+        helper.assertTrue(record != null, "Chef recipe trade result has no recipe record");
+        List<ItemStack> inputs = record.input();
+        helper.assertValueEqual(inputs.size(), 4, "Chef recipe trade ingredient count changed");
+        helper.assertTrue(inputs.get(0).is(ModItems.RAW_COW_OFFAL)
+                        && inputs.get(1).is(ModItems.RAW_COW_OFFAL)
+                        && inputs.get(2).is(ModItems.GREEN_CHILI)
+                        && inputs.get(3).is(ModItems.GREEN_CHILI),
+                "Chef recipe trade ingredient order changed");
+        helper.assertTrue(inputs.stream().allMatch(stack -> stack.getCount() == 1),
+                "Chef recipe trade ingredient stack counts changed");
+        helper.assertTrue(record.output().is(ModItems.BRAISED_BEEF),
+                "Chef recipe trade recorded output changed");
+        helper.assertValueEqual(record.type(), RecipeItem.POT,
+                "Chef recipe trade recorded cooking type changed");
+        helper.succeed();
+    }
+
+    @GameTest
     public void stockpotSoupBaseIdsRemainCompatible(GameTestHelper helper) {
         Identifier water = vanillaId("water");
         Identifier lava = vanillaId("lava");
@@ -1667,35 +3519,76 @@ public final class KaleidoscopeCookeryGameTests {
 
         GeneralConfig config = GeneralConfig.get();
         boolean previousSetting = config.satiatedShieldAbsorbExcessDamage();
+        int previousMinFoodLevel = config.satiatedShieldMinFoodLevel();
         boolean damaged;
         try {
             GeneralConfigTestAccess.setSatiatedShieldAbsorbExcessDamage(config, false);
-            damaged = player.hurtServer(helper.getLevel(), helper.getLevel().damageSources().generic(), 4.0F);
+            GeneralConfigTestAccess.setSatiatedShieldMinFoodLevel(config, 1);
+            damaged = player.hurtServer(helper.getLevel(), helper.getLevel().damageSources().generic(), 8.0F);
         } finally {
             GeneralConfigTestAccess.setSatiatedShieldAbsorbExcessDamage(config, previousSetting);
+            GeneralConfigTestAccess.setSatiatedShieldMinFoodLevel(config, previousMinFoodLevel);
         }
 
         helper.assertFalse(damaged, "Satiated shield did not cancel the original damage call");
-        helper.assertValueEqual(player.getHealth(), initialHealth - 2.0F,
+        helper.assertValueEqual(player.getHealth(), initialHealth - 4.0F,
                 "Damage beyond the available hunger shield was not preserved");
         helper.succeed();
     }
 
     @GameTest
-    public void vigorOnlySuppressesSprintMovementExhaustion(GameTestHelper helper) {
+    public void satiatedShieldRespectsForgeActivationGates(GameTestHelper helper) {
+        Player lowFoodPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        lowFoodPlayer.getFoodData().setFoodLevel(3);
+        lowFoodPlayer.getActiveEffectsMap().put(ModEffects.SATIATED_SHIELD,
+                new MobEffectInstance(ModEffects.SATIATED_SHIELD, 200));
+        float lowFoodInitialHealth = lowFoodPlayer.getHealth();
+
+        boolean lowFoodDamaged = lowFoodPlayer.hurtServer(
+                helper.getLevel(), helper.getLevel().damageSources().generic(), 4.0F);
+        helper.assertTrue(lowFoodDamaged, "Satiated shield ignored the Forge minimum-food-level setting");
+        helper.assertValueEqual(lowFoodPlayer.getHealth(), lowFoodInitialHealth - 4.0F,
+                "Satiated shield absorbed damage below the configured food threshold");
+
+        Player hungryPlayer = helper.makeMockPlayer(GameType.SURVIVAL);
+        hungryPlayer.getFoodData().setFoodLevel(20);
+        hungryPlayer.getActiveEffectsMap().put(ModEffects.SATIATED_SHIELD,
+                new MobEffectInstance(ModEffects.SATIATED_SHIELD, 200));
+        hungryPlayer.getActiveEffectsMap().put(MobEffects.HUNGER,
+                new MobEffectInstance(MobEffects.HUNGER, 200));
+        float hungryInitialHealth = hungryPlayer.getHealth();
+
+        boolean hungryDamaged = hungryPlayer.hurtServer(
+                helper.getLevel(), helper.getLevel().damageSources().generic(), 4.0F);
+        helper.assertTrue(hungryDamaged, "Satiated shield ignored the Forge Hunger-effect setting");
+        helper.assertValueEqual(hungryPlayer.getHealth(), hungryInitialHealth - 4.0F,
+                "Satiated shield absorbed damage while the Hunger effect disabled it");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void vigorClearsAllExhaustionEachEffectTickWhileSprinting(GameTestHelper helper) {
         float initialExhaustion = 3.95F;
         ServerPlayer vigorPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
-        vigorPlayer.setOnGround(true);
         vigorPlayer.setSprinting(true);
-        vigorPlayer.getActiveEffectsMap().put(ModEffects.VIGOR,
-                new MobEffectInstance(ModEffects.VIGOR, 200));
         vigorPlayer.causeFoodExhaustion(initialExhaustion);
 
-        vigorPlayer.checkMovementStatistics(1.0, 0.0, 0.0);
+        helper.assertTrue(ModEffects.VIGOR.value().shouldApplyEffectTickThisTick(200, 0),
+                "Vigor no longer applies on every effect tick");
+        ModEffects.VIGOR.value().applyEffectTick(helper.getLevel(), vigorPlayer, 0);
 
         float vigorExhaustion = foodDataTag(vigorPlayer).getFloatOr("foodExhaustionLevel", -1.0F);
-        helper.assertValueEqual(vigorExhaustion, initialExhaustion,
-                "Vigor did not suppress sprint movement exhaustion");
+        helper.assertValueEqual(vigorExhaustion, 0.0F,
+                "Vigor did not clear total exhaustion while sprinting");
+
+        ServerPlayer walkingPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        walkingPlayer.setSprinting(false);
+        walkingPlayer.causeFoodExhaustion(initialExhaustion);
+        ModEffects.VIGOR.value().applyEffectTick(helper.getLevel(), walkingPlayer, 0);
+        helper.assertValueEqual(
+                foodDataTag(walkingPlayer).getFloatOr("foodExhaustionLevel", -1.0F),
+                initialExhaustion,
+                "Vigor cleared exhaustion while the player was not sprinting");
 
         ServerPlayer controlPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
         controlPlayer.setOnGround(true);
@@ -1785,8 +3678,260 @@ public final class KaleidoscopeCookeryGameTests {
         helper.succeed();
     }
 
+    @GameTest
+    public void entityLoadInstallsCookeryGoalsOnlyOnce(GameTestHelper helper) {
+        Cat cat = helper.spawn(EntityTypes.CAT, new BlockPos(1, 1, 1));
+        var creeper = helper.spawn(EntityTypes.CREEPER, new BlockPos(3, 1, 1));
+        String unrelatedTag = "kaleidoscope_cookery.keep_this_test_tag";
+        cat.addTag("kaleidoscope_cookery.cat_lie_goal");
+        cat.addTag(unrelatedTag);
+        creeper.addTag("kaleidoscope_cookery.creeper_mustard_avoid_goal");
+        creeper.addTag(unrelatedTag);
+
+        ServerEntityEvents.ENTITY_LOAD.invoker().onLoad(cat, helper.getLevel());
+        ServerEntityEvents.ENTITY_LOAD.invoker().onLoad(cat, helper.getLevel());
+        ServerEntityEvents.ENTITY_LOAD.invoker().onLoad(creeper, helper.getLevel());
+        ServerEntityEvents.ENTITY_LOAD.invoker().onLoad(creeper, helper.getLevel());
+
+        long catGoals = cat.getGoalSelector().getAvailableGoals().stream()
+                .filter(goal -> goal.getPriority() == 5 && goal.getGoal() instanceof CatLieOnBlockGoal)
+                .count();
+        long creeperGoals = creeper.getGoalSelector().getAvailableGoals().stream()
+                .filter(goal -> goal.getPriority() == 3
+                        && goal.getGoal().getClass().getSimpleName().equals("CreeperMustardAvoidGoal"))
+                .count();
+        helper.assertValueEqual(catGoals, 1L,
+                "Cat entity-load handling did not install exactly one priority-5 Cookery lie goal");
+        helper.assertValueEqual(creeperGoals, 1L,
+                "Creeper entity-load handling did not install exactly one priority-3 mustard avoidance goal");
+        helper.assertFalse(cat.entityTags().contains("kaleidoscope_cookery.cat_lie_goal"),
+                "Cat entity-load handling did not remove the legacy persisted AI marker");
+        helper.assertFalse(creeper.entityTags().contains("kaleidoscope_cookery.creeper_mustard_avoid_goal"),
+                "Creeper entity-load handling did not remove the legacy persisted AI marker");
+        helper.assertTrue(cat.entityTags().contains(unrelatedTag),
+                "Cat legacy-marker cleanup removed an unrelated entity tag");
+        helper.assertTrue(creeper.entityTags().contains(unrelatedTag),
+                "Creeper legacy-marker cleanup removed an unrelated entity tag");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void wetFieldHoeCallbackTillsAndDamagesTool(GameTestHelper helper) {
+        BlockPos wetDirt = new BlockPos(1, 1, 1);
+        helper.setBlock(wetDirt, Blocks.DIRT);
+        helper.setBlock(wetDirt.above(), Blocks.WATER);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        ItemStack hoe = new ItemStack(Items.IRON_HOE);
+        player.setItemInHand(InteractionHand.MAIN_HAND, hoe);
+        BlockPos absoluteWetDirt = helper.absolutePos(wetDirt);
+
+        InteractionResult result = UseBlockCallback.EVENT.invoker().interact(
+                player,
+                helper.getLevel(),
+                InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(absoluteWetDirt), Direction.UP, absoluteWetDirt, false));
+
+        helper.assertValueEqual(result, InteractionResult.CONSUME,
+                "Wet-field hoe callback did not consume the server interaction");
+        helper.assertBlockPresent(Blocks.FARMLAND, wetDirt);
+        helper.assertValueEqual(hoe.getDamageValue(), 1,
+                "Wet-field hoe callback did not charge exactly one durability");
+
+        BlockPos dryDirt = new BlockPos(3, 1, 1);
+        helper.setBlock(dryDirt, Blocks.DIRT);
+        BlockPos absoluteDryDirt = helper.absolutePos(dryDirt);
+        helper.assertValueEqual(UseBlockCallback.EVENT.invoker().interact(
+                        player,
+                        helper.getLevel(),
+                        InteractionHand.MAIN_HAND,
+                        new BlockHitResult(Vec3.atCenterOf(absoluteDryDirt), Direction.UP, absoluteDryDirt, false)),
+                InteractionResult.PASS, "Wet-field hoe callback intercepted dry dirt");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void hinderEffectAppliesSlownessAfterDamage(GameTestHelper helper) {
+        Zombie attacker = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(1, 1, 1));
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 1, 1));
+        attacker.addEffect(new MobEffectInstance(ModEffects.HINDER, 200));
+
+        boolean damaged = target.hurtServer(
+                helper.getLevel(), helper.getLevel().damageSources().mobAttack(attacker), 2.0F);
+        MobEffectInstance slowness = target.getEffect(MobEffects.SLOWNESS);
+
+        helper.assertTrue(damaged, "Hinder test attack did not deal damage");
+        helper.assertTrue(slowness != null && slowness.getDuration() == 100 && slowness.getAmplifier() == 1,
+                "Hinder damage did not apply 100 ticks of Slowness II");
+
+        Zombie controlAttacker = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(1, 1, 3));
+        Zombie controlTarget = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 1, 3));
+        controlTarget.hurtServer(
+                helper.getLevel(), helper.getLevel().damageSources().mobAttack(controlAttacker), 2.0F);
+        helper.assertTrue(!controlTarget.hasEffect(MobEffects.SLOWNESS),
+                "Hinder damage handler affected an attacker without the effect");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void vitalityKillSpawnsMatchingBaby(GameTestHelper helper) {
+        Zombie killer = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(1, 1, 1));
+        killer.addEffect(new MobEffectInstance(ModEffects.VITALITY, 200));
+        Cow cow = helper.spawn(EntityTypes.COW, new BlockPos(3, 1, 1));
+        cow.setAge(0);
+        AABB spawnArea = cow.getBoundingBox().inflate(1.0);
+
+        boolean damaged = cow.hurtServer(
+                helper.getLevel(), helper.getLevel().damageSources().mobAttack(killer), 100.0F);
+        List<Cow> babies = helper.getLevel().getEntitiesOfClass(Cow.class, spawnArea, Cow::isBaby);
+
+        helper.assertTrue(damaged && cow.isDeadOrDying(), "Vitality test did not kill the adult cow");
+        helper.assertValueEqual(babies.size(), 1,
+                "Vitality kill did not spawn exactly one matching baby cow");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void instantSmeltingConvertsOnlyEffectLimit(GameTestHelper helper) {
+        BlockPos orePos = new BlockPos(2, 1, 2);
+        helper.setBlock(orePos, Blocks.COPPER_ORE);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(2, 1, 1));
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STONE_PICKAXE));
+        player.getActiveEffectsMap().put(
+                ModEffects.INSTANT_SMELTING, new MobEffectInstance(ModEffects.INSTANT_SMELTING, 200, 0));
+        BlockPos absoluteOrePos = helper.absolutePos(orePos);
+
+        helper.assertTrue(player.gameMode.destroyBlock(absoluteOrePos),
+                "Instant-smelting test copper ore could not be mined");
+        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(
+                ItemEntity.class, new AABB(absoluteOrePos).inflate(2.0));
+        int ingots = drops.stream().filter(entity -> entity.getItem().is(Items.COPPER_INGOT))
+                .mapToInt(entity -> entity.getItem().getCount()).sum();
+        int rawCopper = drops.stream().filter(entity -> entity.getItem().is(Items.RAW_COPPER))
+                .mapToInt(entity -> entity.getItem().getCount()).sum();
+
+        helper.assertValueEqual(ingots, 1,
+                "Instant Smelting amplifier 0 did not convert exactly one copper drop");
+        helper.assertTrue(rawCopper >= 1,
+                "Instant Smelting discarded the raw-copper remainder after reaching its conversion limit");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void extraEntityLootPreservesKnifeConditions(GameTestHelper helper) {
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        moveIntoTest(helper, player, new BlockPos(1, 1, 1));
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.IRON_KITCHEN_KNIFE));
+
+        var donkey = helper.spawn(EntityTypes.DONKEY, new BlockPos(2, 1, 1));
+        AABB donkeyDrops = donkey.getBoundingBox().inflate(1.0);
+        donkey.hurtServer(helper.getLevel(), helper.getLevel().damageSources().playerAttack(player), 100.0F);
+        int donkeyMeat = helper.getLevel().getEntitiesOfClass(ItemEntity.class, donkeyDrops).stream()
+                .filter(entity -> entity.getItem().is(ModItems.RAW_DONKEY_MEAT))
+                .mapToInt(entity -> entity.getItem().getCount()).sum();
+        helper.assertTrue(donkeyMeat >= 2,
+                "Knife kill did not receive both baseline donkey-meat rolls");
+
+        var pig = helper.spawn(EntityTypes.PIG, new BlockPos(4, 1, 1));
+        AABB pigDrops = pig.getBoundingBox().inflate(1.0);
+        pig.hurtServer(helper.getLevel(), helper.getLevel().damageSources().playerAttack(player), 100.0F);
+        int oil = helper.getLevel().getEntitiesOfClass(ItemEntity.class, pigDrops).stream()
+                .filter(entity -> entity.getItem().is(ModItems.OIL))
+                .mapToInt(entity -> entity.getItem().getCount()).sum();
+        helper.assertTrue(oil >= 1,
+                "Knife kill did not receive the baseline guaranteed pig-oil roll");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        var controlDonkey = helper.spawn(EntityTypes.DONKEY, new BlockPos(6, 1, 1));
+        AABB controlDrops = controlDonkey.getBoundingBox().inflate(1.0);
+        controlDonkey.hurtServer(
+                helper.getLevel(), helper.getLevel().damageSources().playerAttack(player), 100.0F);
+        boolean controlMeat = helper.getLevel().getEntitiesOfClass(ItemEntity.class, controlDrops).stream()
+                .anyMatch(entity -> entity.getItem().is(ModItems.RAW_DONKEY_MEAT));
+        helper.assertFalse(controlMeat, "Donkey meat dropped without a kitchen knife");
+        helper.succeed();
+    }
+
+    @GameTest
+    public void flatulenceMigratesForgeStartAndUsesBlockCoordinates(GameTestHelper helper) {
+        ServerPlayer legacyPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        legacyPlayer.getActiveEffectsMap().put(
+                ModEffects.FLATULENCE, new MobEffectInstance(ModEffects.FLATULENCE, 200));
+        CompoundTag legacyPosition = new CompoundTag();
+        legacyPosition.putInt("X", -4);
+        legacyPosition.putInt("Y", 71);
+        legacyPosition.putInt("Z", 9);
+        CompoundTag forgeData = new CompoundTag();
+        forgeData.put("FlatulenceEffectStartingPosition", legacyPosition);
+        CompoundTag playerData = new CompoundTag();
+        playerData.put("ForgeData", forgeData);
+
+        LegacyPlayerDataCompat.loadFlatulenceStartingPosition(
+                legacyPlayer, valueInput(helper, playerData));
+        helper.assertValueEqual(
+                legacyPlayer.getAttached(ModAttachmentType.FLATULENCE_EFFECT_STARTING_POSITION),
+                new Vec3(-4, 71, 9),
+                "Forge flatulence starting position was not migrated from player ForgeData");
+        MobEffectInstance removedEffect = legacyPlayer.getActiveEffectsMap().remove(ModEffects.FLATULENCE);
+        ServerMobEffectEvents.AFTER_REMOVE.invoker().afterRemove(removedEffect, legacyPlayer, null);
+        helper.assertFalse(legacyPlayer.hasAttached(ModAttachmentType.FLATULENCE_EFFECT_STARTING_POSITION),
+                "Flatulence effect removal did not clear the migrated temporary position");
+
+        ServerPlayer currentPlayer = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        currentPlayer.setPos(3.75, 72.5, -1.25);
+        ((FlatulenceEffect) ModEffects.FLATULENCE.value()).applyEffectTick(
+                helper.getLevel(), currentPlayer, 0);
+        helper.assertValueEqual(
+                currentPlayer.getAttached(ModAttachmentType.FLATULENCE_EFFECT_STARTING_POSITION),
+                new Vec3(3, 72, -2),
+                "Flatulence first tick no longer records the Forge integer block position");
+        helper.succeed();
+    }
+
     private static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(KaleidoscopeCookery.MOD_ID, path);
+    }
+
+    private static synchronized void registerMillstoneEntityStorageTestProvider() {
+        if (millstoneEntityStorageTestProviderRegistered) {
+            return;
+        }
+        MillstoneEntityItemStorage.SOURCE.registerForType(
+                (cow, context) -> TEST_MILLSTONE_ENTITY_STORAGES.get(cow.getUUID()), EntityTypes.COW);
+        millstoneEntityStorageTestProviderRegistered = true;
+    }
+
+    private static SingleVariantStorage<ItemVariant> testItemStorage(Item item, long amount) {
+        SingleVariantStorage<ItemVariant> storage = new SingleVariantStorage<>() {
+            @Override
+            protected ItemVariant getBlankVariant() {
+                return ItemVariant.blank();
+            }
+
+            @Override
+            protected long getCapacity(ItemVariant variant) {
+                return 64;
+            }
+        };
+        try (Transaction transaction = Transaction.openOuter()) {
+            long inserted = storage.insert(ItemVariant.of(item), amount, transaction);
+            if (inserted != amount) {
+                throw new AssertionError("Could not initialize millstone entity storage fixture");
+            }
+            transaction.commit();
+        }
+        return storage;
+    }
+
+    private static void invokeCreateHorseInventory(AbstractHorse horse) {
+        try {
+            Method method = AbstractHorse.class.getDeclaredMethod("createInventory");
+            method.setAccessible(true);
+            method.invoke(horse);
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError("Could not initialize chested-horse inventory", exception);
+        }
     }
 
     private static Identifier vanillaId(String path) {
@@ -1808,6 +3953,63 @@ public final class KaleidoscopeCookeryGameTests {
         player.setPos(absolutePos.getX() + 0.5, absolutePos.getY(), absolutePos.getZ() + 0.5);
     }
 
+    private static void invokeNetworkHandler(String methodName, ServerPlayer player) {
+        try {
+            var method = NetworkHandler.class.getDeclaredMethod(methodName, ServerPlayer.class);
+            method.setAccessible(true);
+            method.invoke(null, player);
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError("Could not invoke NetworkHandler." + methodName, exception);
+        }
+    }
+
+    private static void invokeCompleteUsingItem(LivingEntity entity) {
+        try {
+            Method method = LivingEntity.class.getDeclaredMethod("completeUsingItem");
+            method.setAccessible(true);
+            method.invoke(entity);
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError("Could not invoke LivingEntity.completeUsingItem", exception);
+        }
+    }
+
+    private static Zombie createFarmerArmorZombie(GameTestHelper helper, BlockPos relativePos, boolean complete) {
+        helper.setBlock(relativePos, Blocks.WATER);
+        Zombie zombie = new Zombie(helper.getLevel());
+        zombie.setNoAi(true);
+        zombie.setPos(Vec3.atCenterOf(helper.absolutePos(relativePos)));
+        zombie.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ModItems.STRAW_HAT));
+        zombie.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ModItems.FARMER_CHEST_PLATE));
+        zombie.setItemSlot(EquipmentSlot.LEGS, new ItemStack(ModItems.FARMER_LEGGINGS));
+        if (complete) {
+            zombie.setItemSlot(EquipmentSlot.FEET, new ItemStack(ModItems.FARMER_BOOTS));
+        }
+        helper.assertTrue(helper.getLevel().addFreshEntity(zombie),
+                "Farmer armor test zombie could not be added to the test world");
+        return zombie;
+    }
+
+    private static void replaceMockPlayerCooldowns(ServerPlayer player) {
+        try {
+            var field = Player.class.getDeclaredField("cooldowns");
+            field.setAccessible(true);
+            field.set(player, new net.minecraft.world.item.ItemCooldowns());
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError("Could not replace mock player's networked cooldowns", exception);
+        }
+    }
+
+    private static ProjectileDeflection invokeProjectileImpact(Projectile projectile, EntityHitResult hitResult) {
+        try {
+            Method method = Projectile.class.getDeclaredMethod("hitTargetOrDeflectSelf",
+                    net.minecraft.world.phys.HitResult.class);
+            method.setAccessible(true);
+            return (ProjectileDeflection) method.invoke(projectile, hitResult);
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError("Could not invoke the Minecraft 26.2 projectile impact method", exception);
+        }
+    }
+
     private static boolean hasDroppedItem(GameTestHelper helper, Player player, net.minecraft.world.level.ItemLike item) {
         return !helper.getLevel().getEntitiesOfClass(ItemEntity.class, player.getBoundingBox().inflate(2.0),
                 entity -> entity.getItem().is(item.asItem())).isEmpty();
@@ -1817,5 +4019,45 @@ public final class KaleidoscopeCookeryGameTests {
         TagValueOutput output = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
         player.getFoodData().addAdditionalSaveData(output);
         return output.buildResult();
+    }
+
+    private static void assertRichLegacyStack(GameTestHelper helper, ItemStack stack) {
+        helper.assertTrue(stack.is(Items.DIAMOND_SWORD), "Rich Forge stack changed its item ID");
+        helper.assertValueEqual(stack.getDamageValue(), 17, "Rich Forge stack lost its damage");
+        helper.assertValueEqual(stack.getHoverName().getString(), "Migration blade",
+                "Rich Forge stack lost its custom name");
+        var sharpness = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.SHARPNESS);
+        ItemEnchantments enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        helper.assertValueEqual(enchantments.getLevel(sharpness), 3,
+                "Rich Forge stack lost its Sharpness level");
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        helper.assertTrue(customData != null
+                        && customData.copyTag().getStringOr("migration_marker", "").equals("preserve-me"),
+                "Rich Forge stack lost its custom NBT");
+    }
+
+    private static ValueInput valueInput(GameTestHelper helper, CompoundTag tag) {
+        return TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag);
+    }
+
+    private static CompoundTag legacyStack(net.minecraft.world.level.ItemLike item, int count) {
+        CompoundTag stack = new CompoundTag();
+        stack.putString("id", BuiltInRegistries.ITEM.getKey(item.asItem()).toString());
+        stack.putByte("Count", (byte) count);
+        return stack;
+    }
+
+    private static CompoundTag legacyItemHandler(int size, Map<Integer, CompoundTag> entries) {
+        CompoundTag handler = new CompoundTag();
+        handler.putInt("Size", size);
+        ListTag items = new ListTag();
+        entries.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            CompoundTag stack = entry.getValue().copy();
+            stack.putByte("Slot", entry.getKey().byteValue());
+            items.add(stack);
+        });
+        handler.put("Items", items);
+        return handler;
     }
 }

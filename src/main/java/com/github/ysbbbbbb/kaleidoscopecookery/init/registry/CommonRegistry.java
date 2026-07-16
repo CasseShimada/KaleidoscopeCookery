@@ -1,5 +1,6 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.init.registry;
 
+import com.github.ysbbbbbb.kaleidoscopecookery.api.storage.MillstoneEntityItemStorage;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.dispenser.OilPotDispenseBehavior;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteBlock;
 import com.github.ysbbbbbb.kaleidoscopecookery.block.food.FoodBiteOneByTwoBlock;
@@ -7,6 +8,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.datamap.resources.MillstoneBindab
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.github.ysbbbbbb.kaleidoscopecookery.item.BowlFoodBlockItem;
+import com.github.ysbbbbbb.kaleidoscopecookery.inventory.transfer.ChestedHorseItemStorage;
 import net.fabricmc.fabric.api.registry.CompostableRegistry;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
@@ -42,6 +44,11 @@ public final class CommonRegistry {
     private static void registerTransferApiStorage() {
         ItemStorage.SIDED.registerForBlockEntity((millstone, direction) ->
                 direction == Direction.UP ? millstone.getInputStorage() : null, ModBlocks.MILLSTONE_BE);
+        ItemStorage.SIDED.registerForBlockEntity((oilPot, direction) -> oilPot.getItemStorage(), ModBlocks.OIL_POT_BE);
+        MillstoneEntityItemStorage.SOURCE.registerFallback((entity, context) ->
+                entity instanceof net.minecraft.world.entity.animal.equine.AbstractChestedHorse horse
+                        ? new ChestedHorseItemStorage(horse)
+                        : null);
     }
 
     private static void registerFoodBiteBlocks() {

@@ -92,7 +92,7 @@ public class FruitBasketBlock extends HorizontalDirectionalBlock implements Enti
         }
         if (level.getBlockEntity(pos) instanceof FruitBasketBlockEntity fruitBasket) {
             if (player.isSecondaryUseActive()) {
-                return takeOut(state, level, pos, player, fruitBasket);
+                return InteractionResult.PASS;
             }
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;

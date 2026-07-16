@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:cooked_beef",
+    "minecraft:cooked_beef",
+    "minecraft:cooked_beef",
+    "minecraft:bowl"
+  ],
+  "result": {
+    "id": "kaleidoscope_cookery:cold_roasted_meat"
+  }
+}

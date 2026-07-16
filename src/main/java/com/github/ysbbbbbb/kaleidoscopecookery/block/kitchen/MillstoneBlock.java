@@ -132,9 +132,9 @@ public class MillstoneBlock extends HorizontalDirectionalBlock implements Entity
         if (!(te instanceof MillstoneBlockEntity millstone)) {
             return false;
         }
-        ItemStack output = millstone.getOutput();
+        List<ItemStack> outputs = millstone.getOutputs();
         ItemStack input = millstone.getInput();
-        boolean dropOutput = !output.isEmpty() && millstone.getCarrier().isEmpty();
+        boolean dropOutputs = millstone.getCarrier().isEmpty();
 
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
@@ -164,8 +164,9 @@ public class MillstoneBlock extends HorizontalDirectionalBlock implements Entity
         if (player != null && !player.hasInfiniteMaterials()) {
             Block.popResource(world, dropPos, ModItems.MILLSTONE.getDefaultInstance());
         }
-        if (dropOutput) {
-            Block.popResource(world, dropPos, output);
+        if (dropOutputs) {
+            outputs.stream().filter(stack -> !stack.isEmpty())
+                    .forEach(stack -> Block.popResource(world, dropPos, stack));
         }
         if (!input.isEmpty()) {
             Block.popResource(world, dropPos, input);

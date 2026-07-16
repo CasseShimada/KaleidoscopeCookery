@@ -7,6 +7,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
@@ -213,8 +214,8 @@ public class ChoppingBoardBlockEntity extends BaseBlockEntity implements IChoppi
         this.modelId = input.getString(MODEL_ID).map(Identifier::tryParse).orElse(null);
         this.maxCutCount = input.getIntOr(MAX_CUT_COUNT, 0);
         this.currentCutCount = input.getIntOr(CURRENT_CUT_COUNT, 0);
-        this.currentCutStack = input.read(CURRENT_CUT_STACK, ItemStack.CODEC).orElse(ItemStack.EMPTY);
-        this.result = input.read(RESULT_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.currentCutStack = LegacyItemStackCompat.readItemStack(input, CURRENT_CUT_STACK);
+        this.result = LegacyItemStackCompat.readItemStack(input, RESULT_ITEM);
     }
 
     @Nullable

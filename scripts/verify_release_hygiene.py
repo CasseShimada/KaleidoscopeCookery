@@ -126,7 +126,19 @@ def validate_configuration_boundary() -> list[str]:
 
     build_text = (ROOT / "build.gradle").read_text(encoding="utf-8")
     properties_text = (ROOT / "gradle.properties").read_text(encoding="utf-8")
-    if "cloth-config" in build_text or "cloth_config_version" in properties_text:
+    client_smoke = re.search(
+        r'if\s*\(project\.findProperty\("clientCompatSmoke"\)\s*==\s*"true"\)\s*\{.*?^\s*\}',
+        build_text,
+        flags=re.DOTALL | re.MULTILINE,
+    )
+    production_build_text = build_text
+    if client_smoke is not None:
+        smoke_block = client_smoke.group(0)
+        if not re.search(r'runtimeOnly\s+["\']maven\.modrinth:cloth-config:', smoke_block):
+            errors.append("Client compatibility smoke no longer scopes Cloth Config as runtime-only.")
+        production_build_text = build_text[:client_smoke.start()] + build_text[client_smoke.end():]
+
+    if "cloth-config" in production_build_text or "cloth_config_version" in properties_text:
         errors.append("Unused Cloth Config dependency remains in the build configuration.")
     return errors
 

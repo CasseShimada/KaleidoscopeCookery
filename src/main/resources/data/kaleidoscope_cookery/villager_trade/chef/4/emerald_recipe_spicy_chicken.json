@@ -1,0 +1,30 @@
+{
+  "wants": {
+    "id": "minecraft:emerald",
+    "count": 5.0
+  },
+  "gives": {
+    "id": "kaleidoscope_cookery:recipe_item"
+  },
+  "given_item_modifiers": [
+    {
+      "function": "kaleidoscope_cookery:set_recipe_record",
+      "input": [
+        "kaleidoscope_cookery:red_chili",
+        "kaleidoscope_cookery:red_chili",
+        "kaleidoscope_cookery:red_chili",
+        "kaleidoscope_cookery:red_chili",
+        "kaleidoscope_cookery:red_chili",
+        "minecraft:chicken",
+        "minecraft:chicken",
+        "minecraft:chicken",
+        "minecraft:chicken"
+      ],
+      "output": "kaleidoscope_cookery:spicy_chicken",
+      "type": "kaleidoscope_cookery:pot"
+    }
+  ],
+  "max_uses": 16.0,
+  "xp": 4.0,
+  "reputation_discount": 0.1
+}

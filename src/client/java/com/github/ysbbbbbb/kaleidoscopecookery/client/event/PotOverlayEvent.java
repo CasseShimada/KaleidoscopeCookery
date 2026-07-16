@@ -8,6 +8,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.ITeapot;
 import com.github.ysbbbbbb.kaleidoscopecookery.KaleidoscopeCookery;
 import com.github.ysbbbbbb.kaleidoscopecookery.crafting.serializer.TeapotRecipeSerializer;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
+import com.github.ysbbbbbb.kaleidoscopecookery.mixin.client.HudAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -41,7 +42,7 @@ public final class PotOverlayEvent {
     }
 
     public static void register() {
-        HudElementRegistry.attachElementAfter(VanillaHudElements.OVERLAY_MESSAGE, ID, PotOverlayEvent::render);
+        HudElementRegistry.attachElementAfter(VanillaHudElements.CROSSHAIR, ID, PotOverlayEvent::render);
     }
 
     private static void render(GuiGraphicsExtractor guiGraphics, DeltaTracker tickCounter) {
@@ -69,6 +70,9 @@ public final class PotOverlayEvent {
         int screenHeight = guiGraphics.guiHeight();
         int x = screenWidth / 2;
         int y = screenHeight - 72;
+        if (((HudAccessor) minecraft.gui.hud).kaleidoscopeCookery$getOverlayMessageTime() > 0) {
+            y -= 12;
+        }
         if (blockState.is(ModBlocks.TEAPOT) && blockEntity instanceof TeapotBlockEntity teapot) {
             renderTeapot(guiGraphics, font, teapot, x, y);
             return;

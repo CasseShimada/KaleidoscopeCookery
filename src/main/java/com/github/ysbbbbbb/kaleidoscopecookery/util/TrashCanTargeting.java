@@ -1,6 +1,8 @@
 package com.github.ysbbbbbb.kaleidoscopecookery.util;
 
 import net.minecraft.core.BlockPos;
+import com.github.ysbbbbbb.kaleidoscopecookery.entity.SitEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
@@ -17,8 +19,10 @@ public final class TrashCanTargeting {
         clearTargets(level, new AABB(pos).inflate(TARGET_CLEAR_RANGE), player);
     }
 
-    public static void clearTargetsAroundPlayer(Player player) {
-        clearTargets(player.level(), player.getBoundingBox().inflate(TARGET_CLEAR_RANGE), player);
+    public static boolean isHidingInTrashCan(Entity entity) {
+        return entity instanceof Player
+                && entity.getVehicle() instanceof SitEntity sitEntity
+                && sitEntity.getSitType() == SitEntity.TRASH_CAN;
     }
 
     private static void clearTargets(Level level, AABB area, LivingEntity target) {

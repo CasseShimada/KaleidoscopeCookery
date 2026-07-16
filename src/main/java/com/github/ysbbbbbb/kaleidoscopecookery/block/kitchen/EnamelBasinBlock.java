@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
-    public static final int MAX_OIL_COUNT = 12;
+    public static final int MAX_OIL_COUNT = 32;
 
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final BooleanProperty HAS_LID = BooleanProperty.create("has_lid");
@@ -65,7 +65,7 @@ public class EnamelBasinBlock extends Block implements SimpleWaterloggedBlock {
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(WATERLOGGED, false)
                 .setValue(HAS_LID, true)
-                .setValue(OIL_COUNT, MAX_OIL_COUNT));
+                .setValue(OIL_COUNT, 0));
     }
 
     @Override

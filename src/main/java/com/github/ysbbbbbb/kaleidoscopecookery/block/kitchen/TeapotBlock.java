@@ -5,6 +5,11 @@ import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.TeapotBlockEn
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModItems;
 import com.mojang.serialization.MapCodec;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -12,7 +17,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -114,13 +118,20 @@ public class TeapotBlock extends HorizontalDirectionalBlock implements SimpleWat
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         ItemStack mainHandItem = stack;
-        if (mainHandItem.is(Items.WATER_BUCKET) || mainHandItem.is(Items.LAVA_BUCKET)) {
-            return teapot.addTeaFluid(level, player, mainHandItem)
-                    ? level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME
-                    : InteractionResult.CONSUME;
-        }
-        if (mainHandItem.is(Items.BUCKET)) {
-            return teapot.removeTeaFluid(level, player, mainHandItem)
+        ContainerItemContext containerContext = ContainerItemContext.forPlayerInteraction(player, hand);
+        Storage<FluidVariant> fluidStorage = FluidStorage.ITEM.find(mainHandItem, containerContext);
+        if (fluidStorage != null) {
+            boolean hasFluid = false;
+            for (StorageView<FluidVariant> view : fluidStorage.nonEmptyViews()) {
+                if (!view.getResource().isBlank()) {
+                    hasFluid = true;
+                    break;
+                }
+            }
+            boolean transferred = hasFluid
+                    ? teapot.addTeaFluid(level, player, fluidStorage)
+                    : teapot.removeTeaFluid(level, player, fluidStorage);
+            return transferred
                     ? level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME
                     : InteractionResult.CONSUME;
         }

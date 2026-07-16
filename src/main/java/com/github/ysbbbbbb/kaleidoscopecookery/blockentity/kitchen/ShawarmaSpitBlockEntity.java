@@ -7,6 +7,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModBlocks;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.ModParticles;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.github.ysbbbbbb.kaleidoscopecookery.util.ItemUtils;
+import com.github.ysbbbbbb.kaleidoscopecookery.util.LegacyItemStackCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -197,8 +198,8 @@ public class ShawarmaSpitBlockEntity extends BaseBlockEntity implements IShawarm
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.cookingItem = input.read(COOKING_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
-        this.cookedItem = input.read(COOKED_ITEM, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        this.cookingItem = LegacyItemStackCompat.readItemStack(input, COOKING_ITEM);
+        this.cookedItem = LegacyItemStackCompat.readItemStack(input, COOKED_ITEM);
         this.cookTime = input.getIntOr(COOK_TIME, 0);
     }
 

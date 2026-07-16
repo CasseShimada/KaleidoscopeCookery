@@ -55,6 +55,7 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(getBites(), 0)
                 .setValue(FACING, Direction.SOUTH)
+                .setValue(QUALITY, DEFAULT_QUALITY)
                 .setValue(PART, NinePart.CENTER));
     }
 
@@ -144,7 +145,7 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
                 }
             }
         }
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return super.getStateForPlacement(context);
     }
 
     @Override
@@ -163,7 +164,7 @@ public class FoodBiteThreeByThreeBlock extends FoodBiteBlock implements EntityBl
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(getBites(), FACING, PART);
+        builder.add(getBites(), FACING, QUALITY, PART);
     }
 
     @Nullable

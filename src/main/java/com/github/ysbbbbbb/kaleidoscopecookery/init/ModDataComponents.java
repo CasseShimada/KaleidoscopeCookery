@@ -29,6 +29,16 @@ public final class ModDataComponents {
                     .build()
     );
 
+    public static final DataComponentType<Integer> OIL_POT_OIL_COUNT = register(
+            "oil_pot_oil_count",
+            DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build()
+    );
+
+    /** Compatibility alias used by the interim 1.21.11/26.x Fabric port. */
+    @Deprecated(forRemoval = false)
     public static final DataComponentType<Integer> OIL_POT_COUNT = register(
             "oil_pot_count",
             DataComponentType.<Integer>builder()
