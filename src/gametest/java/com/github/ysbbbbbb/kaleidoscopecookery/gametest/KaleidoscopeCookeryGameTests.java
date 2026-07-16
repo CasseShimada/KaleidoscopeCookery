@@ -199,6 +199,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.PowderSnowBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -224,10 +225,18 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class KaleidoscopeCookeryGameTests {
+    private static final Set<String> CARRY_ON_SAFE_BLOCK_PATHS = Set.of(
+            "pot", "stockpot", "fruit_basket", "chopping_board", "kitchenware_racks", "teapot",
+            "trash_can", "recipe_block", "oil_pot",
+            "chair_acacia", "chair_bamboo", "chair_birch", "chair_cherry", "chair_crimson",
+            "chair_dark_oak", "chair_jungle", "chair_mangrove", "chair_oak", "chair_spruce", "chair_warped",
+            "table_acacia", "table_bamboo", "table_birch", "table_cherry", "table_crimson",
+            "table_dark_oak", "table_jungle", "table_mangrove", "table_oak", "table_spruce", "table_warped");
     private static final Map<UUID, Storage<ItemVariant>> TEST_MILLSTONE_ENTITY_STORAGES =
             new ConcurrentHashMap<>();
     private static boolean millstoneEntityStorageTestProviderRegistered;
@@ -1147,6 +1156,91 @@ public final class KaleidoscopeCookeryGameTests {
     }
 
     @GameTest
+    public void carryOnRoundTripPreservesSupportedCookeryData(GameTestHelper helper) {
+        if (!CarryOnCompatTestAccess.isLoaded()) {
+            helper.succeed();
+            return;
+        }
+
+        boolean previousCreativeSlowness = CarryOnCompatTestAccess.setBooleanSetting(
+                "slownessInCreative", false);
+        boolean previousWhitelistMode = CarryOnCompatTestAccess.setBooleanSetting(
+                "useWhitelistBlocks", false);
+        try {
+            BlockPos sourcePos = new BlockPos(2, 2, 2);
+            BlockPos targetPos = new BlockPos(5, 2, 2);
+            prepareCarryOnPlacementArea(helper, sourcePos);
+            prepareCarryOnPlacementArea(helper, targetPos);
+            ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.CREATIVE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+
+            List<Block> supportedBlocks = BuiltInRegistries.BLOCK.entrySet().stream()
+                    .filter(entry -> entry.getKey().identifier().getNamespace().equals(KaleidoscopeCookery.MOD_ID))
+                    .filter(entry -> CARRY_ON_SAFE_BLOCK_PATHS.contains(entry.getKey().identifier().getPath()))
+                    .map(Map.Entry::getValue)
+                    .toList();
+            helper.assertValueEqual(supportedBlocks.size(), CARRY_ON_SAFE_BLOCK_PATHS.size(),
+                    "Carry On runtime fixture did not resolve every declared safe Cookery block");
+            for (boolean whitelistMode : List.of(false, true)) {
+                CarryOnCompatTestAccess.setBooleanSetting("useWhitelistBlocks", whitelistMode);
+                for (Block block : supportedBlocks) {
+                    helper.setBlock(sourcePos, carryOnSourceState(block));
+                    BlockEntity sourceBlockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(sourcePos));
+                    helper.assertTrue(sourceBlockEntity != null,
+                            "Carry On safe block has no block entity: " + BuiltInRegistries.BLOCK.getKey(block));
+                    seedCarryOnPayload(helper, player, sourceBlockEntity);
+                    BlockState sourceState = helper.getBlockState(sourcePos);
+                    CompoundTag before = saveCarryOnBlockEntity(helper, sourceBlockEntity);
+
+                    moveIntoTest(helper, player, sourcePos.above());
+                    helper.assertTrue(CarryOnCompatTestAccess.tryPickUpBlock(
+                                    player, helper.absolutePos(sourcePos), helper.getLevel()),
+                            "Carry On rejected safe Cookery block in %s mode: %s".formatted(
+                                    whitelistMode ? "whitelist" : "blacklist",
+                                    BuiltInRegistries.BLOCK.getKey(block)));
+                    helper.assertBlockPresent(Blocks.AIR, sourcePos);
+
+                    moveIntoTest(helper, player, targetPos.above());
+                    helper.assertTrue(CarryOnCompatTestAccess.tryPlaceBlock(
+                                    player, helper.absolutePos(targetPos), Direction.UP),
+                            "Carry On could not place safe Cookery block: " + BuiltInRegistries.BLOCK.getKey(block));
+                    helper.assertBlockPresent(block, targetPos);
+                    BlockEntity placedBlockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(targetPos));
+                    helper.assertTrue(placedBlockEntity != null,
+                            "Carry On placement lost Cookery block entity: " + BuiltInRegistries.BLOCK.getKey(block));
+                    helper.assertValueEqual(saveCarryOnBlockEntity(helper, placedBlockEntity), before,
+                            "Carry On changed Cookery block-entity data: " + BuiltInRegistries.BLOCK.getKey(block));
+                    assertCarryOnStateData(helper, sourceState, helper.getBlockState(targetPos), block);
+
+                    helper.setBlock(targetPos, Blocks.AIR);
+                }
+            }
+
+            CarryOnCompatTestAccess.setBooleanSetting("useWhitelistBlocks", false);
+            for (Block unsafeBlock : List.of(
+                    ModBlocks.MILLSTONE,
+                    ModBlocks.STEAMER,
+                    ModBlocks.SHAWARMA_SPIT,
+                    ModBlocks.COLD_CUT_HAM_SLICES)) {
+                helper.setBlock(sourcePos, unsafeBlock);
+                moveIntoTest(helper, player, sourcePos.above());
+                helper.assertFalse(CarryOnCompatTestAccess.tryPickUpBlock(
+                                player, helper.absolutePos(sourcePos), helper.getLevel()),
+                        "Carry On picked up unsafe Cookery structure: "
+                                + BuiltInRegistries.BLOCK.getKey(unsafeBlock));
+                helper.assertBlockPresent(unsafeBlock, sourcePos);
+                helper.setBlock(sourcePos, Blocks.AIR);
+            }
+
+            helper.succeed();
+        } finally {
+            CarryOnCompatTestAccess.setBooleanSetting("useWhitelistBlocks", previousWhitelistMode);
+            CarryOnCompatTestAccess.setBooleanSetting("slownessInCreative", previousCreativeSlowness);
+        }
+    }
+
+    @GameTest
     public void optionalCompatibilityTagsPreserveForgeMembership(GameTestHelper helper) {
         helper.assertTrue(BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(EntityTypes.COD)
                         .is(TagMod.RICE_GROWTH_BOOSTER),
@@ -1157,13 +1251,20 @@ public final class KaleidoscopeCookeryGameTests {
 
         TagKey<Block> carryOnBlacklist = TagKey.create(
                 Registries.BLOCK, Identifier.fromNamespaceAndPath("carryon", "block_blacklist"));
-        List<Identifier> missingCarryOnBlocks = BuiltInRegistries.BLOCK.entrySet().stream()
+        TagKey<Block> carryOnWhitelist = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("carryon", "block_whitelist"));
+        List<Identifier> incorrectlyClassifiedCarryOnBlocks = BuiltInRegistries.BLOCK.entrySet().stream()
                 .filter(entry -> entry.getKey().identifier().getNamespace().equals(KaleidoscopeCookery.MOD_ID))
-                .filter(entry -> !entry.getValue().defaultBlockState().is(carryOnBlacklist))
+                .filter(entry -> {
+                    boolean expectedSafe = CARRY_ON_SAFE_BLOCK_PATHS.contains(entry.getKey().identifier().getPath());
+                    BlockState state = entry.getValue().defaultBlockState();
+                    return state.is(carryOnWhitelist) != expectedSafe || state.is(carryOnBlacklist) == expectedSafe;
+                })
                 .map(entry -> entry.getKey().identifier())
                 .toList();
-        helper.assertTrue(missingCarryOnBlocks.isEmpty(),
-                "Carry On blacklist omitted Cookery blocks: %s".formatted(missingCarryOnBlocks));
+        helper.assertTrue(incorrectlyClassifiedCarryOnBlocks.isEmpty(),
+                "Carry On safe/unsafe tags misclassified Cookery blocks: %s"
+                        .formatted(incorrectlyClassifiedCarryOnBlocks));
 
         TagKey<Block> springCrops = TagKey.create(
                 Registries.BLOCK, Identifier.fromNamespaceAndPath("sereneseasons", "spring_crops"));
@@ -3887,6 +3988,106 @@ public final class KaleidoscopeCookeryGameTests {
                 new Vec3(3, 72, -2),
                 "Flatulence first tick no longer records the Forge integer block position");
         helper.succeed();
+    }
+
+    private static void prepareCarryOnPlacementArea(GameTestHelper helper, BlockPos pos) {
+        helper.setBlock(pos.below(), Blocks.STONE);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            helper.setBlock(pos.relative(direction), Blocks.STONE);
+        }
+    }
+
+    private static BlockState carryOnSourceState(Block block) {
+        BlockState state = block.defaultBlockState();
+        if (block instanceof ChairBlock) {
+            return state.setValue(ChairBlock.HAS_CARPET, true);
+        }
+        if (block instanceof TableBlock) {
+            return state.setValue(TableBlock.HAS_CARPET, true);
+        }
+        if (block == ModBlocks.POT) {
+            return state.setValue(PotBlock.HAS_OIL, true).setValue(PotBlock.SHOW_OIL, true);
+        }
+        if (block == ModBlocks.STOCKPOT) {
+            return state.setValue(StockpotBlock.HAS_LID, true);
+        }
+        return state;
+    }
+
+    private static void seedCarryOnPayload(
+            GameTestHelper helper, ServerPlayer player, BlockEntity blockEntity) {
+        if (blockEntity instanceof PotBlockEntity pot) {
+            pot.addAllIngredients(List.of(new ItemStack(Items.BEEF, 2), new ItemStack(Items.CARROT, 3)), player);
+        } else if (blockEntity instanceof StockpotBlockEntity stockpot) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("Inputs", legacyItemHandler(9, Map.of(
+                    1, legacyStack(Items.POTATO, 4),
+                    7, legacyStack(Items.BEETROOT, 2))));
+            tag.put("LidItem", legacyStack(ModItems.STOCKPOT_LID, 1));
+            stockpot.loadCustomOnly(valueInput(helper, tag));
+        } else if (blockEntity instanceof FruitBasketBlockEntity basket) {
+            helper.assertTrue(basket.putOn(new ItemStack(Items.APPLE, 3), false),
+                    "Could not seed Carry On fruit-basket fixture");
+        } else if (blockEntity instanceof ChoppingBoardBlockEntity board) {
+            CompoundTag tag = new CompoundTag();
+            tag.putString("ModelId", "kaleidoscope_cookery:block/chopping_board/carry_on_fixture");
+            tag.put("CurrentCutStack", legacyStack(Items.SALMON, 2));
+            tag.put("ResultItem", legacyStack(Items.COOKED_SALMON, 3));
+            tag.putInt("MaxCutCount", 5);
+            tag.putInt("CurrentCutCount", 2);
+            board.loadCustomOnly(valueInput(helper, tag));
+        } else if (blockEntity instanceof KitchenwareRacksBlockEntity racks) {
+            helper.assertTrue(racks.onClick(player, new ItemStack(Items.DIAMOND_SWORD), true),
+                    "Could not seed Carry On kitchenware-racks fixture");
+        } else if (blockEntity instanceof TeapotBlockEntity teapot) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("Input", legacyStack(Items.WHEAT_SEEDS, 5));
+            tag.putString("TeaFluidId", "minecraft:water");
+            tag.put("Result", legacyStack(Items.POTION, 2));
+            tag.putInt("Status", 2);
+            tag.putInt("CurrentTick", 55);
+            teapot.loadCustomOnly(valueInput(helper, tag));
+        } else if (blockEntity instanceof TrashCanBlockEntity trashCan) {
+            helper.assertTrue(trashCan.putItem(new ItemStack(Items.COBBLESTONE, 16), false),
+                    "Could not seed Carry On trash-can fixture");
+        } else if (blockEntity instanceof RecipeBlockEntity recipeBlock) {
+            recipeBlock.setItem(new ItemStack(ModItems.RECIPE_ITEM));
+        } else if (blockEntity instanceof OilPotBlockEntity oilPot) {
+            helper.assertTrue(oilPot.setOilCount(17), "Could not seed Carry On oil-pot fixture");
+        } else if (blockEntity instanceof ChairBlockEntity chair) {
+            chair.setColor(DyeColor.RED);
+        } else if (blockEntity instanceof TableBlockEntity table) {
+            table.setColor(DyeColor.BLUE);
+            helper.assertTrue(table.addItem(new ItemStack(Items.CAKE)),
+                    "Could not seed Carry On table fixture");
+        } else {
+            throw new AssertionError("No Carry On payload fixture for " + blockEntity.getType());
+        }
+        blockEntity.setChanged();
+    }
+
+    private static CompoundTag saveCarryOnBlockEntity(GameTestHelper helper, BlockEntity blockEntity) {
+        TagValueOutput output = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING, helper.getLevel().registryAccess());
+        blockEntity.saveWithId(output);
+        CompoundTag tag = output.buildResult();
+        tag.remove("x");
+        tag.remove("y");
+        tag.remove("z");
+        return tag;
+    }
+
+    private static void assertCarryOnStateData(
+            GameTestHelper helper, BlockState before, BlockState after, Block block) {
+        for (var property : before.getProperties()) {
+            if (property.getValueClass() == Direction.class
+                    || property.getValueClass() == Direction.Axis.class) {
+                continue;
+            }
+            helper.assertValueEqual(after.getValue(property), before.getValue(property),
+                    "Carry On changed block-state property %s on %s"
+                            .formatted(property.getName(), BuiltInRegistries.BLOCK.getKey(block)));
+        }
     }
 
     private static Identifier id(String path) {

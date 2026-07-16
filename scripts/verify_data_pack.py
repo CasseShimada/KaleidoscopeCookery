@@ -18,6 +18,26 @@ JAVA_ROOT = ROOT / "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery"
 RESOURCES = ROOT / "src/main/resources"
 ASSETS = RESOURCES / "assets" / MOD_ID
 
+CARRYON_SAFE_BLOCKS = {
+    "pot",
+    "stockpot",
+    "fruit_basket",
+    "chopping_board",
+    "kitchenware_racks",
+    "teapot",
+    "trash_can",
+    "recipe_block",
+    "oil_pot",
+    *(f"chair_{wood}" for wood in (
+        "oak", "spruce", "acacia", "bamboo", "birch", "cherry",
+        "crimson", "dark_oak", "jungle", "mangrove", "warped",
+    )),
+    *(f"table_{wood}" for wood in (
+        "oak", "spruce", "acacia", "bamboo", "birch", "cherry",
+        "crimson", "dark_oak", "jungle", "mangrove", "warped",
+    )),
+}
+
 EXPECTED_CHEF_TRADE_TAGS = {
     1: [
         "kaleidoscope_cookery:chef/1/tomato_emerald",
@@ -390,22 +410,43 @@ def validate_ftb_ultimine_tags() -> tuple[list[str], int]:
     return errors, len(tag_ids)
 
 
-def validate_carryon_blacklist(registered_blocks: set[str]) -> tuple[list[str], int]:
-    path = resolve_resource("data", "carryon", "tags", "block", "block_blacklist.json")
-    if not path.exists():
-        return ["Carry On block blacklist is missing."], 0
+def validate_carryon_tags(registered_blocks: set[str]) -> tuple[list[str], int, int]:
+    blacklist_path = resolve_resource("data", "carryon", "tags", "block", "block_blacklist.json")
+    whitelist_path = resolve_resource("data", "carryon", "tags", "block", "block_whitelist.json")
+    errors: list[str] = []
+    if not blacklist_path.exists():
+        errors.append("Carry On block blacklist is missing.")
+    if not whitelist_path.exists():
+        errors.append("Carry On block whitelist is missing.")
+    if errors:
+        return errors, 0, 0
 
-    actual = set(tag_values(parse_json(path)))
-    expected = {f"{MOD_ID}:{block_id}" for block_id in registered_blocks}
-    errors = [
-        f"Carry On block blacklist is missing registered block {block_id}."
-        for block_id in sorted(expected - actual)
-    ]
+    unknown_safe = CARRYON_SAFE_BLOCKS - registered_blocks
     errors.extend(
-        f"Carry On block blacklist contains unregistered block {block_id}."
-        for block_id in sorted(actual - expected)
+        f"Carry On safe-block declaration references unregistered block {MOD_ID}:{block_id}."
+        for block_id in sorted(unknown_safe)
     )
-    return errors, len(actual)
+
+    all_blocks = {f"{MOD_ID}:{block_id}" for block_id in registered_blocks}
+    expected_safe = {f"{MOD_ID}:{block_id}" for block_id in CARRYON_SAFE_BLOCKS}
+    expected_unsafe = all_blocks - expected_safe
+    actual_safe = set(tag_values(parse_json(whitelist_path)))
+    actual_unsafe = set(tag_values(parse_json(blacklist_path)))
+
+    for block_id in sorted(expected_safe - actual_safe):
+        errors.append(f"Carry On block whitelist is missing safe block {block_id}.")
+    for block_id in sorted(actual_safe - expected_safe):
+        errors.append(f"Carry On block whitelist contains unsupported block {block_id}.")
+    for block_id in sorted(expected_unsafe - actual_unsafe):
+        errors.append(f"Carry On block blacklist is missing unsafe block {block_id}.")
+    for block_id in sorted(actual_unsafe - expected_unsafe):
+        errors.append(f"Carry On block blacklist contains carryable or unregistered block {block_id}.")
+    for block_id in sorted(actual_safe & actual_unsafe):
+        errors.append(f"Carry On block {block_id} is both whitelisted and blacklisted.")
+    for block_id in sorted(all_blocks - (actual_safe | actual_unsafe)):
+        errors.append(f"Carry On tags do not classify registered block {block_id}.")
+
+    return errors, len(actual_unsafe), len(actual_safe)
 
 
 def validate_advancements(registered_items: set[str], trigger_ids: set[str]) -> list[str]:
@@ -720,7 +761,7 @@ def main() -> int:
     errors.extend(common_tag_errors)
     ftb_errors, ftb_tags = validate_ftb_ultimine_tags()
     errors.extend(ftb_errors)
-    carryon_errors, carryon_blocks = validate_carryon_blacklist(registered_blocks)
+    carryon_errors, carryon_blacklisted, carryon_safe = validate_carryon_tags(registered_blocks)
     errors.extend(carryon_errors)
     errors.extend(validate_advancements(registered_items, trigger_ids))
     baseline_advancement_errors, baseline_advancements = validate_baseline_recipe_advancements()
@@ -750,7 +791,8 @@ def main() -> int:
     print(f"  village structures: {village_structures}")
     print(f"  Forge common tags mapped to c: {common_tags}")
     print(f"  FTB Ultimine tags: {ftb_tags}")
-    print(f"  Carry On blacklisted blocks: {carryon_blocks}")
+    print(f"  Carry On carryable blocks: {carryon_safe}")
+    print(f"  Carry On blacklisted unsafe blocks: {carryon_blacklisted}")
     return 0
 
 

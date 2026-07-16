@@ -4,11 +4,11 @@
 
 ## 执行元数据
 
-- 最后更新时间：2026-07-16 21:19（Asia/Shanghai，全部可安装 26.2 Fabric 适配完成安装态复测、修复、clean 闭环与部署）
+- 最后更新时间：2026-07-17 00:41（Asia/Shanghai，Carry On 2.9.1 适配、1.1.0.6 版本构建与双模式真实搬运闭环完成，待远端 Actions/Release）
 - 执行模型：Codex（GPT-5）
-- 当前分支：`codex/26.2-fabric-client`
-- 当前 HEAD：`0c8e583510d718f9dc9b28bda2e92084581b1ec3`（`Align table interaction results`）
-- 远端关系：相对 `origin/codex/26.2-fabric-client` 领先 196 个提交
+- 当前分支：`26.2-fabric`
+- 当前已提交 HEAD：`19f1ca4bb6dc9fba876b3d1fa8d1d0c07c105ebb`（`Record official upstream through 1d935a2c`）
+- 远端关系：已提交 HEAD 与 `origin/26.2-fabric` 一致；本轮 Carry On 适配仍为未提交工作区修改
 - 初始工作区状态：存在用户未提交修改，必须保留：
   - `scripts/verify_server_boundary.py`
   - `src/gametest/java/com/github/ysbbbbbb/kaleidoscopecookery/gametest/KaleidoscopeCookeryGameTests.java`
@@ -41,10 +41,10 @@
 
 | 模块/目录 | 用途 | 状态 | 备注 |
 | --- | --- | --- | --- |
-| `src/main/java` | 服务端安全的核心逻辑 | VERIFIED | 11/11 静态边界验证、96/96 GameTest、普通专服、目标完整栈和最新 marker-cleanup 真实副本 smoke 均通过 |
+| `src/main/java` | 服务端安全的核心逻辑 | VERIFIED | 11/11 静态边界验证、默认 97/97 GameTest、Carry On 安装态 103/103、普通专服、目标完整栈和最新 marker-cleanup 真实副本 smoke 均通过 |
 | `src/client/java` | 客户端入口、渲染、Screen、REI 等 | VERIFIED | 独立 source set；common 无 client import；普通/可选栈/目标联机客户端均完成初始化 |
 | `src/datagen` | Fabric 数据生成入口与资源生成 | VERIFIED | 最终 clean-state 中 Advancements、Loot Tables、Recipes 三 provider 全部通过；163 个基线配方恢复且资源对照未解释项为 0 |
-| `src/gametest` | GameTest 与测试辅助代码 | VERIFIED | 用户初始修改已保留并协作扩展；最终 96/96 required tests 通过 |
+| `src/gametest` | GameTest 与测试辅助代码 | VERIFIED | 用户初始修改已保留并协作扩展；默认 97/97 required tests、Carry On 安装态（含其自带 6 项）103/103 通过 |
 | `src/main/resources` | Fabric 元数据、Mixin、Access Widener、资产和数据 | VERIFIED | pack/mixin/AW/资源/数据静态验证、规范化基线路径对照和客户端/专服运行均通过 |
 | `src/main/generated` | Fabric 数据生成产物 | VERIFIED | 当前资源 source set；配方、进度、战利品及其 26.2 单数资源目录已与 Forge `src/generated/resources` 规范化对照，基线仅有路径只剩 52 个已验证的 API/模型替代项 |
 | `scripts` | 静态验证脚本 | VERIFIED | 全部 11 个 `verify_*.py` 同轮运行通过；保留并扩展用户的服务端边界检查 |
@@ -55,7 +55,7 @@
 
 | 功能或对象 | 原实现位置 | 当前实现位置 | 存档相关 ID/字段 | 状态 | 验证证据 | 备注 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 模组入口与生命周期 | Forge `KaleidoscopeCookery` 与全部自动事件 | Fabric common/client entrypoint、生命周期/交互事件与最小 Mixin | mod ID、初始化顺序 | VERIFIED | 下方 19 项 common 入口精确映射；11/11 静态验证、96/96 GameTest、目标客户端/专服先前产物通过 | 客户端配置仅由 client entrypoint 初始化 |
+| 模组入口与生命周期 | Forge `KaleidoscopeCookery` 与全部自动事件 | Fabric common/client entrypoint、生命周期/交互事件与最小 Mixin | mod ID、初始化顺序 | VERIFIED | 下方 19 项 common 入口精确映射；11/11 静态验证、默认 97/97 GameTest、Carry On 安装态 103/103、目标客户端/专服先前产物通过 | 客户端配置仅由 client entrypoint 初始化 |
 | 方块与方块状态 | 基线 `init/ModBlocks` 与 block 包 | 当前 block 包 | 方块 ID、属性名/合法值 | VERIFIED | 112 个基线方块 ID 均存在；31/31 自定义属性键、23/23 原版属性引用零差异；搪瓷盆和 41 类 FoodBite 运行夹具通过 | 恢复遗漏的 `quality=0..4`、缺字段默认 4、放置/食用/掉落/Jade 语义 |
 | 物品与数据组件 | Forge `ModItems`/旧 NBT；Neo `ModDataComponents` | 当前 item/init 包 | 物品 ID、组件/NBT 键 | VERIFIED | 190 个基线物品 ID 均存在；油壶三端点、旧食品品质及含 Damage/名称/Sharpness III/自定义 tag 的丰富 Forge 栈均完成保存/二次读取 | 用户指定世界没有 Cookery 物品或方块实体端点；其玩家 4 件非 Cookery 物品在 26.2 往返和全区块升级后逐项保持 |
 | 流体 | 基线无自定义流体注册；Forge Fluid API 参与容器交互 | 当前原版流体/Transfer 容器逻辑 | 流体/容器语义 | VERIFIED | 无自定义 Fluid/FluidType；茶壶通用整桶事务、油壶容量/过滤/提交回滚与实体倾倒均有 GameTest | 无流体注册 ID 迁移 |
@@ -70,12 +70,12 @@
 | 粒子与音效 | Forge `ModParticles` / `ModSounds` | 当前同名 init 类 | particle/sound ID | VERIFIED | 2 个粒子、9 个声音事件及资源引用由 `verify_client_assets.py` 锁定；旧茶壶/垃圾桶声音已恢复，客户端 OpenAL/粒子图集加载通过 | 误用 Fabric 茶壶 ID 仅作为兼容别名保留 |
 | 网络 payload | Forge `NetworkHandler` / `SimpleC2SModMessage` | Fabric `NetworkHandler`、两个 unit payload | 旧 channel `network` + action 0/1；当前 `flatulence` / `throwing_baozi` | VERIFIED | 67/67 GameTest + `verify_network_safety.py`：unit codec 零字段往返、服务端效果/物品/潜行/冷却/生成/消耗校验 | 单 tick 仅阻止同 tick 包洪泛；包子客户端恢复 Forge `LeftClickEmpty` 的 MISS 边界 |
 | 茶壶物品流体/左键/实体交互 | Forge `TeapotItem`、`LeftClickEvent` | 当前 `TeapotItem`、`TeapotClearEvent` | `BLOCK_ENTITY_DATA`：`TeaFluidId`、`Status`、`Result` | VERIFIED | 67/67 GameTest：流体 ID/组件、拒绝二次装液、AttackBlock 清空、成品单份消耗及 3 点伤害 | 原版 `BucketPickup`/`BucketItem#getContent` 恢复流体源装壶；服务端发送熔岩粒子 |
-| Capability/Attachment/DataMap 替代 | Forge item/fluid capability、磨盘实体 item-handler、Neo attachment/DataMap、厨师英雄礼物映射 | Fabric Transfer API、`MillstoneEntityItemStorage`、Fabric attachment、resource reload/注册表与最小礼物 Mixin | 胀气起点、12 个磨盘实体 ID、11 个堆肥条目、`chef_gift` | VERIFIED | 96/96 GameTest：通用茶壶流体容器、油壶事务、磨盘第三方/带箱马存储及掉落物回退、厨师礼物、attachment/DataMap；11/11 静态验证 | Fabric 无标准 `ItemStorage.ENTITY`；第三方实体须向公开 `SOURCE` lookup 注册，原版带箱马由内建 fallback 适配 |
+| Capability/Attachment/DataMap 替代 | Forge item/fluid capability、磨盘实体 item-handler、Neo attachment/DataMap、厨师英雄礼物映射 | Fabric Transfer API、`MillstoneEntityItemStorage`、Fabric attachment、resource reload/注册表与最小礼物 Mixin | 胀气起点、12 个磨盘实体 ID、11 个堆肥条目、`chef_gift` | VERIFIED | 最新默认 97/97 GameTest：通用茶壶流体容器、油壶事务、磨盘第三方/带箱马存储及掉落物回退、厨师礼物、attachment/DataMap；11/11 静态验证 | Fabric 无标准 `ItemStorage.ENTITY`；第三方实体须向公开 `SOURCE` lookup 注册，原版带箱马由内建 fallback 适配 |
 | 配置与饱腹代偿 | Forge `config/GeneralConfig.java`（9 个键）、`config/ClientConfig.java`（1 个键）、`event/effect/SatiatedShieldEvent` | 当前 JSON `GeneralConfig`/`ClientConfig`、Fabric `SatiatedShieldEvent` | `kaleidoscope_cookery-common.toml`、`kaleidoscope_cookery-client.toml`、两个 Fabric JSON | VERIFIED | 通用 9 项默认值/范围/TOML 映射和减伤公式；客户端 `ShowFoodEffectTooltips` 旧键/默认/非法值及外部模组抑制通过 69/69 GameTest | 两类旧 TOML 均只读导入；客户端 JSON 仅由 client entrypoint 初始化，普通专服不创建该文件 |
 | 保鲜与农夫套装实体效果 | Forge `PreservationEvent` 完成食用事件、`ArmorEffectEvent` 全部 LivingEntity post tick | 当前 `PreservationEvent` / `FarmerArmorEffectEvent` + `LivingEntityMixin` | 效果 ID、食物组件、实体 tick cadence | VERIFIED | 90/90 GameTest 中覆盖完成消费、自定义 food、非玩家四件套与缺靴控制 | 已恢复完成食用和全部 LivingEntity 自身 tick 语义 |
 | 垃圾桶隐藏/客户端表现 | Forge/NeoForge `ChangeTargetEvent`、`CameraEvent`、`PlayerRenderEvent` | `MobMixin`、`CameraMixin`、Avatar render-state/submit Mixins、overlay | `SitType=1`、骑乘关系 | VERIFIED | 真实 `Mob.setTarget` GameTest；client Mixin 静态契约；普通客户端完整资源初始化 | 新目标赋值被取消且旧目标保留；第一人称 pitch 固定 0；垃圾桶乘客 render state 在提交前取消 |
 | Mixin/AW/反射访问 | Forge 事件、方块 hook、3 个既有 Mixin 与客户端 arm pose | 11 common + 5 client Mixin、3 个 AW 字段项 | 注入目标与访问契约 | VERIFIED | `verify_mixins.py`；90/90 GameTest；普通与遗留包客户端完成全部既有 Mixin 应用、OpenAL、资源重载及图集创建 | 新增 common `PlayerMixin` 只在玩家加载尾部读取旧 Forge 胀气临时坐标；其余条目已按双基线、26.2 方法形状和运行应用逐项锁定 |
-| 第三方可选集成 | Forge `compat/{create,emi,harvest,kubejs,ponder,tetra}` 及 JEI/REI/Jade/Farmer's Delight | 当前 JEI/REI/Jade/Farmer's Delight/Food Effect Tooltips 代码与 Carry On/Serene Seasons 数据 | 插件 ID、可选依赖、数据 namespace | AUDITED | 59-mod 客户端栈完成资源重载/OpenAL/全部图集；Farmer's Delight 真实配方 70/70 GameTest；Carry On 标签 116/116 | 用户最终明确要求忽略其他模组影响；第三方模组自身的缺版/API 崩溃不再属于 Cookery 存档与正常玩法完成判定 |
+| 第三方可选集成 | Forge `compat/{create,emi,harvest,kubejs,ponder,tetra}` 及 JEI/REI/Jade/Farmer's Delight | 当前 JEI/REI/Jade/Farmer's Delight/Food Effect Tooltips 代码与 Carry On/Serene Seasons 数据 | 插件 ID、可选依赖、数据 namespace | VERIFIED | 59-mod 客户端栈完成资源重载/OpenAL/全部图集；Farmer's Delight 真实配方安装态通过；Carry On 2.9.1 双名单模式 31 个安全方块共 62 次真实往返、85 个不安全方块补集锁定，安装态 103/103 | Carry On 保持纯数据可选适配，生产代码不链接其类；其他无 26.2 构件的集成继续按用户范围列为审计项 |
 | 资源包/数据包 | Forge 主资源与 `legacy_pack` | resources/generated、内置 `legacy_resources_pack` | namespace、路径、资源格式 88..107 | VERIFIED | 默认关闭遗留包 1406 资源/839 模型已运行验证；主包 10 种基线语言、12/12 效果纹理、6 个 Ponder 场景；规范化路径对照为基线 2402、当前 2927、基线仅有 52 | 52 项精确分类为 36 个由 blockstate 旋转替代的桌子模型和 16 个由 Fabric loot 事件替代的 Forge GLM 文件，未解释项为 0 |
 | 专用服务端边界 | Forge dist 边界与当前 main/client source sets | main/client source sets | 类加载边界 | VERIFIED | `verify_server_boundary.py`、普通专服、最终 `4B6AA...437B` 目标三模组栈副本联机及二次加载均通过 | 最终目标 3071 recipes / 2701 advancements、五维度保存，专服无客户端类加载错误，第二轮 ERROR=0 |
 
@@ -105,12 +105,12 @@
 | `@Mod`、事件总线与生命周期事件 | Forge/NeoForge 自动订阅事件逐项对照 | Fabric entrypoint/lifecycle/interaction events、必要的实体 Mixin | VERIFIED | 下表精确映射全部基线入口；11 common/5 client Mixin 静态契约与 90/90 GameTest，客户端门禁及两轮 smoke 通过 |
 | `DeferredRegister` / `RegistryObject` | Forge/NeoForge init 包全量注册 | 原版 `Registry` + Fabric 注册 API | VERIFIED | 全局禁止扫描、逐注册表集合与最终目标运行注册表通过；仅明确历史冲突使用双 ID |
 | Capability / ItemHandler | Forge/NeoForge `SpecialRecipeItemEvent` 在果篮/嬗变午餐袋后查询任意物品的 item-handler | 两个内置容器继续直接读写；其余玩家背包槽位通过可变 `ContainerItemContext` 查询 `ItemStorage.ITEM` | VERIFIED | `PlayerInventoryStorage.getSlot(slot)` 上下文枚举非空 view，并在事务内按实际 variant 提取；真实 shulker 3 个苹果经菜谱扣 2 后原槽保留 shulker + 1 苹果，82/82 GameTest |
-| Capability / 实体 ItemHandler | Forge 磨盘对任意绑定 mob 查询 `ForgeCapabilities.ITEM_HANDLER`，失败后扫描磨盘上方掉落物 | 公开 `MillstoneEntityItemStorage.SOURCE` + Transfer `Storage<ItemVariant>`；内建带箱马 fallback；失败后保持原 3x3x1 `ItemEntity` 回退 | VERIFIED | 96/96 GameTest：第三方 cow provider 每批提取 8；无效配方事务回滚；真实带箱驴使用 26.2 `INVENTORY_SLOT_OFFSET=500` 回滚/提交；掉落小麦供料 | Fabric Transfer API 8.0.11 没有标准 entity lookup，其他模组需按实体类型显式注册 Cookery lookup；这是目标 API 的明确集成边界 |
+| Capability / 实体 ItemHandler | Forge 磨盘对任意绑定 mob 查询 `ForgeCapabilities.ITEM_HANDLER`，失败后扫描磨盘上方掉落物 | 公开 `MillstoneEntityItemStorage.SOURCE` + Transfer `Storage<ItemVariant>`；内建带箱马 fallback；失败后保持原 3x3x1 `ItemEntity` 回退 | VERIFIED | 最新默认 97/97 GameTest：第三方 cow provider 每批提取 8；无效配方事务回滚；真实带箱驴使用 26.2 `INVENTORY_SLOT_OFFSET=500` 回滚/提交；掉落小麦供料 | Fabric Transfer API 8.0.11 没有标准 entity lookup，其他模组需按实体类型显式注册 Cookery lookup；这是目标 API 的明确集成边界 |
 | Capability / 物品流体与油壶自动化 | Forge 茶壶任意流体容器、Neo 油壶 item handler | `FluidStorage.ITEM` 完整一桶事务；`OilPotStorage` 256 容量、仅油、全方向 `ItemStorage.SIDED` | VERIFIED | 94/94 与 95/95 GameTest：通用容器整桶转移/不足拒绝；油壶插入、提取、回滚、提交及方块状态同步 | 不再限定原版水桶；空茶壶不写 `0 minecraft:air` |
 | Forge 网络通道 | Forge `network` channel / VarInt action 0..1 | 两个 Fabric serverbound unit payload | VERIFIED | 方向、unit codec、权威玩家/状态/冷却/频率与 MISS 边界由静态脚本、GameTest 和最终客户端联机验证 |
 | Forge common 配置 | `GeneralConfig` + `SatiatedShieldEvent` | 自有 Fabric JSON 配置 + 旧 TOML 一次性只读导入 | VERIFIED | 恢复 9 项字段、范围、默认值与完整减伤算法；GameTest 覆盖 |
 | DistExecutor / 客户端事件 | Forge/NeoForge `CameraEvent`、`PlayerRenderEvent`、HUD 等 | 独立 client source set/entrypoint、client-only Mixin/Fabric HUD API | VERIFIED | 垃圾桶相机/玩家隐藏、两 HUD crosshair 锚点、锅提示动作栏避让及胀气四门控均恢复；专服边界、编译和普通/遗留包客户端 smoke 通过 |
-| DataMap/Attachment | Forge millstone DataMap、玩家 `ForgeData`；Neo attachment、compostable DataMap、厨师英雄礼物 | 原版 codec/resource reload + Fabric attachment/堆肥注册 + `GiveGiftToHeroMixin` | VERIFIED | 磨盘 12 项 reload 集合、11 个堆肥条目、唯一胀气 attachment 的旧 NBT/生命周期及 `chef_gift` 映射均静态或运行验证；96/96 GameTest | 26.2 无公开英雄礼物注册 API，故仅该映射使用最小 Mixin |
+| DataMap/Attachment | Forge millstone DataMap、玩家 `ForgeData`；Neo attachment、compostable DataMap、厨师英雄礼物 | 原版 codec/resource reload + Fabric attachment/堆肥注册 + `GiveGiftToHeroMixin` | VERIFIED | 磨盘 12 项 reload 集合、11 个堆肥条目、唯一胀气 attachment 的旧 NBT/生命周期及 `chef_gift` 映射均静态或运行验证；最新默认 97/97 GameTest | 26.2 无公开英雄礼物注册 API，故仅该映射使用最小 Mixin |
 | Access Transformer | Forge AT 与 NeoForge公开字段对照 | 3 个 AW 字段项 + 最小只读 client accessor | VERIFIED | `verify_mixins.py`、26.2 字节码与运行应用已逐条验证；HUD accessor 只暴露 overlay timer getter |
 
 ### Forge/NeoForge common 自动事件精确映射
@@ -185,20 +185,26 @@
 | Jade | 基线与当前均有 server/client plugin/provider；当前 15 个有状态 BE 均有 provider | VERIFIED | 安装态暴露并补齐 `food_bite_block`、`kitchenware_rack`、`steamer` 配置翻译；验证器现锁定全部 13 个 UID 的 en_us/zh_cn 键。Jade 26.2.9+fabric 完整栈中 common/client plugin 均加载且不再触发 missing translation 断言 |
 | Farmer's Delight | Forge 将 Cooking Pot 配方转换为汤锅执行/JEI/REI 展示；当前通过反射/ID 边界保持可选 | VERIFIED | 26.2 Fabric 3.6.7 安装态 Loader 45 mods / 2519 recipes / 96 tests；真实 beef stew、含 `fabric:any` 的 dumplings/cabbage rolls 三者的输入数、输出、时间、碗 carrier、汤锅实际匹配与 viewer 枚举全部通过；默认 runtimeClasspath 不含该模组 |
 | Serene Seasons | 当前保留春/夏/秋 block/item 作物标签并已迁为 26.2 单数 registry 目录 | AUDITED | Cookery 标签成员由静态校验/GameTest 验证；现有第三方 jar manifest 不支持 26.2。用户明确忽略其他模组影响，列为范围外 |
-| Carry On | 当前 `carryon:block_blacklist` 标签；Forge 基线以 IMC 动态拉黑全部模组方块 | AUDITED | blacklist 已补至 116/116 并通过静态/注册表 GameTest；第三方无 26.2 文件，按用户指示列为范围外 |
+| Carry On | 当前同时提供 `carryon:block_whitelist` 与 `carryon:block_blacklist`；Forge 基线以 IMC 动态拉黑全部模组方块 | VERIFIED | 用户提供的本地 26.2 / 2.9.1 源码与成品已实际加载。31 个单方块持久 BE（9 个设备/容器、11 椅、11 桌）可搬运；其余 85 个无 BE、食物/作物或多方块结构明确拉黑。黑名单/白名单模式下 31 个方块共 62 次搬起放下，坐标无关完整 NBT 与非朝向状态逐项相等；磨盘、蒸笼、烤肉架、3x3 冷盘拒绝搬起。默认 97/97、安装态 103/103 GameTest 通过 |
 | Create | Forge `CreateCompat`/`MillstoneCompat` 与漏斗顶部输入 | AUDITED | 当前顶部 `ItemStorage.SIDED` 事务行为已 GameTest；Create 无 26.2 API，按用户指示列为范围外 |
 | Harvest With Ease | Forge `HarvestCompat`/`CropHarvestEvent` | AUDITED | 第三方只到 MC 26.1.2，按用户指示列为范围外 |
 | Tetra | Forge modular item 特殊工具集成 | AUDITED | 目标 26.2/Fabric API 不存在，按用户指示列为范围外 |
 | EMI | Forge 八类 Cookery 配方与 Create milling 展示 | AUDITED | EMI 无 26.2 文件，按用户指示列为范围外；现有翻译键保留 |
 | KubeJS | Forge Cookery recipe schema 与 soup base builder | AUDITED | KubeJS 只到 MC 26.1.2，按用户指示列为范围外 |
 | Ponder | Forge 七类设备/食谱场景、标签和屏幕 | AUDITED | Ponder addon 无 26.2/Fabric 构件，按用户指示列为范围外 |
-| Food Effect Tooltips | Forge `CompatRegistry` 检测 `foodeffecttooltips` 后关闭自身效果行，避免重复；另受客户端 `ShowFoodEffectTooltips` 控制 | VERIFIED | Fabric 2.1.2+26.2 安装态随 59-mod 客户端栈进入旧世界副本并正常保存退出；当前用 Loader mod ID 弱检测，无第三方类依赖，配置关闭、外部安装抑制重复行与默认分支继续由 96/96 GameTest 锁定 |
+| Food Effect Tooltips | Forge `CompatRegistry` 检测 `foodeffecttooltips` 后关闭自身效果行，避免重复；另受客户端 `ShowFoodEffectTooltips` 控制 | VERIFIED | Fabric 2.1.2+26.2 安装态随 59-mod 客户端栈进入旧世界副本并正常保存退出；当前用 Loader mod ID 弱检测，无第三方类依赖，配置关闭、外部安装抑制重复行与默认分支继续由最新默认 97/97 GameTest 锁定 |
 
 ## 已修改文件及原因
 
 | 文件 | 修改原因 | 状态 |
 | --- | --- | --- |
 | `FABRIC_MIGRATION_AUDIT.md` | 按要求建立持续审计、证据与交接入口 | VERIFIED |
+| `src/main/resources/data/carryon/tags/block/{block_whitelist,block_blacklist}.json` | 将旧全量拉黑改为精确 31 个安全持久 BE / 85 个不安全方块补集，同时支持 Carry On 黑名单和白名单配置 | VERIFIED |
+| `src/main/resources/fabric.mod.json` | 将已验证的 Carry On 2.9.1 声明为可选建议依赖，不形成硬依赖 | VERIFIED |
+| `gradle.properties` | 将新增兼容功能的发布版本从 `1.1.0.5-fabric+mc26.2` 递增为 `1.1.0.6-fabric+mc26.2` | VERIFIED |
+| `build.gradle` | 增加 `carryOnCompatJar` opt-in 本地 runtime，仅供反射安装态 GameTest，不进入默认运行依赖或成品 JAR | VERIFIED |
+| `src/gametest/.../{CarryOnCompatTestAccess,KaleidoscopeCookeryGameTests}.java` | 无编译期 Carry On 依赖地调用真实搬起/放下处理器；双名单模式覆盖全部 31 个安全方块的完整 NBT/状态往返及多方块拒绝 | VERIFIED |
+| `scripts/verify_data_pack.py` | 锁定 Carry On 31/85 精确分区、无重叠、无遗漏、无未注册成员 | VERIFIED |
 | `src/main/java/.../init/ModDataComponents.java` | 恢复 NeoForge `oil_pot_oil_count`，保留当前 Fabric `oil_pot_count` 兼容别名 | VERIFIED |
 | `src/main/java/.../item/OilPotItem.java` | 读取并迁移 Neo/当前 Fabric 组件及 Forge `custom_data.oil_count`，保留无关自定义数据 | VERIFIED |
 | `src/main/java/.../init/ModBlocks.java` | 同时注册 `recipe_book` 与最新 Forge/Neo `recipe_block` 方块实体类型 | VERIFIED |
@@ -411,19 +417,20 @@
 | 2026-07-16 18:40 | 原件/备份只读终检、运行环境清理与发布 jar 复核 | 成功 | 原件和独立备份仍各 70 files / 29,711,647 bytes，70 个相对路径逐文件长度+SHA-256 比较差异为 0，`level.dat` 均保持 `46140A68...F30C`，且二者 file ID 不同、不是硬链接。`run/mods` 恢复为空，`server.properties` 恢复 `world`/25565/online/secure，25570 无本任务监听；发布 jar 仍为 5,424,947 bytes / `4B6AA...437B` | VERIFIED |
 | 2026-07-16 19:16 | 用户最终验收范围确认与 Cookery-only 证据复核 | 成功 | 用户明确只要求 KaleidoscopeCookery 正常游玩并安全读取其自写 Fabric 26.1.2 世界，不存在 Forge/NeoForge 旧世界，且可忽略其他模组影响。既有真实客户端证据再次核对：原 UUID `CasseShimada` 在原 Aether 坐标登录、读取 47 advancements、正常驻留/退出；多轮 Cookery 26.2 服务端均到达 `Done`、flush、五维度保存和正常停止，Cookery ERROR=0。最终副本保持玩家位置/4 物品、26+26 配方书、`raw_meatball` 进度时间戳与 28/28 旧 Cookery creeper marker；因此在用户明确的 Cookery-only 范围内完成验收 | VERIFIED |
 | 2026-07-16 19:35-19:46 | 旧 AI marker 惰性清理实现、自动化、部署与真实副本定向 smoke | 成功 | `ServerEntityLoadEvent` 精确删除旧猫/苦力怕标签，仍按运行 Goal 实例去重；GameTest 验证两个 marker 清除、无关 tag 保留、重复事件后 Goal 各恰好一个。`compileJava compileGametestJava test`、`build`、96/96 GameTest、11/11 `verify_*.py` 均通过；新 jar 5,425,072 bytes / 5225 entries / SHA-256 `BDA6D1BAD4862D399765572F856528FE55587A6604E8FE0665BDFD52509BC431`。目标旧 `4B6AA...437B` 已备份后部署新 jar；独立 `codex-marker-cleanup-20260716-1942` 副本强载覆盖 28 只实体的 72 个区块，两次 flush、正常退出码 0、Cookery ERROR=0；离线复扫仍为 28 只 creeper，marker 28→0。临时 FD jar 已按哈希移除，`server.properties` 恢复 `world`/25565，25570 释放 | VERIFIED |
-| 2026-07-16 20:45-21:00 | Forge 第三方适配基线机械复查、最新 26.2 构件清单与首轮安装态客户端 | 发现并定位三类真实回归 | 当前可安装测试对象为 FD 3.6.7、Jade 26.2.9、JEI 30.11.0.67、REI 26.2.820、Food Effect Tooltips 2.1.2；Create/EMI/KubeJS/Ponder/Tetra/Harvest With Ease/Carry On 无受支持的 MC 26.2 Fabric 构件。源码对照发现 REI 从基线 8 类退为 5 类；首轮 59-mod 客户端另暴露 Jade 三个缺失 config 翻译以及 JEI 对只读 recipe list 原地排序的异常 | IN_PROGRESS |
+| 2026-07-16 20:45-21:00 | Forge 第三方适配基线机械复查、最新 26.2 构件清单与首轮安装态客户端 | 发现并定位三类真实回归 | 当时公开构件检索仅取得 FD 3.6.7、Jade 26.2.9、JEI 30.11.0.67、REI 26.2.820、Food Effect Tooltips 2.1.2，尚未取得 Create/EMI/KubeJS/Ponder/Tetra/Harvest With Ease/Carry On 的 26.2 构件；Carry On 后由用户在 2026-07-17 提供本地 26.2 分支并完成验证。源码对照发现 REI 从基线 8 类退为 5 类；首轮 59-mod 客户端另暴露 Jade 三个缺失 config 翻译以及 JEI 对只读 recipe list 原地排序的异常 | IN_PROGRESS |
 | 2026-07-16 21:00-21:13 | REI/JEI/Jade 修复、FD 安装态 GameTest 与完整客户端旧世界副本 pass 2 | 成功 | 恢复 REI flex pot/flex stockpot/teapot，普通/灵活汤锅缺失 soup base 改为警告继续；REI Ingredient 以 `SlotDisplay` 支持 `fabric:any`。JEI 两个可变列表入口修复；Jade 13/13 UID 翻译锁定。FD 安装态 2519 recipes、96/96，三条代表性 cooking recipe 均转换/匹配/viewer 枚举通过。59-mod 客户端载入旧世界副本，Jade 双插件、Cookery REI 插件、JEI 8 类均完成，REI 同步 2446 recipes；正常窗口关闭、三维度保存、Gradle `BUILD SUCCESSFUL`，Cookery/JEI/Jade plugin ERROR=0，证据为 `run/client-compat-smoke-20260716-2110-pass2.stdout.log` | VERIFIED |
 | 2026-07-16 21:15-21:18 | 最终 clean 自动化、产物边界、部署与目标完整栈专服副本 | 成功 | `clean compileJava compileClientJava test build runDatagen runGameTest` 成功，2209 recipes / 1859 advancements、96/96、11/11；JAR 5,444,836 bytes / 5231 entries / SHA-256 `512EDC0D6031F454B11F4839BB97CF9C0704E394E1D883AD2DDC8B3C8B57715E`，JAR/`jdeps`/runtimeClasspath 禁止依赖 0，`git diff --check`=0。旧部署 `BDA6D1...BC431` 已备份为 `codex-smoke-mods/...pre-third-party-compat-20260716-2116.jar` 后部署新 JAR。目标 Aether/Twilight 44-mod 栈在独立 `codex-integrations-final-20260716-2118` 副本加载 3071 recipes / 2701 advancements、`Done (0.357s)`、五维度 flush/stop、退出码 0、Cookery ERROR=0；用户原 `versions\world` 未启动或修改，25570 释放 | VERIFIED |
+| 2026-07-17 00:09-00:41 | 用户提供的本地 Carry On 26.2 / 2.9.1 源码审计、双方构建、双名单真实搬运与 1.1.0.6 clean 自动化 | 成功 | Carry On 自身 `test build` 通过且只保留其既有 `.github`/审计修改；Cookery 将原 116 全拉黑细分为 31 个可搬运持久 BE 与 85 个不安全补集，并同时发布 whitelist/blacklist。真实 `PickupHandler`/`PlacementHandler` 在 blacklist 与 whitelist 两种配置下对全部 31 个安全方块完成 62 次搬起—放下，逐项保持坐标无关完整 BE NBT、库存/茶液 ID/颜色/油量/锅盖及所有非朝向方块属性；4 类多方块结构拒绝搬起。无 Carry On 的 clean `build runDatagen runGameTest` 为 97/97；安装本地 JAR 后连同 Carry On 自带 6 项为 103/103；2209 recipes / 1859 advancements、11/11 `verify_*.py` 通过。`1.1.0.6` JAR 5,445,139 bytes / 5232 entries / SHA-256 `AB8347BF3A06F28AAE235ECB5F8C743F69F058DB27A9E835BA820F544BBD124A` | VERIFIED |
 
 GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `build/run/gameTest/logs/latest.log`，但任务退出码为 0、服务端完成保存与关闭，不影响本次 53 项测试结论；后续若复现为残留进程则单独调查。
 
-最终迁移自动化闭环已完成：common/client 编译、`test`、`build`、datagen、96/96 GameTest、11/11 静态验证、产物内容、`jdeps` 与运行依赖检查均有成功证据。最新 `512EDC...715E` 不仅通过旧世界/AI marker 契约，还完成 FD/Jade/JEI/REI/Food Effect Tooltips 的真实安装态客户端进入、配方 reload、保存退出，以及目标 Aether/Twilight 完整栈的专服副本启动与五维度保存。用户明确不存在 Forge/NeoForge 世界，因此不再把不存在的样本列作本次范围阻塞项。
+最终迁移自动化闭环已完成：common/client 编译、`test`、`build`、datagen、默认 97/97 GameTest、Carry On 2.9.1 安装态 103/103、11/11 静态验证、产物内容及先前 `jdeps`/运行依赖检查均有成功证据。最新未提交 `1.1.0.6` 产物 `AB8347...D124A` 在 `1.1.0.5` 的旧世界/AI marker/FD/Jade/JEI/REI/Food Effect Tooltips 与目标完整栈证据上，新增 Carry On 黑/白名单双模式的全部 31 个安全方块真实往返和 85 个不安全方块补集约束。用户明确不存在 Forge/NeoForge 世界，因此不再把不存在的样本列作本次范围阻塞项。
 
 ## 已知问题、阻塞项与风险
 
 1. `VERIFIED`：用户已明确实际兼容范围只包含其自写旧 Fabric 模组的指定 MC 26.1.2 世界，且不存在 Forge/NeoForge 世界。该原件已完成全量只读清单、独立非硬链接备份、仅副本的客户端登录/保存/多次重载、`--forceUpgrade` 和最终逐项 NBT 对照；原件与备份终检仍逐文件完全相同。
 2. `AUDITED`：功能基线已锁定为 `upstream/main@1d935a2c`；NeoForge 1.21.1 仅作近版本辅助参照。
-3. `AUDITED`：当前分支有 196 个未推送提交；其数量不作为完成证据，实际结论以本文件中的源码对照和测试为准。
+3. `VERIFIED`：当前已提交 HEAD 与 `origin/26.2-fabric` 同步；本轮 Carry On 适配仅存在于未提交工作区，其状态以本文件中的源码对照和测试为准。
 4. `AUDITED`：用户有 3 个初始未提交修改；其测试边界、OilPot 交互返回值调整与服务端扫描意图均保留，禁止回退。
 5. `VERIFIED`：Gradle、Java 25.0.2、依赖解析、目标 PCL2 Loader/MC/Java 配置和最终客户端/专服实际日志版本已交叉确认。
 6. `VERIFIED`：注册集合、全部持久化域和规范化资源路径已完成对照；方块属性 31/31 + 23/23、玩家存储入口及丰富旧 ItemStack 也已最终复扫。
@@ -445,7 +452,7 @@ GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `buil
 22. `VERIFIED`：12 个 Forge 菜谱交易和精确五级交易池已恢复；首版直接组件因 26.2 动态交易注册早于物品默认组件完成而失败，自定义 loot function 延迟构造后动态注册表、2046 配方及真实菜谱报价的完整组件语义通过 68/68 GameTest。
 23. `VERIFIED`：客户端 `ShowFoodEffectTooltips` 默认值、旧 TOML 只读导入、用户关闭及 `foodeffecttooltips` 安装时抑制重复效果行已由 69/69 GameTest 锁定；2.1.2+26.2 安装态也已完成客户端资源初始化。
 24. `VERIFIED`：Farmer's Delight Refabricated 26.2-3.6.7 的新 `input/result/container` 与 `ItemStackTemplate` API 已兼容，同时保留旧 getter 支持；安装态 70/70 GameTest 验证真实 beef stew 的完整转换、汤锅匹配与 recipe viewer 枚举。
-25. `AUDITED`：Carry On blacklist 已精确覆盖全部 116 个 Cookery 方块并通过静态与运行注册表校验；Carry On 无 Minecraft 26.2 Fabric 构件。用户已明确忽略其他模组影响，故安装态缺失不阻塞 Cookery-only 验收。
+25. `VERIFIED`：用户提供的 Carry On `26.2` 分支 / 2.9.1 构件已完成源码审计、自身构建和 Cookery 安装态测试。适配以纯数据标签将 116 个方块精确分成 31 个可安全搬运的持久 BE 与 85 个不安全补集，兼容 Carry On 的 blacklist/whitelist 两种模式；全部安全方块共 62 次真实搬起放下保持完整 NBT 与非朝向状态，多方块结构运行拒绝。默认 97/97、安装态 103/103 GameTest 和 11/11 静态验证通过，生产代码不硬链接 Carry On。
 26. `AUDITED`：Serene Seasons Modrinth 版本 `13sXhUkI` 虽将文件标为 MC 26.2，实际 jar manifest 要求 MC 26.1.2 和 GlitchCore；目标 Loader 的硬依赖错误可复现。用户已明确忽略其他模组影响，故该第三方错误不阻塞 Cookery-only 验收。
 27. `VERIFIED`：完整客户端可选栈使用 Architectury 21.0.4 与仅限 smoke 的 Fabric API 0.154.0 成功完成初始化；默认构建仍保持 Fabric API 0.153.0，未无条件抬高 Cookery 最低运行要求。
 28. `VERIFIED`：Forge `MobBucketItemMixin` 的 `rice_growth_booster` 桶实体过滤已恢复；26.2 经 `BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(type)` 检查标签，固定 3x3 扫描不变，静态契约与 cod/cow 运行标签、71/71 GameTest 均通过。
@@ -483,8 +490,8 @@ GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `buil
 
 ## 下一步唯一明确动作
 
-本次用户明确的 Cookery-only 存档、正常玩法和当前可安装 26.2 Fabric 适配均已完成，无剩余代码或自动化动作。目标实例已部署 `512EDC...715E`，上一版 `BDA6D1...BC431` 有独立备份；正式使用时继续保留 `versions/codex-save-backups/world-fabric-26.1.2-20260716-1820`，再将已迁移的 `run/codex-fabric-2612-upgrade-20260716-1820` 复制到新存档槽位，绝不要覆盖原 `versions\world`。本轮两个 `compat-integrations-smoke-20260716-2110` / `codex-integrations-final-20260716-2118` 目录仅为可删除的测试副本，不是推荐游玩存档。
+用户已用 `continue` 授权继续交付。当前唯一明确动作是提交并推送 `1.1.0.6` 到 `26.2-fabric`，等待 GitHub Actions 远端构建成功并用远端构件创建正式 release；在远端验证完成前不替换目标实例现有的 `1.1.0.5`。正式使用存档时继续保留 `versions/codex-save-backups/world-fabric-26.1.2-20260716-1820`，绝不要覆盖原 `versions\world`。
 
 ## 给后续模型的接手摘要
 
-最终自动化已通过：common/client 编译、build、三类 datagen、2209 recipes / 1859 advancements、96/96 GameTest 和 11/11 静态验证均成功。最新产物为 5,444,836 bytes、5231 entries、SHA-256 `512EDC0D6031F454B11F4839BB97CF9C0704E394E1D883AD2DDC8B3C8B57715E`，并已备份原部署 `BDA6D1...BC431` 后部署到目标实例。FD 3.6.7 安装态三条代表性 cooking recipe 通过；JEI/REI 各精确 8 类，Jade 13/13 config translation，59-mod 客户端进入旧世界副本、同步 2446 REI recipes、保存退出成功；目标 Aether/Twilight 44-mod 服务端副本也到达 `Done` 并五维度保存。用户唯一指定的 `versions\world` 来自其旧 Fabric 26.1.2 分支，原件仍为 70 files / 29,711,647 bytes、`level.dat=46140A68...F30C`，未启动或修改；推荐迁移母本仍为 `run/codex-fabric-2612-upgrade-20260716-1820`，`level.dat=D6D162...BE4`。用户确认不存在 Forge/NeoForge 旧世界并允许忽略其他模组自身问题；FD 自带 REI filler 的两条 `fabric:any` 日志不影响 Cookery 已验证的转换/匹配/展示路径。25570 已释放、本项目 Java 进程为 0。用户原 3 个修改必须继续保留；外部进程和 `migration-smoke-20260715-drying-rack` 不得触碰。
+最终本地自动化已通过：common/client 编译、build、三类 datagen、2209 recipes / 1859 advancements、默认 97/97 GameTest、Carry On 2.9.1 安装态 103/103（含其自带 6 项）和 11/11 静态验证均成功。Carry On 适配将 116 个 Cookery 方块分为 31 个可搬运持久 BE 与 85 个不安全补集；blacklist/whitelist 两种模式下全部安全方块共 62 次真实往返保持坐标无关完整 NBT 与非朝向状态，4 类多方块结构拒绝搬起。待发布的 `1.1.0.6` 本地产物为 5,445,139 bytes、5232 entries、SHA-256 `AB8347BF3A06F28AAE235ECB5F8C743F69F058DB27A9E835BA820F544BBD124A`；目标实例仍部署已发布的 `1.1.0.5`，下一步为提交、推送、Actions 远端构建和正式 release。既有旧世界/完整栈证据继续有效；用户原 `versions\world` 未启动或修改。Carry On 仓库既有修改未触碰；外部进程和受保护 smoke 目录不得触碰。

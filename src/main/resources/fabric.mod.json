@@ -42,6 +42,7 @@
     "jade": "*",
     "roughlyenoughitems": "*",
     "foodeffecttooltips": "*",
-    "farmersdelight": "*"
+    "farmersdelight": "*",
+    "carryon": ">=2.9.1"
   }
 }

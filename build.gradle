@@ -89,6 +89,10 @@ dependencies {
     if (project.findProperty("farmersDelightCompatSmoke") == "true") {
         runtimeOnly "maven.modrinth:farmers-delight-refabricated:26.2-3.6.7"
     }
+    // Opt-in local Carry On build used by the reflection-based compatibility GameTest.
+    if (project.findProperty("carryOnCompatJar")) {
+        runtimeOnly files(project.property("carryOnCompatJar"))
+    }
     if (project.findProperty("clientCompatSmoke") == "true") {
         // Architectury 21.0.4, required by the target REI build, needs Fabric API 0.154+.
         runtimeOnly "net.fabricmc.fabric-api:fabric-api:0.154.0+26.2"
