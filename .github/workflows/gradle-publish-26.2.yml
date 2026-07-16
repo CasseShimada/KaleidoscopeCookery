@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "main"
+      - "26.2-fabric"
     paths:
       - 'src/main/**'
       - 'src/client/**'
@@ -28,8 +28,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: "main"
 
       - name: Set up JDK 25
         uses: actions/setup-java@v4
@@ -58,17 +56,10 @@ jobs:
             git status --short -- src/main/generated
             exit 1
           fi
-          ./gradlew build --warning-mode all
-          python3 scripts/verify_pack_metadata.py
-          python3 scripts/verify_resources.py
-          python3 scripts/verify_server_boundary.py
-          python3 scripts/verify_mixins.py
-          python3 scripts/verify_network_safety.py
-          python3 scripts/verify_block_entities.py
-          python3 scripts/verify_recipes.py
-          python3 scripts/verify_data_pack.py
-          python3 scripts/verify_client_assets.py
-          python3 scripts/verify_release_hygiene.py
+          ./gradlew build runGameTest --warning-mode all
+          for verifier in scripts/verify_*.py; do
+            python3 "$verifier"
+          done
 
       - name: Create timestamp
         id: create_timestamp
