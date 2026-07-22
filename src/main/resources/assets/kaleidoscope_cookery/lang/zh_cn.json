@@ -626,5 +626,21 @@
   "tooltip.kaleidoscope_cookery.cuisine_quality.standard": "普通",
   "tooltip.kaleidoscope_cookery.cuisine_quality.poor": "粗劣",
   "pack.kaleidoscope_cookery.legacy_resources_pack.title": "森罗厨房旧版资源包",
-  "pack.kaleidoscope_cookery.legacy_resources_pack.desc": "包含了部分旧版资源，适用于喜欢旧版材质的玩家"
+  "pack.kaleidoscope_cookery.legacy_resources_pack.desc": "包含了部分旧版资源，适用于喜欢旧版材质的玩家",
+  "overlay.kaleidoscope_cookery.chopping_board.cut_count": "已切%s次（需%s次）",
+  "overlay.kaleidoscope_cookery.enamel_basin.oil_count": "油脂数：%s",
+  "overlay.kaleidoscope_cookery.shawarma_spit.cook_time": "%s 秒",
+  "config.waila.plugin_kaleidoscope_cookery.fruit_basket": "果篮内容物",
+  "config.waila.plugin_kaleidoscope_cookery.kitchenware_rack": "厨具架内容物",
+  "config.waila.plugin_kaleidoscope_cookery.table": "餐桌内容物",
+  "config.waila.plugin_kaleidoscope_cookery.pot": "炒锅食材",
+  "config.waila.plugin_kaleidoscope_cookery.stockpot": "汤锅食材",
+  "config.waila.plugin_kaleidoscope_cookery.steamer": "蒸笼内容物",
+  "config.waila.plugin_kaleidoscope_cookery.shawarma_spit": "烤肉架进度",
+  "config.waila.plugin_kaleidoscope_cookery.chopping_board": "砧板进度",
+  "config.waila.plugin_kaleidoscope_cookery.enamel_basin": "搪瓷盆油量",
+  "config.waila.plugin_kaleidoscope_cookery.food_bite_block": "食物品质",
+  "config.waila.plugin_kaleidoscope_cookery.oil_pot": "油罐油量",
+  "config.waila.plugin_kaleidoscope_cookery.millstone": "石磨进度",
+  "config.waila.plugin_kaleidoscope_cookery.recipe_block": "食谱展示"
 }

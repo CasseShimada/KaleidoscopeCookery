@@ -33,11 +33,35 @@ fabricApi {
     configureTests {
         createSourceSet.set(true)
         modId.set("kaleidoscope_cookery_gametest")
-        enableClientGameTests.set(false)
+        enableClientGameTests.set(project.findProperty("clientCompatGameTests") == "true")
     }
 }
 
 repositories {
+    exclusiveContent {
+        forRepository {
+            ivy {
+                name = "CasseShimada WTHIT releases"
+                url = uri("https://github.com/CasseShimada/wthit/releases/download")
+                patternLayout {
+                    artifact("[revision]/wthit-26.2-fabric-[revision](-[classifier]).[ext]")
+                }
+                metadataSources {
+                    artifact()
+                }
+            }
+        }
+        filter {
+            includeGroup "com.github.casseshimada.wthit"
+        }
+    }
+    maven {
+        name = "Badasintended"
+        url = "https://maven2.bai.lol"
+        content {
+            includeGroup "lol.bai"
+        }
+    }
     maven { url = "https://maven.shedaniel.me" }
     exclusiveContent {
         forRepository {
@@ -80,6 +104,7 @@ dependencies {
     clientCompileOnly "mezz.jei:jei-${project.minecraft_version}-common-api:${project.jei_version}"
     clientCompileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
     compileOnly "maven.modrinth:jade:${project.jade_version}"
+    compileOnly "com.github.casseshimada.wthit:wthit:${project.wthit_version}:api"
     clientCompileOnly "maven.modrinth:rei:${project.rei_version}"
     // REI's public EntryStacks signatures expose Architectury FluidStack even for item-only calls.
     clientCompileOnly "maven.modrinth:architectury-api:${project.architectury_version}"
@@ -89,9 +114,19 @@ dependencies {
     if (project.findProperty("farmersDelightCompatSmoke") == "true") {
         runtimeOnly "maven.modrinth:farmers-delight-refabricated:26.2-3.6.7"
     }
-    // Opt-in local Carry On build used by the reflection-based compatibility GameTest.
+    // Opt-in local API 1 builds. Their public APIs are not remotely published yet, so these
+    // source sets and runtimes never participate in the default/release build.
     if (project.findProperty("carryOnCompatJar")) {
+        gametestCompileOnly files(project.property("carryOnCompatJar"))
         runtimeOnly files(project.property("carryOnCompatJar"))
+    }
+    if (project.findProperty("diggusMaximusCompatJar")) {
+        gametestCompileOnly files(project.property("diggusMaximusCompatJar"))
+        runtimeOnly files(project.property("diggusMaximusCompatJar"))
+    }
+    if (project.findProperty("wthitCompatSmoke") == "true") {
+        runtimeOnly "com.github.casseshimada.wthit:wthit:${project.wthit_version}"
+        runtimeOnly "lol.bai:badpackets:fabric-${project.badpackets_version}"
     }
     if (project.findProperty("clientCompatSmoke") == "true") {
         // Architectury 21.0.4, required by the target REI build, needs Fabric API 0.154+.
@@ -105,6 +140,41 @@ dependencies {
         runtimeOnly "maven.modrinth:foodeffecttooltips:2.1.2+26.2"
         runtimeOnly "maven.modrinth:farmers-delight-refabricated:26.2-3.6.7"
     }
+}
+
+if (project.findProperty("carryOnCompatJar")) {
+    sourceSets.gametest.java.srcDir("src/compatTest/carryon/java")
+}
+if (project.findProperty("diggusMaximusCompatJar")) {
+    sourceSets.gametest.java.srcDir("src/compatTest/diggusmaximus/java")
+}
+
+configurations {
+    wthitApiArtifact
+}
+
+dependencies {
+    wthitApiArtifact "com.github.casseshimada.wthit:wthit:${project.wthit_version}:api"
+}
+
+def expectedWthitApiSha256 = project.wthit_api_sha256
+tasks.register("verifyWthitApiArtifact") {
+    inputs.files(configurations.wthitApiArtifact)
+    inputs.property("expectedSha256", expectedWthitApiSha256)
+    doLast {
+        File artifact = configurations.wthitApiArtifact.singleFile
+        String digest = java.security.MessageDigest.getInstance("SHA-256")
+                .digest(artifact.bytes)
+                .encodeHex()
+                .toString()
+        if (artifact.length() != 118219L || digest != expectedWthitApiSha256) {
+            throw new GradleException("Unexpected WTHIT API artifact: ${artifact.name}, ${artifact.length()} bytes, SHA-256 ${digest}")
+        }
+    }
+}
+
+tasks.named("compileJava") {
+    dependsOn(tasks.named("verifyWthitApiArtifact"))
 }
 
 def modVersion = project.version

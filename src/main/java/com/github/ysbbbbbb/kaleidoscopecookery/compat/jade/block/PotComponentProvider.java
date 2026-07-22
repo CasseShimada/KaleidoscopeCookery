@@ -3,6 +3,7 @@ package com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.block;
 import com.github.ysbbbbbb.kaleidoscopecookery.api.blockentity.IPot;
 import com.github.ysbbbbbb.kaleidoscopecookery.blockentity.kitchen.PotBlockEntity;
 import com.github.ysbbbbbb.kaleidoscopecookery.compat.jade.ModPlugin;
+import com.github.ysbbbbbb.kaleidoscopecookery.compat.overlay.CookeryOverlayData;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -21,11 +22,7 @@ public enum PotComponentProvider implements IServerExtensionProvider<ItemStack> 
         Object target = accessor.getTarget();
         if (target instanceof PotBlockEntity pot) {
             if (pot.getStatus() < IPot.FINISHED) {
-                List<ItemStack> list = pot.getInputs().stream()
-                        .filter(stack -> !stack.isEmpty())
-                        .map(ItemStack::copy)
-                        .toList();
-                return List.of(new ViewGroup<>(list));
+                return List.of(new ViewGroup<>(CookeryOverlayData.itemStorage(pot)));
             }
         }
         return null;

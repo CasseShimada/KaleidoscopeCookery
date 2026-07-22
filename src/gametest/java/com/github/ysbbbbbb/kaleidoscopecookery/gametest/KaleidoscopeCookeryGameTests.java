@@ -1161,83 +1161,190 @@ public final class KaleidoscopeCookeryGameTests {
             helper.succeed();
             return;
         }
+        helper.assertValueEqual(CarryOnCompatTestAccess.apiVersion(), 1,
+                "Carry On integration is not running against public API 1");
+        BlockPos sourcePos = new BlockPos(2, 2, 2);
+        BlockPos targetPos = new BlockPos(5, 2, 2);
+        prepareCarryOnPlacementArea(helper, sourcePos);
+        prepareCarryOnPlacementArea(helper, targetPos);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.CREATIVE);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
 
-        boolean previousCreativeSlowness = CarryOnCompatTestAccess.setBooleanSetting(
-                "slownessInCreative", false);
-        boolean previousWhitelistMode = CarryOnCompatTestAccess.setBooleanSetting(
-                "useWhitelistBlocks", false);
-        try {
-            BlockPos sourcePos = new BlockPos(2, 2, 2);
-            BlockPos targetPos = new BlockPos(5, 2, 2);
-            prepareCarryOnPlacementArea(helper, sourcePos);
-            prepareCarryOnPlacementArea(helper, targetPos);
-            ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.CREATIVE);
-            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-            player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+        List<Block> supportedBlocks = BuiltInRegistries.BLOCK.entrySet().stream()
+                .filter(entry -> entry.getKey().identifier().getNamespace().equals(KaleidoscopeCookery.MOD_ID))
+                .filter(entry -> CARRY_ON_SAFE_BLOCK_PATHS.contains(entry.getKey().identifier().getPath()))
+                .map(Map.Entry::getValue)
+                .toList();
+        helper.assertValueEqual(supportedBlocks.size(), CARRY_ON_SAFE_BLOCK_PATHS.size(),
+                "Carry On runtime fixture did not resolve every declared safe Cookery block");
+        for (Block block : supportedBlocks) {
+            helper.setBlock(sourcePos, carryOnSourceState(block));
+            BlockEntity sourceBlockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(sourcePos));
+            helper.assertTrue(sourceBlockEntity != null,
+                    "Carry On safe block has no block entity: " + BuiltInRegistries.BLOCK.getKey(block));
+            seedCarryOnPayload(helper, player, sourceBlockEntity);
+            BlockState sourceState = helper.getBlockState(sourcePos);
+            CompoundTag before = saveCarryOnBlockEntity(helper, sourceBlockEntity);
 
-            List<Block> supportedBlocks = BuiltInRegistries.BLOCK.entrySet().stream()
-                    .filter(entry -> entry.getKey().identifier().getNamespace().equals(KaleidoscopeCookery.MOD_ID))
-                    .filter(entry -> CARRY_ON_SAFE_BLOCK_PATHS.contains(entry.getKey().identifier().getPath()))
-                    .map(Map.Entry::getValue)
-                    .toList();
-            helper.assertValueEqual(supportedBlocks.size(), CARRY_ON_SAFE_BLOCK_PATHS.size(),
-                    "Carry On runtime fixture did not resolve every declared safe Cookery block");
-            for (boolean whitelistMode : List.of(false, true)) {
-                CarryOnCompatTestAccess.setBooleanSetting("useWhitelistBlocks", whitelistMode);
-                for (Block block : supportedBlocks) {
-                    helper.setBlock(sourcePos, carryOnSourceState(block));
-                    BlockEntity sourceBlockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(sourcePos));
-                    helper.assertTrue(sourceBlockEntity != null,
-                            "Carry On safe block has no block entity: " + BuiltInRegistries.BLOCK.getKey(block));
-                    seedCarryOnPayload(helper, player, sourceBlockEntity);
-                    BlockState sourceState = helper.getBlockState(sourcePos);
-                    CompoundTag before = saveCarryOnBlockEntity(helper, sourceBlockEntity);
+            moveIntoTest(helper, player, sourcePos.above());
+            helper.assertTrue(CarryOnCompatTestAccess.tryPickUpBlock(
+                            player, helper.absolutePos(sourcePos)),
+                    "Carry On public API rejected safe Cookery block %s: %s".formatted(
+                            BuiltInRegistries.BLOCK.getKey(block), CarryOnCompatTestAccess.lastResult()));
+            helper.assertBlockPresent(Blocks.AIR, sourcePos);
+            helper.assertTrue(CarryOnCompatTestAccess.isCarrying(player),
+                    "Carry On removed the source without committing its attachment");
 
-                    moveIntoTest(helper, player, sourcePos.above());
-                    helper.assertTrue(CarryOnCompatTestAccess.tryPickUpBlock(
-                                    player, helper.absolutePos(sourcePos), helper.getLevel()),
-                            "Carry On rejected safe Cookery block in %s mode: %s".formatted(
-                                    whitelistMode ? "whitelist" : "blacklist",
-                                    BuiltInRegistries.BLOCK.getKey(block)));
-                    helper.assertBlockPresent(Blocks.AIR, sourcePos);
-
-                    moveIntoTest(helper, player, targetPos.above());
-                    helper.assertTrue(CarryOnCompatTestAccess.tryPlaceBlock(
-                                    player, helper.absolutePos(targetPos), Direction.UP),
-                            "Carry On could not place safe Cookery block: " + BuiltInRegistries.BLOCK.getKey(block));
-                    helper.assertBlockPresent(block, targetPos);
-                    BlockEntity placedBlockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(targetPos));
-                    helper.assertTrue(placedBlockEntity != null,
-                            "Carry On placement lost Cookery block entity: " + BuiltInRegistries.BLOCK.getKey(block));
-                    helper.assertValueEqual(saveCarryOnBlockEntity(helper, placedBlockEntity), before,
-                            "Carry On changed Cookery block-entity data: " + BuiltInRegistries.BLOCK.getKey(block));
-                    assertCarryOnStateData(helper, sourceState, helper.getBlockState(targetPos), block);
-
-                    helper.setBlock(targetPos, Blocks.AIR);
-                }
-            }
-
-            CarryOnCompatTestAccess.setBooleanSetting("useWhitelistBlocks", false);
-            for (Block unsafeBlock : List.of(
-                    ModBlocks.MILLSTONE,
-                    ModBlocks.STEAMER,
-                    ModBlocks.SHAWARMA_SPIT,
-                    ModBlocks.COLD_CUT_HAM_SLICES)) {
-                helper.setBlock(sourcePos, unsafeBlock);
-                moveIntoTest(helper, player, sourcePos.above());
-                helper.assertFalse(CarryOnCompatTestAccess.tryPickUpBlock(
-                                player, helper.absolutePos(sourcePos), helper.getLevel()),
-                        "Carry On picked up unsafe Cookery structure: "
-                                + BuiltInRegistries.BLOCK.getKey(unsafeBlock));
-                helper.assertBlockPresent(unsafeBlock, sourcePos);
-                helper.setBlock(sourcePos, Blocks.AIR);
-            }
-
-            helper.succeed();
-        } finally {
-            CarryOnCompatTestAccess.setBooleanSetting("useWhitelistBlocks", previousWhitelistMode);
-            CarryOnCompatTestAccess.setBooleanSetting("slownessInCreative", previousCreativeSlowness);
+            moveIntoTest(helper, player, targetPos.above());
+            helper.assertTrue(CarryOnCompatTestAccess.tryPlaceBlock(
+                            player, helper.absolutePos(targetPos), Direction.UP),
+                    "Carry On public API could not place %s: %s".formatted(
+                            BuiltInRegistries.BLOCK.getKey(block), CarryOnCompatTestAccess.lastResult()));
+            helper.assertFalse(CarryOnCompatTestAccess.isCarrying(player),
+                    "Carry On placed the block without clearing its attachment");
+            helper.assertBlockPresent(block, targetPos);
+            BlockEntity placedBlockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(targetPos));
+            helper.assertTrue(placedBlockEntity != null,
+                    "Carry On placement lost Cookery block entity: " + BuiltInRegistries.BLOCK.getKey(block));
+            helper.assertValueEqual(saveCarryOnBlockEntity(helper, placedBlockEntity), before,
+                    "Carry On changed Cookery block-entity data: " + BuiltInRegistries.BLOCK.getKey(block));
+            assertCarryOnStateData(helper, sourceState, helper.getBlockState(targetPos), block);
+            helper.setBlock(targetPos, Blocks.AIR);
         }
+
+        for (Block unsafeBlock : List.of(
+                ModBlocks.MILLSTONE,
+                ModBlocks.STEAMER,
+                ModBlocks.SHAWARMA_SPIT,
+                ModBlocks.COLD_CUT_HAM_SLICES)) {
+            helper.setBlock(sourcePos, unsafeBlock);
+            BlockState before = helper.getBlockState(sourcePos);
+            moveIntoTest(helper, player, sourcePos.above());
+            helper.assertFalse(CarryOnCompatTestAccess.tryPickUpBlock(
+                            player, helper.absolutePos(sourcePos)),
+                    "Carry On public API picked up unsafe Cookery structure: "
+                            + BuiltInRegistries.BLOCK.getKey(unsafeBlock));
+            helper.assertValueEqual(helper.getBlockState(sourcePos), before,
+                    "Carry On mutated an unsafe structure before rejecting it");
+            helper.assertFalse(CarryOnCompatTestAccess.isCarrying(player),
+                    "Rejected Carry On pickup left a duplicate attachment");
+            helper.setBlock(sourcePos, Blocks.AIR);
+        }
+        helper.succeed();
+    }
+
+    @GameTest
+    public void diggusMaximusPublicApiHonorsCookerySafetyBoundaries(GameTestHelper helper) {
+        if (!DiggusMaximusCompatTestAccess.isLoaded()) {
+            helper.succeed();
+            return;
+        }
+        helper.assertValueEqual(DiggusMaximusCompatTestAccess.apiVersion(), 1,
+                "Diggus Maximus integration is not running against public API 1");
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_PICKAXE));
+        moveIntoTest(helper, player, new BlockPos(2, 2, 1));
+
+        List<BlockPos> oilPositions = List.of(
+                new BlockPos(2, 1, 2), new BlockPos(3, 1, 2), new BlockPos(4, 1, 2));
+        oilPositions.forEach(pos -> helper.setBlock(pos, ModBlocks.OIL_BLOCK));
+        BlockPos absoluteOilSeed = helper.absolutePos(oilPositions.getFirst());
+        helper.assertTrue(DiggusMaximusCompatTestAccess.canStart(player, absoluteOilSeed),
+                "Diggus Maximus did not admit the explicitly included inert oil block");
+        helper.assertTrue(DiggusMaximusCompatTestAccess.excavate(player, absoluteOilSeed),
+                "Diggus Maximus public request rejected included oil blocks: "
+                        + DiggusMaximusCompatTestAccess.lastResult());
+        helper.assertValueEqual(DiggusMaximusCompatTestAccess.brokenBlocks(), oilPositions.size(),
+                "Diggus Maximus did not break each connected oil block exactly once");
+        oilPositions.forEach(pos -> helper.assertBlockPresent(Blocks.AIR, pos));
+        int oilDrops = countItem(player, ModItems.OIL_BLOCK) + helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                        new AABB(absoluteOilSeed).inflate(4.0)).stream()
+                .filter(entity -> entity.getItem().is(ModItems.OIL_BLOCK))
+                .mapToInt(entity -> entity.getItem().getCount())
+                .sum();
+        helper.assertValueEqual(oilDrops, oilPositions.size(),
+                "Diggus Maximus changed or duplicated vanilla oil-block drops");
+
+        BlockPos potPos = new BlockPos(2, 1, 5);
+        helper.setBlock(potPos, ModBlocks.POT);
+        PotBlockEntity pot = helper.getBlockEntity(potPos, PotBlockEntity.class);
+        pot.addAllIngredients(List.of(new ItemStack(Items.BEEF, 2), new ItemStack(Items.CARROT, 3)), player);
+        CompoundTag potBefore = saveCarryOnBlockEntity(helper, pot);
+        BlockPos absolutePot = helper.absolutePos(potPos);
+        helper.assertFalse(DiggusMaximusCompatTestAccess.canStart(player, absolutePot),
+                "Diggus Maximus preview admitted an excluded inventory block entity");
+        helper.assertFalse(DiggusMaximusCompatTestAccess.excavate(player, absolutePot),
+                "Diggus Maximus excavated an excluded inventory block entity");
+        helper.assertBlockPresent(ModBlocks.POT, potPos);
+        helper.assertValueEqual(saveCarryOnBlockEntity(helper,
+                        helper.getBlockEntity(potPos, PotBlockEntity.class)), potBefore,
+                "Rejected Diggus Maximus request changed pot inventory data");
+
+        BlockPos millstoneCenter = new BlockPos(7, 1, 5);
+        for (NinePart part : NinePart.values()) {
+            helper.setBlock(millstoneCenter.offset(part.getPosX(), 0, part.getPosY()),
+                    ModBlocks.MILLSTONE.defaultBlockState().setValue(MillstoneBlock.PART, part));
+        }
+        BlockPos edge = millstoneCenter.offset(NinePart.LEFT_UP.getPosX(), 0, NinePart.LEFT_UP.getPosY());
+        helper.assertFalse(DiggusMaximusCompatTestAccess.excavate(player, helper.absolutePos(edge)),
+                "Diggus Maximus excavated one edge of a Cookery multiblock");
+        for (NinePart part : NinePart.values()) {
+            BlockPos partPos = millstoneCenter.offset(part.getPosX(), 0, part.getPosY());
+            helper.assertBlockPresent(ModBlocks.MILLSTONE, partPos);
+            helper.assertValueEqual(helper.getBlockState(partPos).getValue(MillstoneBlock.PART), part,
+                    "Rejected Diggus Maximus request changed a millstone part");
+        }
+        helper.succeed();
+    }
+
+    @GameTest
+    public void wthitPublicApiRegistersAndSynchronizesMinimalServerData(GameTestHelper helper) {
+        if (!WthitCompatTestAccess.isLoaded()) {
+            helper.succeed();
+            return;
+        }
+        helper.assertValueEqual(WthitCompatTestAccess.registrationSummary(), "13:11",
+                "WTHIT common plugin did not register all feature controls and server providers");
+
+        BlockPos basketPos = new BlockPos(2, 1, 2);
+        helper.setBlock(basketPos, ModBlocks.FRUIT_BASKET);
+        FruitBasketBlockEntity basket = helper.getBlockEntity(basketPos, FruitBasketBlockEntity.class);
+        helper.assertTrue(basket.putOn(new ItemStack(Items.APPLE, 3), false),
+                "Could not seed WTHIT fruit-basket fixture");
+        CompoundTag basketRaw = WthitCompatTestAccess.capture(basket);
+        CompoundTag basketData = basketRaw.getCompound("kaleidoscope_cookery")
+                .orElseThrow(() -> helper.assertionException("WTHIT did not write namespaced basket data"));
+        helper.assertValueEqual(basketData.getString("kind").orElse(""), "storage",
+                "WTHIT sent the wrong basket payload type");
+        helper.assertValueEqual(basketData.getInt("items_count").orElse(0), 1,
+                "WTHIT did not filter the basket to its visible stacks");
+        ItemStack basketStack = basketData.read("items_0", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        helper.assertTrue(basketStack.is(Items.APPLE) && basketStack.getCount() == 3,
+                "WTHIT changed the visible basket stack");
+        helper.assertFalse(basketData.contains(FruitBasketBlockEntity.ITEMS),
+                "WTHIT leaked the basket's complete persistence payload");
+
+        BlockPos boardPos = new BlockPos(4, 1, 2);
+        helper.setBlock(boardPos, ModBlocks.CHOPPING_BOARD);
+        ChoppingBoardBlockEntity board = helper.getBlockEntity(boardPos, ChoppingBoardBlockEntity.class);
+        CompoundTag boardFixture = new CompoundTag();
+        boardFixture.putString("ModelId", "kaleidoscope_cookery:block/chopping_board/private_model");
+        boardFixture.put("CurrentCutStack", legacyStack(Items.SALMON, 2));
+        boardFixture.put("ResultItem", legacyStack(Items.COOKED_SALMON, 3));
+        boardFixture.putInt("MaxCutCount", 5);
+        boardFixture.putInt("CurrentCutCount", 2);
+        board.loadCustomOnly(valueInput(helper, boardFixture));
+        CompoundTag boardData = WthitCompatTestAccess.capture(board)
+                .getCompound("kaleidoscope_cookery")
+                .orElseThrow(() -> helper.assertionException("WTHIT did not write namespaced chopping data"));
+        helper.assertValueEqual(boardData.getInt("cut_count").orElse(-1), 2,
+                "WTHIT changed chopping-board progress");
+        helper.assertValueEqual(boardData.getInt("max_cut_count").orElse(-1), 5,
+                "WTHIT changed chopping-board maximum progress");
+        helper.assertFalse(boardData.contains("ModelId") || boardData.contains("ResultItem"),
+                "WTHIT leaked non-display chopping-board NBT");
+        helper.succeed();
     }
 
     @GameTest
@@ -1265,6 +1372,29 @@ public final class KaleidoscopeCookeryGameTests {
         helper.assertTrue(incorrectlyClassifiedCarryOnBlocks.isEmpty(),
                 "Carry On safe/unsafe tags misclassified Cookery blocks: %s"
                         .formatted(incorrectlyClassifiedCarryOnBlocks));
+
+        TagKey<Block> relocationNotSupported = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("c", "relocation_not_supported"));
+        TagKey<Block> diggusIncluded = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("diggusmaximus", "included_blocks"));
+        TagKey<Block> diggusExcluded = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath("diggusmaximus", "excluded_blocks"));
+        List<Identifier> incorrectlyClassifiedSafetyBlocks = BuiltInRegistries.BLOCK.entrySet().stream()
+                .filter(entry -> entry.getKey().identifier().getNamespace().equals(KaleidoscopeCookery.MOD_ID))
+                .filter(entry -> {
+                    String path = entry.getKey().identifier().getPath();
+                    boolean carrySafe = CARRY_ON_SAFE_BLOCK_PATHS.contains(path);
+                    boolean diggusSafe = path.equals("oil_block") || path.equals("straw_block");
+                    BlockState state = entry.getValue().defaultBlockState();
+                    return state.is(relocationNotSupported) == carrySafe
+                            || state.is(diggusIncluded) != diggusSafe
+                            || state.is(diggusExcluded) == diggusSafe;
+                })
+                .map(entry -> entry.getKey().identifier())
+                .toList();
+        helper.assertTrue(incorrectlyClassifiedSafetyBlocks.isEmpty(),
+                "Carry On hard-deny or Diggus Maximus safety tags misclassified Cookery blocks: %s"
+                        .formatted(incorrectlyClassifiedSafetyBlocks));
 
         TagKey<Block> springCrops = TagKey.create(
                 Registries.BLOCK, Identifier.fromNamespaceAndPath("sereneseasons", "spring_crops"));

@@ -28,7 +28,7 @@ public enum ChoppingBoardComponentProvider implements IBlockComponentProvider {
         }
         Element icon = JadeUI.smallItem(cutStack);
         MutableComponent stackName = IDisplayHelper.get().stripColor(cutStack.getHoverName());
-        MutableComponent info = Component.translatable("jade.kaleidoscope_cookery.chopping_board.cut_count",
+        MutableComponent info = Component.translatable("overlay.kaleidoscope_cookery.chopping_board.cut_count",
                 choppingBoard.getCurrentCutCount(), choppingBoard.getMaxCutCount());
         tooltip.add(icon);
         tooltip.append(JadeUI.spacer(2, 1));

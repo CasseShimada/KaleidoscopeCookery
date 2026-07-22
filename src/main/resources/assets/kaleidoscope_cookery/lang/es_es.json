@@ -428,5 +428,21 @@
   "jei.kaleidoscope_cookery.flex_recipe": "Receta flexible",
   "jei.kaleidoscope_cookery.strict_recipe": "Receta estricta",
   "emi.category.kaleidoscope_cookery.flex_pot": "Receta flexible Olla",
-  "emi.category.kaleidoscope_cookery.flex_stockpot": "Receta flexible Olla sopera"
+  "emi.category.kaleidoscope_cookery.flex_stockpot": "Receta flexible Olla sopera",
+  "overlay.kaleidoscope_cookery.chopping_board.cut_count": "Cortes: %d (máx. %d)",
+  "overlay.kaleidoscope_cookery.enamel_basin.oil_count": "Grasa: %d",
+  "overlay.kaleidoscope_cookery.shawarma_spit.cook_time": "%s s",
+  "config.waila.plugin_kaleidoscope_cookery.fruit_basket": "Contenido de la cesta de fruta",
+  "config.waila.plugin_kaleidoscope_cookery.kitchenware_rack": "Contenido del estante de cocina",
+  "config.waila.plugin_kaleidoscope_cookery.table": "Contenido de la mesa",
+  "config.waila.plugin_kaleidoscope_cookery.pot": "Ingredientes de la olla",
+  "config.waila.plugin_kaleidoscope_cookery.stockpot": "Ingredientes de la olla sopera",
+  "config.waila.plugin_kaleidoscope_cookery.steamer": "Contenido de la vaporera",
+  "config.waila.plugin_kaleidoscope_cookery.shawarma_spit": "Progreso del asador",
+  "config.waila.plugin_kaleidoscope_cookery.chopping_board": "Progreso de la tabla de cortar",
+  "config.waila.plugin_kaleidoscope_cookery.enamel_basin": "Aceite de la palangana",
+  "config.waila.plugin_kaleidoscope_cookery.food_bite_block": "Calidad de la comida",
+  "config.waila.plugin_kaleidoscope_cookery.oil_pot": "Cantidad de aceite",
+  "config.waila.plugin_kaleidoscope_cookery.millstone": "Progreso del molino",
+  "config.waila.plugin_kaleidoscope_cookery.recipe_block": "Visualización de receta"
 }

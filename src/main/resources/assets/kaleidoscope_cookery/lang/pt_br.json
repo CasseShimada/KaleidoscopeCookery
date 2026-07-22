@@ -447,5 +447,21 @@
   "tooltip.kaleidoscope_cookery.teapot.statue.put_ingredient": "Preparation Stage",
   "tooltip.kaleidoscope_cookery.teapot.statue.result": "Result: %s",
   "tooltip.kaleidoscope_cookery.tieguanyin.maxim": "One of China's ten famous teas, elegant and enduringly fragrant.",
-  "tooltip.kaleidoscope_cookery.transmutation_lunch_bag": "Stores food and performs magical transmutation, right-click to eat"
+  "tooltip.kaleidoscope_cookery.transmutation_lunch_bag": "Stores food and performs magical transmutation, right-click to eat",
+  "overlay.kaleidoscope_cookery.chopping_board.cut_count": "Cortes: %s (máx. %s)",
+  "overlay.kaleidoscope_cookery.enamel_basin.oil_count": "Óleo: %s",
+  "overlay.kaleidoscope_cookery.shawarma_spit.cook_time": "%s s",
+  "config.waila.plugin_kaleidoscope_cookery.fruit_basket": "Conteúdo da cesta de frutas",
+  "config.waila.plugin_kaleidoscope_cookery.kitchenware_rack": "Conteúdo do suporte de cozinha",
+  "config.waila.plugin_kaleidoscope_cookery.table": "Conteúdo da mesa",
+  "config.waila.plugin_kaleidoscope_cookery.pot": "Ingredientes da panela",
+  "config.waila.plugin_kaleidoscope_cookery.stockpot": "Ingredientes do caldeirão",
+  "config.waila.plugin_kaleidoscope_cookery.steamer": "Conteúdo da panela a vapor",
+  "config.waila.plugin_kaleidoscope_cookery.shawarma_spit": "Progresso do espeto",
+  "config.waila.plugin_kaleidoscope_cookery.chopping_board": "Progresso da tábua",
+  "config.waila.plugin_kaleidoscope_cookery.enamel_basin": "Óleo da bacia esmaltada",
+  "config.waila.plugin_kaleidoscope_cookery.food_bite_block": "Qualidade da comida",
+  "config.waila.plugin_kaleidoscope_cookery.oil_pot": "Quantidade de óleo",
+  "config.waila.plugin_kaleidoscope_cookery.millstone": "Progresso do moinho",
+  "config.waila.plugin_kaleidoscope_cookery.recipe_block": "Exibição da receita"
 }

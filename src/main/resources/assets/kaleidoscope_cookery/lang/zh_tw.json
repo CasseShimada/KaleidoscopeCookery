@@ -415,5 +415,21 @@
   "tooltip.kaleidoscope_cookery.teapot.statue.put_ingredient": "准备阶段",
   "tooltip.kaleidoscope_cookery.teapot.statue.result": "产物：%s",
   "tooltip.kaleidoscope_cookery.tieguanyin.maxim": "中国十大名茶之一，清香雅韵，馥郁持久",
-  "tooltip.kaleidoscope_cookery.transmutation_lunch_bag": "收纳食物并进行奇妙的转化，可右键进食"
+  "tooltip.kaleidoscope_cookery.transmutation_lunch_bag": "收纳食物并进行奇妙的转化，可右键进食",
+  "overlay.kaleidoscope_cookery.chopping_board.cut_count": "已切%s次（需%s次）",
+  "overlay.kaleidoscope_cookery.enamel_basin.oil_count": "油脂數：%s",
+  "overlay.kaleidoscope_cookery.shawarma_spit.cook_time": "%s 秒",
+  "config.waila.plugin_kaleidoscope_cookery.fruit_basket": "果籃內容物",
+  "config.waila.plugin_kaleidoscope_cookery.kitchenware_rack": "廚具架內容物",
+  "config.waila.plugin_kaleidoscope_cookery.table": "餐桌內容物",
+  "config.waila.plugin_kaleidoscope_cookery.pot": "炒鍋食材",
+  "config.waila.plugin_kaleidoscope_cookery.stockpot": "湯鍋食材",
+  "config.waila.plugin_kaleidoscope_cookery.steamer": "蒸籠內容物",
+  "config.waila.plugin_kaleidoscope_cookery.shawarma_spit": "烤肉架進度",
+  "config.waila.plugin_kaleidoscope_cookery.chopping_board": "砧板進度",
+  "config.waila.plugin_kaleidoscope_cookery.enamel_basin": "搪瓷盆油量",
+  "config.waila.plugin_kaleidoscope_cookery.food_bite_block": "食物品質",
+  "config.waila.plugin_kaleidoscope_cookery.oil_pot": "油罐油量",
+  "config.waila.plugin_kaleidoscope_cookery.millstone": "石磨進度",
+  "config.waila.plugin_kaleidoscope_cookery.recipe_block": "食譜展示"
 }

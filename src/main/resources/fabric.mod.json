@@ -40,9 +40,11 @@
   "suggests": {
     "jei": "*",
     "jade": "*",
+    "wthit": ">=20.0.0",
     "roughlyenoughitems": "*",
     "foodeffecttooltips": "*",
     "farmersdelight": "*",
-    "carryon": ">=2.9.1"
+    "carryon": ">=2.9.1",
+    "diggusmaximus": ">=1.5.9-beta.1"
   }
 }

@@ -18,6 +18,7 @@ CLIENT_MIXINS = ROOT / "src/client/resources/kaleidoscope_cookery.client.mixins.
 FABRIC_MOD = ROOT / "src/main/resources/fabric.mod.json"
 BUILD_GRADLE = ROOT / "build.gradle"
 MOD_EVENTS = SRC / "init/ModEvents.java"
+OVERLAY_DATA = SRC / "compat/overlay/CookeryOverlayData.java"
 JADE_ITEM_STORAGE_PROVIDERS = (
     SRC / "compat/jade/block/FruitBasketComponentProvider.java",
     SRC / "compat/jade/block/KitchenwareRackComponentProvider.java",
@@ -382,12 +383,15 @@ def main() -> int:
         if excluded_path in build_text:
             errors.append(f"build.gradle still excludes optional integration sources: {excluded_path}")
 
+    overlay_data_text = OVERLAY_DATA.read_text(encoding="utf-8")
+    if ".map(ItemStack::copy)" not in overlay_data_text:
+        errors.append("Shared overlay item-storage snapshots are not defensive copies.")
     for path in JADE_ITEM_STORAGE_PROVIDERS:
         provider_text = path.read_text(encoding="utf-8")
         if "ItemStackContainer" in provider_text:
             errors.append(f"Jade item storage provider wraps display data in ItemStackContainer: {path.relative_to(ROOT)}")
-        if ".map(ItemStack::copy)" not in provider_text:
-            errors.append(f"Jade item storage provider does not copy its ItemStack snapshot: {path.relative_to(ROOT)}")
+        if "CookeryOverlayData.itemStorage(" not in provider_text:
+            errors.append(f"Jade item storage provider bypasses the shared defensive snapshot: {path.relative_to(ROOT)}")
 
     mixin_data = json.loads(MIXINS.read_text(encoding="utf-8"))
     client_mixin_data = json.loads(CLIENT_MIXINS.read_text(encoding="utf-8"))

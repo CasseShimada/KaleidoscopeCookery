@@ -695,5 +695,21 @@
   "tooltip.kaleidoscope_cookery.cuisine_quality.standard": "Standard",
   "tooltip.kaleidoscope_cookery.cuisine_quality.poor": "Poor",
   "pack.kaleidoscope_cookery.legacy_resources_pack.title": "Kaleidoscope Cookery's Legacy Resources Pack",
-  "pack.kaleidoscope_cookery.legacy_resources_pack.desc": "Provides textures and models for items and blocks added in older versions of the mod."
+  "pack.kaleidoscope_cookery.legacy_resources_pack.desc": "Provides textures and models for items and blocks added in older versions of the mod.",
+  "overlay.kaleidoscope_cookery.chopping_board.cut_count": "Cut Count: %s (max %s)",
+  "overlay.kaleidoscope_cookery.enamel_basin.oil_count": "Oil Count: %s",
+  "overlay.kaleidoscope_cookery.shawarma_spit.cook_time": "%s s",
+  "config.waila.plugin_kaleidoscope_cookery.fruit_basket": "Fruit Basket Contents",
+  "config.waila.plugin_kaleidoscope_cookery.kitchenware_rack": "Kitchenware Rack Contents",
+  "config.waila.plugin_kaleidoscope_cookery.table": "Table Contents",
+  "config.waila.plugin_kaleidoscope_cookery.pot": "Pot Ingredients",
+  "config.waila.plugin_kaleidoscope_cookery.stockpot": "Stockpot Ingredients",
+  "config.waila.plugin_kaleidoscope_cookery.steamer": "Steamer Contents",
+  "config.waila.plugin_kaleidoscope_cookery.shawarma_spit": "Shawarma Spit Progress",
+  "config.waila.plugin_kaleidoscope_cookery.chopping_board": "Chopping Board Progress",
+  "config.waila.plugin_kaleidoscope_cookery.enamel_basin": "Enamel Basin Oil",
+  "config.waila.plugin_kaleidoscope_cookery.food_bite_block": "Food Quality",
+  "config.waila.plugin_kaleidoscope_cookery.oil_pot": "Oil Pot Amount",
+  "config.waila.plugin_kaleidoscope_cookery.millstone": "Millstone Progress",
+  "config.waila.plugin_kaleidoscope_cookery.recipe_block": "Recipe Display"
 }

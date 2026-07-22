@@ -18,7 +18,7 @@ public enum EnamelBasinComponentProvider implements IBlockComponentProvider {
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig pluginConfig) {
         BlockState blockState = accessor.getBlockState();
         int oilCount = blockState.getValue(EnamelBasinBlock.OIL_COUNT);
-        MutableComponent info = Component.translatable("jade.kaleidoscope_cookery.enamel_basin.oil_count", oilCount);
+        MutableComponent info = Component.translatable("overlay.kaleidoscope_cookery.enamel_basin.oil_count", oilCount);
         tooltip.add(info);
     }
 

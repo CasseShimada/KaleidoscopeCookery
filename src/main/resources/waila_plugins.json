@@ -1,0 +1,11 @@
+{
+  "kaleidoscope_cookery:overlay": {
+    "entrypoints": {
+      "common": "com.github.ysbbbbbb.kaleidoscopecookery.compat.wthit.ModWthitCommonPlugin",
+      "client": "com.github.ysbbbbbb.kaleidoscopecookery.compat.wthit.ModWthitClientPlugin"
+    },
+    "side": "*",
+    "required": [],
+    "defaultEnabled": true
+  }
+}
