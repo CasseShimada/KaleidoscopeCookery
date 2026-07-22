@@ -87,22 +87,15 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "jar=$jar" >> "$GITHUB_OUTPUT"
 
-      - name: Create timestamp
-        id: create_timestamp
+      - name: Upload branch build artifact
         if: github.ref_type != 'tag'
-        run: echo "timestamp=$(date '+%Y-%m-%d-%H-%M-%S')" >> $GITHUB_OUTPUT
-        shell: bash
-
-      - name: Publish snapshot prerelease
-        if: github.ref_type != 'tag'
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: snapshot-${{ steps.create_timestamp.outputs.timestamp }}
-          target_commitish: ${{ github.sha }}
-          body: ${{ github.event.head_commit.message }}
-          draft: false
-          prerelease: true
-          files: ${{ steps.version.outputs.jar }}
+          name: kaleidoscopecookery-${{ steps.version.outputs.version }}
+          path: ${{ steps.version.outputs.jar }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
 
       - name: Publish formal release
         if: github.ref_type == 'tag'
