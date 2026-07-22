@@ -4,11 +4,11 @@
 
 ## 执行元数据
 
-- 最后更新时间：2026-07-17 00:50（Asia/Shanghai，Carry On 2.9.1 适配、GitHub Actions 与 1.1.0.6 正式 Release 全部完成）
+- 最后更新时间：2026-07-22 18:52（Asia/Shanghai，三模组 API 适配、标签 Actions 与 1.1.0.7 正式 Release 全部完成）
 - 执行模型：Codex（GPT-5）
 - 当前分支：`26.2-fabric`
-- 当前功能提交：`52fbcf4dbab5fbce55c08fee9ffd22549f9b692b`（`Add Carry On compatibility`）
-- 正式发布标签目标：`64e359451ef41a3c9541d914c3026bfc3f715d1b`（`1.1.0.6-fabric+mc26.2`）；`26.2-fabric` 在其后仅继续追加最终发布审计
+- 当前功能提交：`5ca9e75c0a2f53d9d10a7c2afb45f6a77bc68832`（`feat: add three-mod API compatibility`）
+- 正式发布标签目标：`e85f1acbc3140912bbbc3dab61f8b96fa0f9b9cf`（`1.1.0.7-fabric+mc26.2`）；`26.2-fabric` 在其后仅有标签过滤器修正 `14dbdcb4` 与最终发布审计
 - 初始工作区状态：存在用户未提交修改，必须保留：
   - `scripts/verify_server_boundary.py`
   - `src/gametest/java/com/github/ysbbbbbb/kaleidoscopecookery/gametest/KaleidoscopeCookeryGameTests.java`
@@ -439,6 +439,9 @@
 | 2026-07-22 | 最终 clean 默认构建与全验证脚本 | 成功 | 精确命令 `.\gradlew.bat clean runDatagen build runGameTest --warning-mode all --console=plain` 用无可选模组 runtime 完成 2209 recipes / 1859 advancements、99/99 required tests、build/datagen 成功；随后 `Get-ChildItem scripts -Filter "verify_*.py"` 循环执行全部 12/12 脚本通过，datagen 状态无漂移 | VERIFIED |
 | 2026-07-22 | 本地主 JAR、元数据、workflow 与依赖边界终检 | 成功 | `kaleidoscopecookery-1.1.0.7-fabric+mc26.2.jar` 为 5,464,091 bytes / 5,248 entries / SHA-256 `2801DE6F1F07C9A29053697E82765520E7940D1372ABA2863A5372149E7A87B5`，内部 `fabric.mod.json` 版本一致；无 `mcp.mobius`、`tschipp.carryon`、`net.kyrptonaught.diggusmaximus`、`lol.bai` 类或本地路径条目。默认 `runtimeClasspath` 无 WTHIT/Bad Packets/Carry On/Diggus Maximus；Ruby YAML parser 验证 workflow 语法，workflow 只选择上述精确主 JAR，不会上传 sources JAR | VERIFIED |
 | 2026-07-22 | 分支提交、推送、GitHub Actions 与 snapshot 资产核验 | 成功 | 功能提交 `5ca9e75c0a2f53d9d10a7c2afb45f6a77bc68832` 已仅推送到 `origin/26.2-fabric`。明确仓库 Actions run [`29912633321`](https://github.com/CasseShimada/KaleidoscopeCookery/actions/runs/29912633321) 在 Ubuntu / Microsoft JDK 25 完成 datagen 无漂移、build、99/99 GameTest、12/12 验证脚本与版本/主 JAR 校验，结论 `success`。snapshot `snapshot-2026-07-22-10-39-21` 非 draft、prerelease，精确指向该提交且只有主 JAR；GitHub digest 与下载复核均为 SHA-256 `D530AFFB38F842480ADF9CD8247FC01904ABDEEDED9D8FA1A2F721315B0DA76A`，5,309,809 bytes / 5,246 entries，内部版本 `1.1.0.7-fabric+mc26.2` | VERIFIED |
+| 2026-07-22 | 版本标签、标签触发审计与不可变恢复 | 成功 | 轻量标签 `1.1.0.7-fabric+mc26.2` 已推送并精确指向完整审计提交 `e85f1acbc3140912bbbc3dab61f8b96fa0f9b9cf`。首次 tag push 因 ref filter 中的 `+` 未按 GitHub glob 规则转义而未生成 run；未删除、移动或覆盖该标签，而是以同一 workflow 的 `workflow_dispatch --ref 1.1.0.7-fabric+mc26.2` 在精确 tag ref 上启动 [`29913071529`](https://github.com/CasseShimada/KaleidoscopeCookery/actions/runs/29913071529)。该 run 的 `headBranch` 为版本标签、`headSha` 为 `e85f1ac...`，Ubuntu / Microsoft JDK 25 的完整构建、datagen 无漂移、99/99 GameTest、12/12 验证脚本、版本校验与正式发布步骤全部成功；snapshot 步骤按 tag ref 跳过 | VERIFIED |
+| 2026-07-22 | 正式 Release 与远端 Actions 资产终检 | 成功 | 正式 Release [`1.1.0.7-fabric+mc26.2`](https://github.com/CasseShimada/KaleidoscopeCookery/releases/tag/1.1.0.7-fabric%2Bmc26.2) 非 draft、非 prerelease，并由 `/releases/latest` 返回为 latest stable；tag、Release `targetCommitish` 与 tag Actions 均为 `e85f1ac...`。Release 只有 `kaleidoscopecookery-1.1.0.7-fabric+mc26.2.jar` 一个资产，5,309,809 bytes / 5,246 entries；GitHub digest 与隔离下载 SHA-256 均为 `D530AFFB38F842480ADF9CD8247FC01904ABDEEDED9D8FA1A2F721315B0DA76A`，内部版本精确一致，sources/dev/错误平台资产及 WTHIT/Bad Packets/Carry On/Diggus Maximus 类均为 0 | VERIFIED |
+| 2026-07-22 | 后续标签过滤器修正与分支 CI | 成功 | 提交 `14dbdcb4f17fef47ae53de89bba40a475e48087c` 将版本 tag filter 改为单引号 YAML 中的 `*-fabric\+mc26.2`，使 `+` 按 GitHub ref glob 规则作为字面量；Ruby YAML parser 与 `git diff --check` 通过。推送后的明确仓库 Actions run [`29913393144`](https://github.com/CasseShimada/KaleidoscopeCookery/actions/runs/29913393144) 在该提交完成 clean 构建、datagen、99/99 GameTest、12 个验证脚本、版本校验及 snapshot 发布，结论 `success`，正式发布步骤按 branch ref 跳过。既有版本标签继续保持不可变并指向 `e85f1ac...` | VERIFIED |
 
 GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `build/run/gameTest/logs/latest.log`，但任务退出码为 0、服务端完成保存与关闭，不影响本次 53 项测试结论；后续若复现为残留进程则单独调查。
 
@@ -511,8 +514,8 @@ GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `buil
 
 ## 1.1.0.7 发布冻结规则
 
-本地代码、版本、自动化和主 JAR 输入已经冻结，功能提交的明确仓库分支 Actions run `29912633321` 已成功。此后的审计-only 提交不改变生产输入；版本标签必须指向包含本行远端证据的最终审计提交，并与 `mod_version` 完全一致为 `1.1.0.7-fabric+mc26.2`。正式资产必须由该标签 Actions 重建并上传。不得手工上传本地 JAR、删除旧 snapshot/Release 或修改三个参考仓库。用户原世界和启动器实例不在本轮部署范围，继续保持不动。
+本地代码、版本和主 JAR 输入已经冻结；功能分支 Actions run `29912633321` 与精确 tag ref Actions run `29913071529` 均已成功。版本标签保持指向包含发布前完整审计的 `e85f1acbc3140912bbbc3dab61f8b96fa0f9b9cf`，并与 `mod_version` 完全一致为 `1.1.0.7-fabric+mc26.2`；正式资产已由该 tag ref 的 Actions 重建并上传。标签发布后只有未来触发器转义修正 `14dbdcb4` 及本审计记录位于分支后继提交，不改变版本代码或正式 JAR，且不得通过移动既有标签回填。不得手工上传本地 JAR、删除旧 snapshot/Release 或修改三个参考仓库。用户原世界和启动器实例不在本轮部署范围，继续保持不动。
 
 ## 给后续模型的接手摘要
 
-1.1.0.7 本地验证已完成：默认 99/99、Diggus 隔离 99/99、WTHIT 专服 99/99、Carry blacklist 与三模组组合 108/108、Carry whitelist 定向 1/1、三模组客户端共同加载、12/12 静态脚本。主 JAR 为 5,464,091 bytes / 5,248 entries / SHA-256 `2801DE6F1F07C9A29053697E82765520E7940D1372ABA2863A5372149E7A87B5`，第三方类/本地路径为 0。分支 Actions `29912633321` 已成功，远端 snapshot 单一主 JAR 为 5,309,809 bytes / SHA-256 `D530AFFB38F842480ADF9CD8247FC01904ABDEEDED9D8FA1A2F721315B0DA76A`；正式权威值仍必须取自标签 Actions 下载资产。若正式发布尚未完成，创建精确版本标签并监控；若已经完成，只核验 run、tag target、Release flags、单一主 JAR 的内部版本/大小/digest，不再改动标签提交。三个参考仓库、用户世界、启动器和外部进程均未修改。
+1.1.0.7 已正式发布。标签 `1.1.0.7-fabric+mc26.2` 与正式 run `29913071529` 精确指向 `e85f1acbc3140912bbbc3dab61f8b96fa0f9b9cf`；Release 非 draft、非 prerelease、为 latest stable，唯一主 JAR 为 5,309,809 bytes / 5,246 entries / SHA-256 `D530AFFB38F842480ADF9CD8247FC01904ABDEEDED9D8FA1A2F721315B0DA76A`，GitHub digest、隔离下载与内部版本一致。默认 99/99、Diggus 隔离 99/99、WTHIT 专服 99/99、Carry blacklist 与三模组组合 108/108、Carry whitelist 定向 1/1、三模组客户端共同加载、12/12 静态脚本均已验证。未来 tag filter 的字面 `+` 转义修正为分支提交 `14dbdcb4`，run `29913393144` 成功；不得移动既有版本标签。三个参考仓库、用户世界、启动器和外部进程均未修改。
