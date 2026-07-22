@@ -438,6 +438,7 @@
 | 2026-07-22 | 三模组同时安装组合专服与客户端测试 | 成功 | `runGameTest` 同时传入两个本地 API JAR property 和 `-PwthitCompatSmoke=true`，loader 实际加载 Carry On 2.9.1、Diggus Maximus 1.5.9-beta.1+26.2、WTHIT 20.0.0/Bad Packets 0.12.2，108/108 required tests。对应 `runClientGameTest -PclientCompatGameTests=true` 三模组组合正常结束，Cookery WTHIT common/client 双入口、Diggus 初始化和 Carry 资源均在同一 loader graph 完成，资源/渲染/声音启动无 Cookery plugin 错误 | VERIFIED |
 | 2026-07-22 | 最终 clean 默认构建与全验证脚本 | 成功 | 精确命令 `.\gradlew.bat clean runDatagen build runGameTest --warning-mode all --console=plain` 用无可选模组 runtime 完成 2209 recipes / 1859 advancements、99/99 required tests、build/datagen 成功；随后 `Get-ChildItem scripts -Filter "verify_*.py"` 循环执行全部 12/12 脚本通过，datagen 状态无漂移 | VERIFIED |
 | 2026-07-22 | 本地主 JAR、元数据、workflow 与依赖边界终检 | 成功 | `kaleidoscopecookery-1.1.0.7-fabric+mc26.2.jar` 为 5,464,091 bytes / 5,248 entries / SHA-256 `2801DE6F1F07C9A29053697E82765520E7940D1372ABA2863A5372149E7A87B5`，内部 `fabric.mod.json` 版本一致；无 `mcp.mobius`、`tschipp.carryon`、`net.kyrptonaught.diggusmaximus`、`lol.bai` 类或本地路径条目。默认 `runtimeClasspath` 无 WTHIT/Bad Packets/Carry On/Diggus Maximus；Ruby YAML parser 验证 workflow 语法，workflow 只选择上述精确主 JAR，不会上传 sources JAR | VERIFIED |
+| 2026-07-22 | 分支提交、推送、GitHub Actions 与 snapshot 资产核验 | 成功 | 功能提交 `5ca9e75c0a2f53d9d10a7c2afb45f6a77bc68832` 已仅推送到 `origin/26.2-fabric`。明确仓库 Actions run [`29912633321`](https://github.com/CasseShimada/KaleidoscopeCookery/actions/runs/29912633321) 在 Ubuntu / Microsoft JDK 25 完成 datagen 无漂移、build、99/99 GameTest、12/12 验证脚本与版本/主 JAR 校验，结论 `success`。snapshot `snapshot-2026-07-22-10-39-21` 非 draft、prerelease，精确指向该提交且只有主 JAR；GitHub digest 与下载复核均为 SHA-256 `D530AFFB38F842480ADF9CD8247FC01904ABDEEDED9D8FA1A2F721315B0DA76A`，5,309,809 bytes / 5,246 entries，内部版本 `1.1.0.7-fabric+mc26.2` | VERIFIED |
 
 GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `build/run/gameTest/logs/latest.log`，但任务退出码为 0、服务端完成保存与关闭，不影响本次 53 项测试结论；后续若复现为残留进程则单独调查。
 
@@ -510,8 +511,8 @@ GameTest 退出后 Gradle/Log4j 报告 Windows 无法删除仍被占用的 `buil
 
 ## 1.1.0.7 发布冻结规则
 
-本地代码、版本、审计、自动化和主 JAR 输入已经冻结。发布只允许先将这些更改推送到 `origin/26.2-fabric` 并等待明确仓库 `CasseShimada/KaleidoscopeCookery` 的分支 Actions 成功，再创建与 `mod_version` 完全一致的 `1.1.0.7-fabric+mc26.2` 标签；正式资产必须由该标签 Actions 重建并上传。不得手工上传本地 JAR、删除旧 snapshot/Release 或修改三个参考仓库。用户原世界和启动器实例不在本轮部署范围，继续保持不动。
+本地代码、版本、自动化和主 JAR 输入已经冻结，功能提交的明确仓库分支 Actions run `29912633321` 已成功。此后的审计-only 提交不改变生产输入；版本标签必须指向包含本行远端证据的最终审计提交，并与 `mod_version` 完全一致为 `1.1.0.7-fabric+mc26.2`。正式资产必须由该标签 Actions 重建并上传。不得手工上传本地 JAR、删除旧 snapshot/Release 或修改三个参考仓库。用户原世界和启动器实例不在本轮部署范围，继续保持不动。
 
 ## 给后续模型的接手摘要
 
-1.1.0.7 本地验证已完成：默认 99/99、Diggus 隔离 99/99、WTHIT 专服 99/99、Carry blacklist 与三模组组合 108/108、Carry whitelist 定向 1/1、三模组客户端共同加载、12/12 静态脚本。主 JAR 为 5,464,091 bytes / 5,248 entries / SHA-256 `2801DE6F1F07C9A29053697E82765520E7940D1372ABA2863A5372149E7A87B5`，第三方类/本地路径为 0；这只是本地证据，正式权威值必须取自标签 Actions 下载资产。若远端发布尚未完成，按上一节顺序继续；若已经完成，只核验 run、tag target、Release flags、单一主 JAR 的内部版本/大小/digest，不再改动标签提交。三个参考仓库、用户世界、启动器和外部进程均未修改。
+1.1.0.7 本地验证已完成：默认 99/99、Diggus 隔离 99/99、WTHIT 专服 99/99、Carry blacklist 与三模组组合 108/108、Carry whitelist 定向 1/1、三模组客户端共同加载、12/12 静态脚本。主 JAR 为 5,464,091 bytes / 5,248 entries / SHA-256 `2801DE6F1F07C9A29053697E82765520E7940D1372ABA2863A5372149E7A87B5`，第三方类/本地路径为 0。分支 Actions `29912633321` 已成功，远端 snapshot 单一主 JAR 为 5,309,809 bytes / SHA-256 `D530AFFB38F842480ADF9CD8247FC01904ABDEEDED9D8FA1A2F721315B0DA76A`；正式权威值仍必须取自标签 Actions 下载资产。若正式发布尚未完成，创建精确版本标签并监控；若已经完成，只核验 run、tag target、Release flags、单一主 JAR 的内部版本/大小/digest，不再改动标签提交。三个参考仓库、用户世界、启动器和外部进程均未修改。
