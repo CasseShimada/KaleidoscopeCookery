@@ -1,0 +1,103 @@
+name: Gradle Package 26.1.2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "26.1.2-fabric"
+    tags:
+      - '*-fabric\+mc26.1.2'
+    paths:
+      - 'src/main/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'settings.gradle'
+      - 'gradle/wrapper/gradle-wrapper.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/workflows/gradle-publish-26.1.2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+          server-id: github
+          settings-path: ${{ github.workspace }}
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build --warning-mode all
+
+      - name: Validate release version
+        id: version
+        shell: bash
+        run: |
+          version="$(sed -n 's/^mod_version=//p' gradle.properties)"
+          if [ -z "$version" ]; then
+            echo "mod_version is missing"
+            exit 1
+          fi
+          if [ "${{ github.ref_type }}" = "tag" ] && [ "${{ github.ref_name }}" != "$version" ]; then
+            echo "Tag ${{ github.ref_name }} does not match mod_version $version"
+            exit 1
+          fi
+          jar="build/libs/kaleidoscopecookery-${version}.jar"
+          if [ ! -f "$jar" ]; then
+            echo "Expected release artifact is missing: $jar"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "jar=$jar" >> "$GITHUB_OUTPUT"
+
+      - name: Upload branch build artifact
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaleidoscopecookery-${{ steps.version.outputs.version }}
+          path: ${{ steps.version.outputs.jar }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish formal release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          name: Kaleidoscope Cookery ${{ steps.version.outputs.version }}
+          body: |
+            Formal Minecraft 26.1.2 Fabric release built and tested by GitHub Actions from `${{ github.sha }}`.
+          draft: false
+          prerelease: false
+          make_latest: false
+          files: ${{ steps.version.outputs.jar }}
+
+      - name: Cleanup Gradle Cache
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
