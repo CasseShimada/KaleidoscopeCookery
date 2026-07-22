@@ -191,6 +191,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.VillagerTrade;
 import net.minecraft.world.level.GameType;
@@ -222,6 +223,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -1105,22 +1107,70 @@ public final class KaleidoscopeCookeryGameTests {
 
     @GameTest
     public void farmersDelightCookingRecipeCompatUsesTargetApiWhenInstalled(GameTestHelper helper) {
-        if (!FabricLoader.getInstance().isModLoaded(FarmersDelightCompat.ID)) {
+        if (!FarmersDelightCompat.isInstalled()) {
+            helper.assertFalse(FarmersDelightCompat.isLoaded(),
+                    "Farmer's Delight compatibility activated while the optional mod was absent");
+            helper.assertTrue(FarmersDelightCompat.installedVersion().isEmpty(),
+                    "Farmer's Delight reported an installed version while absent");
+            List<RecipeHolder<StockpotRecipe>> absentRecipes = new ArrayList<>();
+            FarmersDelightCompat.appendStockpotRecipes(helper.getLevel(), absentRecipes);
+            helper.assertTrue(absentRecipes.isEmpty(),
+                    "Farmer's Delight recipes appeared while the optional mod was absent");
+            helper.assertTrue(FarmersDelightCompat.findMatchingRecipe(
+                            helper.getLevel(), new StockpotInput(
+                                    List.of(Items.BEEF.getDefaultInstance()),
+                                    StockpotRecipeSerializer.DEFAULT_SOUP_BASE)) == null,
+                    "Farmer's Delight matching touched target classes while the mod was absent");
             helper.succeed();
             return;
         }
 
-        record ExpectedRecipe(String path, String output, int ingredients, int time) {}
+        helper.assertTrue(FarmersDelightCompat.isLoaded(),
+                "Installed Farmer's Delight did not satisfy Cookery's tested version predicate");
+        helper.assertValueEqual(FarmersDelightCompat.installedVersion().orElseThrow(),
+                "26.2-3.6.8+refabricated",
+                "Farmer's Delight integration did not load the audited release");
+
+        record ExpectedRecipe(String namespace, String path, String output, int outputCount,
+                              int ingredients, int time, Item carrier) {}
         List<ExpectedRecipe> expectedRecipes = List.of(
-                new ExpectedRecipe("cooking/beef_stew", "beef_stew", 3, 200),
-                new ExpectedRecipe("cooking/dumplings", "dumplings", 4, 200),
-                new ExpectedRecipe("cooking/cabbage_rolls", "cabbage_rolls", 2, 100)
+                new ExpectedRecipe("farmersdelight", "cooking/beef_stew",
+                        "farmersdelight:beef_stew", 1, 3, 200, Items.BOWL),
+                new ExpectedRecipe("farmersdelight", "cooking/dumplings",
+                        "farmersdelight:dumplings", 2, 4, 200, null),
+                new ExpectedRecipe("farmersdelight", "cooking/cabbage_rolls",
+                        "farmersdelight:cabbage_rolls", 1, 2, 100, null),
+                new ExpectedRecipe("kaleidoscope_cookery_gametest", "farmers_delight/component_container",
+                        "minecraft:cookie", 2, 3, 37, Items.GLASS_BOTTLE),
+                new ExpectedRecipe("kaleidoscope_cookery_gametest",
+                        "farmers_delight/implicit_override_container",
+                        "minecraft:experience_bottle", 1, 2, 19, Items.GLASS_BOTTLE)
         );
         List<RecipeHolder<StockpotRecipe>> displayedRecipes = new ArrayList<>();
         FarmersDelightCompat.appendStockpotRecipes(helper.getLevel(), displayedRecipes);
+        int firstAppendCount = displayedRecipes.size();
+        FarmersDelightCompat.appendStockpotRecipes(helper.getLevel(), displayedRecipes);
+
+        RecipeType<?> cookingType = BuiltInRegistries.RECIPE_TYPE.getValue(
+                Identifier.fromNamespaceAndPath("farmersdelight", "cooking"));
+        long rawCookingRecipeCount = helper.getLevel().recipeAccess().getRecipes().stream()
+                .filter(holder -> holder.value().getType() == cookingType)
+                .count();
+        helper.assertValueEqual(firstAppendCount, Math.toIntExact(rawCookingRecipeCount),
+                "Recipe viewers omitted a Farmer's Delight cooking recipe");
+        helper.assertValueEqual(displayedRecipes.size(), firstAppendCount,
+                "Appending Farmer's Delight recipes twice produced viewer duplicates");
+        helper.assertValueEqual(displayedRecipes.stream()
+                        .map(holder -> holder.id().identifier()).distinct().count(),
+                (long) displayedRecipes.size(),
+                "Converted Farmer's Delight viewer recipes contain duplicate IDs");
+        Set<Integer> representedInputCounts = new HashSet<>();
+        displayedRecipes.forEach(holder -> representedInputCounts.add(holder.value().ingredients().size()));
+        helper.assertValueEqual(representedInputCounts, Set.of(1, 2, 3, 4, 5, 6),
+                "The target recipe set no longer exercises every supported 1..6 input count");
 
         for (ExpectedRecipe expected : expectedRecipes) {
-            Identifier recipeId = Identifier.fromNamespaceAndPath("farmersdelight", expected.path());
+            Identifier recipeId = Identifier.fromNamespaceAndPath(expected.namespace(), expected.path());
             ResourceKey<Recipe<?>> recipeKey = ResourceKey.create(Registries.RECIPE, recipeId);
             RecipeHolder<?> raw = helper.getLevel().recipeAccess().byKey(recipeKey)
                     .orElseThrow(() -> helper.assertionException(
@@ -1132,27 +1182,228 @@ public final class KaleidoscopeCookeryGameTests {
             StockpotRecipe recipe = converted.value();
             helper.assertValueEqual(recipe.ingredients().size(), expected.ingredients(),
                     "Converted Farmer's Delight recipe changed its ingredient count: " + recipeId);
-            helper.assertTrue(recipe.result().create().is(BuiltInRegistries.ITEM.getValue(
-                            Identifier.fromNamespaceAndPath("farmersdelight", expected.output()))),
+            ItemStack result = recipe.result().create();
+            helper.assertTrue(result.is(BuiltInRegistries.ITEM.getValue(
+                            Identifier.parse(expected.output()))),
                     "Converted Farmer's Delight recipe changed its output: " + recipeId);
+            helper.assertValueEqual(result.getCount(), expected.outputCount(),
+                    "Converted Farmer's Delight recipe changed its output count: " + recipeId);
             helper.assertValueEqual(recipe.time(), expected.time(),
                     "Converted Farmer's Delight recipe changed its cooking time: " + recipeId);
-            helper.assertTrue(recipe.carrier().isPresent()
-                            && recipe.carrier().get().test(Items.BOWL.getDefaultInstance()),
-                    "Converted Farmer's Delight recipe did not retain its bowl container: " + recipeId);
+            if (expected.carrier() == null) {
+                helper.assertTrue(recipe.carrier().isEmpty(),
+                        "Converted Farmer's Delight recipe invented a serving container: " + recipeId);
+            } else {
+                helper.assertTrue(recipe.carrier().isPresent()
+                                && recipe.carrier().orElseThrow().test(
+                                expected.carrier().getDefaultInstance()),
+                        "Converted Farmer's Delight recipe did not retain its serving container: " + recipeId);
+            }
 
-            List<ItemStack> inputs = recipe.ingredients().stream()
+            if (expected.path().equals("farmers_delight/component_container")) {
+                CustomData customData = result.get(DataComponents.CUSTOM_DATA);
+                helper.assertTrue(customData != null
+                                && customData.copyTag().getStringOr(
+                                        "farmers_delight_compat", "").equals("preserved"),
+                        "Converted Farmer's Delight recipe lost result components");
+                helper.assertTrue(recipe.ingredients().get(0).test(Items.AMETHYST_SHARD.getDefaultInstance())
+                                && recipe.ingredients().get(1).test(
+                                Items.AMETHYST_SHARD.getDefaultInstance()),
+                        "Converted Farmer's Delight recipe lost repeated ingredients");
+            }
+
+            List<ItemStack> inputs = new ArrayList<>();
+            inputs.add(ItemStack.EMPTY);
+            recipe.ingredients().stream()
                     .map(ingredient -> ingredient.items().findFirst().orElseThrow().value().getDefaultInstance())
-                    .toList();
+                    .forEach(inputs::add);
+            inputs.add(ItemStack.EMPTY);
+            StockpotInput sparseInput = new StockpotInput(
+                    inputs, StockpotRecipeSerializer.DEFAULT_SOUP_BASE);
+            helper.assertTrue(recipe.matches(sparseInput, helper.getLevel()),
+                    "Converted Farmer's Delight recipe rejected valid sparse stockpot slots: " + recipeId);
+            List<ItemStack> extraInput = new ArrayList<>(inputs);
+            extraInput.add(Items.STONE.getDefaultInstance());
+            helper.assertFalse(recipe.matches(new StockpotInput(
+                            extraInput, StockpotRecipeSerializer.DEFAULT_SOUP_BASE), helper.getLevel()),
+                    "Converted Farmer's Delight recipe accepted an extra non-empty ingredient: " + recipeId);
             RecipeHolder<StockpotRecipe> matched = FarmersDelightCompat.findMatchingRecipe(
-                    helper.getLevel(), new StockpotInput(inputs, StockpotRecipeSerializer.DEFAULT_SOUP_BASE));
+                    helper.getLevel(), sparseInput);
             helper.assertTrue(matched != null && matched.id().identifier().equals(recipeId),
                     "Cookery stockpot input did not match the installed Farmer's Delight recipe: " + recipeId);
             helper.assertTrue(displayedRecipes.stream()
                             .anyMatch(holder -> holder.id().identifier().equals(recipeId)),
                     "Recipe viewers did not receive the converted Farmer's Delight recipe: " + recipeId);
         }
+
+        TagKey<Item> legacyVegetables = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "vegetables"));
+        TagKey<Item> modernVegetables = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "foods/vegetable"));
+        TagKey<Item> modernTomatoes = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "foods/tomato"));
+        TagKey<Item> modernKnives = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "tools/knife"));
+        TagKey<Item> farmersKnives = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("farmersdelight", "tools/knives"));
+        TagKey<Item> cookedRice = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "cooked_rice"));
+        TagKey<Item> cookedRiceFood = TagKey.create(
+                Registries.ITEM, Identifier.fromNamespaceAndPath("c", "foods/cooked_rice"));
+        TagKey<Block> ricePlantable = TagKey.create(
+                Registries.BLOCK, Identifier.fromNamespaceAndPath(
+                        KaleidoscopeCookery.MOD_ID, "rice_plantable"));
+        Item farmersCabbage = BuiltInRegistries.ITEM.getValue(
+                Identifier.fromNamespaceAndPath("farmersdelight", "cabbage"));
+        Item farmersOnion = BuiltInRegistries.ITEM.getValue(
+                Identifier.fromNamespaceAndPath("farmersdelight", "onion"));
+        Item farmersCookedRice = BuiltInRegistries.ITEM.getValue(
+                Identifier.fromNamespaceAndPath("farmersdelight", "cooked_rice"));
+        Item farmersIronKnife = BuiltInRegistries.ITEM.getValue(
+                Identifier.fromNamespaceAndPath("farmersdelight", "iron_knife"));
+        Block richSoilFarmland = BuiltInRegistries.BLOCK.getValue(
+                Identifier.fromNamespaceAndPath("farmersdelight", "rich_soil_farmland"));
+        helper.assertTrue(farmersCabbage.getDefaultInstance().is(legacyVegetables)
+                        && farmersOnion.getDefaultInstance().is(legacyVegetables),
+                "Cookery's legacy vegetable recipes did not accept Farmer's Delight vegetables");
+        helper.assertTrue(ModItems.TOMATO.getDefaultInstance().is(modernVegetables)
+                        && ModItems.LETTUCE.getDefaultInstance().is(modernVegetables)
+                        && ModItems.RED_CHILI.getDefaultInstance().is(modernVegetables),
+                "Farmer's Delight modern vegetable recipes did not accept Cookery vegetables");
+        helper.assertTrue(ModItems.TOMATO.getDefaultInstance().is(modernTomatoes),
+                "Farmer's Delight modern tomato recipes did not accept Cookery tomatoes");
+        helper.assertTrue(farmersCookedRice.getDefaultInstance().is(cookedRice)
+                        && farmersCookedRice.getDefaultInstance().is(cookedRiceFood),
+                "Cookery cooked-rice tags did not accept Farmer's Delight cooked rice");
+        helper.assertTrue(farmersIronKnife.getDefaultInstance().is(TagMod.KITCHEN_KNIFE)
+                        && ModItems.IRON_KITCHEN_KNIFE.getDefaultInstance().is(modernKnives)
+                        && ModItems.IRON_KITCHEN_KNIFE.getDefaultInstance().is(farmersKnives),
+                "Cookery and Farmer's Delight did not accept each other's knife tags");
+        helper.assertTrue(richSoilFarmland.defaultBlockState().is(ricePlantable),
+                "Cookery rice could not be planted on Farmer's Delight rich soil farmland");
         helper.succeed();
+    }
+
+    @GameTest(maxTicks = 120)
+    public void farmersDelightRecipeActuallyCompletesInStockpot(GameTestHelper helper) {
+        if (!FarmersDelightCompat.isLoaded()) {
+            helper.succeed();
+            return;
+        }
+
+        BlockPos heatPos = new BlockPos(1, 1, 1);
+        BlockPos stockpotPos = heatPos.above();
+        helper.setBlock(heatPos, Blocks.MAGMA_BLOCK);
+        helper.setBlock(stockpotPos, ModBlocks.STOCKPOT);
+        StockpotBlockEntity stockpot = helper.getBlockEntity(stockpotPos, StockpotBlockEntity.class);
+        ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.CREATIVE);
+        moveIntoTest(helper, player, new BlockPos(2, 2, 1));
+        helper.assertTrue(stockpot.addSoupBase(
+                        helper.getLevel(), player, Items.WATER_BUCKET.getDefaultInstance()),
+                "Stockpot rejected water for the Farmer's Delight fixture");
+        helper.assertTrue(stockpot.addIngredient(
+                        helper.getLevel(), player, Items.AMETHYST_SHARD.getDefaultInstance())
+                        && stockpot.addIngredient(
+                        helper.getLevel(), player, Items.AMETHYST_SHARD.getDefaultInstance())
+                        && stockpot.addIngredient(
+                        helper.getLevel(), player, Items.ECHO_SHARD.getDefaultInstance()),
+                "Stockpot rejected Farmer's Delight fixture ingredients");
+        helper.assertTrue(stockpot.onLitClick(
+                        helper.getLevel(), player, ModItems.STOCKPOT_LID.getDefaultInstance()),
+                "Stockpot rejected its lid before Farmer's Delight cooking");
+
+        helper.runAfterDelay(70, () -> {
+            helper.assertValueEqual(stockpot.getStatus(), StockpotBlockEntity.FINISHED,
+                    "Stockpot did not complete the Farmer's Delight recipe");
+            helper.assertTrue(stockpot.getInputs().stream().allMatch(ItemStack::isEmpty),
+                    "Stockpot did not clear completed Farmer's Delight inputs");
+            ItemStack result = stockpot.getResult();
+            helper.assertTrue(result.is(Items.COOKIE) && result.getCount() == 2,
+                    "Stockpot did not retain the Farmer's Delight result item/count");
+            CustomData customData = result.get(DataComponents.CUSTOM_DATA);
+            helper.assertTrue(customData != null
+                            && customData.copyTag().getStringOr(
+                                    "farmers_delight_compat", "").equals("preserved"),
+                    "Stockpot completion lost Farmer's Delight result components");
+            helper.assertValueEqual(stockpot.getTakeoutCount(), 2,
+                    "Stockpot completion changed the Farmer's Delight serving count");
+            helper.assertTrue(stockpot.onLitClick(helper.getLevel(), player, ItemStack.EMPTY),
+                    "Stockpot rejected lid removal after Farmer's Delight cooking");
+
+            Cow user = helper.spawn(EntityTypes.COW, new BlockPos(3, 2, 1));
+            helper.assertFalse(stockpot.takeOutProduct(
+                            helper.getLevel(), user, Items.BOWL.getDefaultInstance()),
+                    "Stockpot accepted the wrong Farmer's Delight serving container");
+            helper.assertTrue(stockpot.takeOutProduct(
+                            helper.getLevel(), user, Items.GLASS_BOTTLE.getDefaultInstance()),
+                    "Stockpot rejected the explicit Farmer's Delight serving container");
+            CustomData servedData = user.getMainHandItem().get(DataComponents.CUSTOM_DATA);
+            helper.assertTrue(user.getMainHandItem().is(Items.COOKIE)
+                            && servedData != null
+                            && servedData.copyTag().getStringOr(
+                                    "farmers_delight_compat", "").equals("preserved"),
+                    "Stockpot serving lost the Farmer's Delight result or its components");
+            helper.assertValueEqual(stockpot.getTakeoutCount(), 1,
+                    "Stockpot consumed the wrong number of Farmer's Delight servings");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(maxTicks = 400)
+    public void farmersDelightRecipesSurviveServerDataPackReload(GameTestHelper helper) {
+        if (!FarmersDelightCompat.isLoaded()) {
+            helper.succeed();
+            return;
+        }
+
+        Identifier recipeId = Identifier.fromNamespaceAndPath(
+                "kaleidoscope_cookery_gametest", "farmers_delight/component_container");
+        ResourceKey<Recipe<?>> recipeKey = ResourceKey.create(Registries.RECIPE, recipeId);
+        helper.assertTrue(helper.getLevel().recipeAccess().byKey(recipeKey).isPresent(),
+                "Farmer's Delight reload fixture was missing before reload");
+
+        helper.runAfterDelay(80, () -> {
+            var server = helper.getLevel().getServer();
+            List<String> selectedPacks = List.copyOf(server.getPackRepository().getSelectedIds());
+            server.reloadResources(selectedPacks).whenComplete((unused, reloadFailure) ->
+                    server.execute(() -> helper.runAfterDelay(1, () -> {
+                        if (reloadFailure != null) {
+                            helper.fail("Farmer's Delight data-pack reload failed: " + reloadFailure);
+                            return;
+                        }
+                        try {
+                            RecipeHolder<?> raw = helper.getLevel().recipeAccess().byKey(recipeKey)
+                                    .orElseThrow(() -> helper.assertionException(
+                                            "Farmer's Delight fixture disappeared after reload"));
+                            RecipeHolder<StockpotRecipe> converted =
+                                    FarmersDelightCompat.tryTransformRecipeHolder(raw, helper.getLevel());
+                            helper.assertTrue(converted != null,
+                                    "Farmer's Delight fixture no longer converted after reload");
+                            ItemStack result = converted.value().result().create();
+                            CustomData customData = result.get(DataComponents.CUSTOM_DATA);
+                            helper.assertTrue(result.is(Items.COOKIE) && result.getCount() == 2
+                                            && customData != null
+                                            && customData.copyTag().getStringOr(
+                                            "farmers_delight_compat", "").equals("preserved"),
+                                    "Farmer's Delight result changed across data-pack reload");
+                            StockpotInput input = new StockpotInput(List.of(
+                                    ItemStack.EMPTY,
+                                    Items.AMETHYST_SHARD.getDefaultInstance(),
+                                    Items.ECHO_SHARD.getDefaultInstance(),
+                                    Items.AMETHYST_SHARD.getDefaultInstance(),
+                                    ItemStack.EMPTY), StockpotRecipeSerializer.DEFAULT_SOUP_BASE);
+                            RecipeHolder<StockpotRecipe> matched =
+                                    FarmersDelightCompat.findMatchingRecipe(helper.getLevel(), input);
+                            helper.assertTrue(matched != null
+                                            && matched.id().identifier().equals(recipeId),
+                                    "Farmer's Delight fixture no longer matched after data-pack reload");
+                            helper.succeed();
+                        } catch (Throwable exception) {
+                            helper.fail("Farmer's Delight post-reload assertion failed: "
+                                    + exception.getClass().getSimpleName() + ": " + exception.getMessage());
+                        }
+                    })));
+        });
     }
 
     @GameTest

@@ -1,0 +1,21 @@
+{
+  "type": "farmersdelight:cooking",
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "farmersdelight"
+      ]
+    }
+  ],
+  "recipe_book_tab": "drinks",
+  "ingredients": [
+    "minecraft:nether_star",
+    "minecraft:echo_shard"
+  ],
+  "result": {
+    "id": "minecraft:experience_bottle"
+  },
+  "experience": 0.0,
+  "cookingtime": 19
+}

@@ -43,7 +43,7 @@
     "wthit": ">=20.0.0",
     "roughlyenoughitems": "*",
     "foodeffecttooltips": "*",
-    "farmersdelight": "*",
+    "farmersdelight": "=${farmers_delight_mod_version}",
     "carryon": ">=2.9.1",
     "diggusmaximus": ">=1.5.9-beta.1"
   }

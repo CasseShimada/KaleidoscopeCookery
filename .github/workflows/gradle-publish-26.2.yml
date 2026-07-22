@@ -62,6 +62,7 @@ jobs:
             exit 1
           fi
           ./gradlew build runGameTest --warning-mode all
+          ./gradlew -PfarmersDelightCompatSmoke=true runGameTest --warning-mode all
           for verifier in scripts/verify_*.py; do
             python3 "$verifier"
           done

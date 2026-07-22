@@ -109,10 +109,9 @@ dependencies {
     // REI's public EntryStacks signatures expose Architectury FluidStack even for item-only calls.
     clientCompileOnly "maven.modrinth:architectury-api:${project.architectury_version}"
     clientCompileOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
-
     // Opt-in runtime used only by the reproducible optional-integration GameTest command.
     if (project.findProperty("farmersDelightCompatSmoke") == "true") {
-        runtimeOnly "maven.modrinth:farmers-delight-refabricated:26.2-3.6.7"
+        runtimeOnly "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
     }
     // Opt-in local API 1 builds. Their public APIs are not remotely published yet, so these
     // source sets and runtimes never participate in the default/release build.
@@ -138,7 +137,7 @@ dependencies {
         runtimeOnly "maven.modrinth:cloth-config:26.2.155+fabric"
         runtimeOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
         runtimeOnly "maven.modrinth:foodeffecttooltips:2.1.2+26.2"
-        runtimeOnly "maven.modrinth:farmers-delight-refabricated:26.2-3.6.7"
+        runtimeOnly "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
     }
 }
 
@@ -151,10 +150,14 @@ if (project.findProperty("diggusMaximusCompatJar")) {
 
 configurations {
     wthitApiArtifact
+    farmersDelightCompatArtifact
 }
 
 dependencies {
     wthitApiArtifact "com.github.casseshimada.wthit:wthit:${project.wthit_version}:api"
+    farmersDelightCompatArtifact("maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}") {
+        transitive = false
+    }
 }
 
 def expectedWthitApiSha256 = project.wthit_api_sha256
@@ -173,20 +176,65 @@ tasks.register("verifyWthitApiArtifact") {
     }
 }
 
+def expectedFarmersDelightSha256 = project.farmers_delight_sha256
+def expectedFarmersDelightInternalVersion = "${project.farmers_delight_version}+refabricated"
+def expectedFarmersDelightMinecraftRequirement = "~${project.minecraft_version}"
+tasks.register("verifyFarmersDelightCompatArtifact") {
+    inputs.files(configurations.farmersDelightCompatArtifact)
+    inputs.property("expectedSha256", expectedFarmersDelightSha256)
+    inputs.property("expectedInternalVersion", expectedFarmersDelightInternalVersion)
+    inputs.property("expectedMinecraftRequirement", expectedFarmersDelightMinecraftRequirement)
+    doLast {
+        File artifact = configurations.farmersDelightCompatArtifact.singleFile
+        String digest = java.security.MessageDigest.getInstance("SHA-256")
+                .digest(artifact.bytes)
+                .encodeHex()
+                .toString()
+        if (artifact.length() != 3467451L || digest != expectedFarmersDelightSha256) {
+            throw new GradleException("Unexpected Farmer's Delight artifact: ${artifact.name}, ${artifact.length()} bytes, SHA-256 ${digest}")
+        }
+
+        java.util.zip.ZipFile zip = new java.util.zip.ZipFile(artifact)
+        try {
+            def metadataEntry = zip.getEntry("fabric.mod.json")
+            def classTweakerEntry = zip.getEntry("farmersdelight.classtweaker")
+            if (metadataEntry == null || classTweakerEntry == null
+                    || zip.getEntry("vectorwing/farmersdelight/common/crafting/CookingPotRecipe.class") == null) {
+                throw new GradleException("Farmer's Delight artifact is missing its audited compatibility entries")
+            }
+            def metadata = new groovy.json.JsonSlurper().parseText(
+                    zip.getInputStream(metadataEntry).getText("UTF-8"))
+            String classTweakerHeader = zip.getInputStream(classTweakerEntry)
+                    .withReader("UTF-8") { it.readLine() }
+            if (metadata.id != "farmersdelight"
+                    || metadata.version != expectedFarmersDelightInternalVersion
+                    || metadata.depends?.minecraft != expectedFarmersDelightMinecraftRequirement
+                    || classTweakerHeader != "classTweaker v2 official") {
+                throw new GradleException("Farmer's Delight artifact metadata does not match the audited 26.2 release")
+            }
+        } finally {
+            zip.close()
+        }
+    }
+}
+
 tasks.named("compileJava") {
     dependsOn(tasks.named("verifyWthitApiArtifact"))
+    dependsOn(tasks.named("verifyFarmersDelightCompatArtifact"))
 }
 
 def modVersion = project.version
 def minecraftVersion = project.minecraft_version
 def loaderVersion = project.loader_version
 def fabricVersion = project.fabric_version
+def farmersDelightModVersion = "${project.farmers_delight_version}+refabricated"
 
 processResources {
     inputs.property "version", modVersion
     inputs.property "minecraft_version", minecraftVersion
     inputs.property "loader_version", loaderVersion
     inputs.property "fabric_version", fabricVersion
+    inputs.property "farmers_delight_mod_version", farmersDelightModVersion
     filteringCharset = "UTF-8"
 
     filesMatching("fabric.mod.json") {
@@ -194,7 +242,8 @@ processResources {
                 "version": modVersion,
                 "minecraft_version": minecraftVersion,
                 "loader_version": loaderVersion,
-                "fabric_version": fabricVersion
+                "fabric_version": fabricVersion,
+                "farmers_delight_mod_version": farmersDelightModVersion
         )
     }
 }

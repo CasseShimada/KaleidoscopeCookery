@@ -1,0 +1,31 @@
+{
+  "type": "farmersdelight:cooking",
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "farmersdelight"
+      ]
+    }
+  ],
+  "recipe_book_tab": "drinks",
+  "ingredients": [
+    "minecraft:amethyst_shard",
+    "minecraft:amethyst_shard",
+    "minecraft:echo_shard"
+  ],
+  "result": {
+    "id": "minecraft:cookie",
+    "count": 2,
+    "components": {
+      "minecraft:custom_data": {
+        "farmers_delight_compat": "preserved"
+      }
+    }
+  },
+  "container": {
+    "id": "minecraft:glass_bottle"
+  },
+  "experience": 2.5,
+  "cookingtime": 37
+}
